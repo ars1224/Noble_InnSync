@@ -1,11 +1,336 @@
 {% extends '_layout.html' %}
 
-{% block title %}Dashboard | Noble InnSync{% endblock %}
+{% block title %}Home | Noble InnSync{% endblock %}
+
 
 {% block content %}
 
-<h1>Noble InnSync Dashboard</h1>
+<section class="hero">
+    <div class="hero-content">
+        <img class="logo" src="/../static/img/BCO.e2f857cb-63dc-407a-aafb-4cbd96f84cd2.png" alt="The Noble InnSync Logo">
+        <h2>Where Comfort Feels Noble</h2>
+        <a type="button" href="#availability" class="btn btn-outline-warning">Book Now</a>
+        <a href="#track" class="manage-link">Manage Booking</a>
+    </div>
+</section>
 
-<p>Real-time apartelle booking and operations management system.</p>
+<section id="availability" class="availability-box">
+    <div class="field">
+        <label>Check In:</label>
+        <input type="date">
+    </div>
+
+    <div class="field">
+        <label>Check out:</label>
+        <input type="date">
+    </div>
+
+    <div class="field">
+        <label>Adult:</label>
+        <input type="number" min="1">
+    </div>
+
+    <div class="field">
+        <label>Child:</label>
+        <input type="number" min="0">
+    </div>
+
+    <button>Check Availability</button>
+</section>
+
+<section id="about" class="about-section">
+
+    <div class="about-text">
+        <p class="section-tag">ABOUT US</p>
+
+        <h2>Experience Comfort <br> Like Never Before</h2>
+
+        <p class="about-description">
+            At The Noble Inn, we provide comfortable and affordable stays
+            with a modern and seamless booking experience. Our goal is to
+            make every guest feel relaxed, welcomed, and at home.
+        </p>
+
+        <a href="#" class="about-btn">Explore Rooms</a>
+    </div>
+
+    <div class="about-image">
+        <img src="{{ url_for('static', filename='img/BCO.4a342cff-d6f3-4296-b81d-efc5c1fab770.png') }}" alt="Hotel Room">
+    </div>
+
+</section>
+
+<section id="rooms" class="rooms-section">
+
+    <div class="section-heading">
+        <p class="section-tag">OUR ROOMS</p>
+        <h2>Discover Our Elegant Rooms</h2>
+    </div>
+
+    <div class="card-grid">
+
+        <div class="room-card">
+            <div class="room-image">
+                <img src="{{ url_for('static', filename='img/room1.jpg') }}" alt="Deluxe Room">
+            </div>
+
+            <div class="room-content">
+                <h3>Deluxe Room</h3>
+
+                <p>
+                    A cozy and modern room perfect for couples and solo travelers.
+                </p>
+
+                <div class="room-footer">
+                    <span>$120 / Night</span>
+                    <a href="#">View Details</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="room-card">
+            <div class="room-image">
+                <img src="{{ url_for('static', filename='img/room2.jpg') }}" alt="Family Suite">
+            </div>
+
+            <div class="room-content">
+                <h3>Family Suite</h3>
+
+                <p>
+                    Spacious accommodation designed for families and groups.
+                </p>
+
+                <div class="room-footer">
+                    <span>$180 / Night</span>
+                    <a href="#">View Details</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="room-card">
+            <div class="room-image">
+                <img src="{{ url_for('static', filename='img/room3.jpg') }}" alt="Executive Room">
+            </div>
+
+            <div class="room-content">
+                <h3>Executive Room</h3>
+
+                <p>
+                    Premium comfort with luxury amenities and elegant interiors.
+                </p>
+
+                <div class="room-footer">
+                    <span>$250 / Night</span>
+                    <a href="#">View Details</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+
+<section class="amenities-section">
+
+    <div class="section-heading">
+        <p class="section-tag">AMENITIES & SERVICES</p>
+        <h2>Everything You Need For A Comfortable Stay</h2>
+    </div>
+
+    <div class="amenities-grid">
+
+        <div class="amenity-card">
+            <div class="amenity-icon">🛏️</div>
+            <h3>Luxury Rooms</h3>
+            <p>
+                Comfortable and modern rooms designed for relaxation and convenience.
+            </p>
+        </div>
+
+        <div class="amenity-card">
+            <div class="amenity-icon">📶</div>
+            <h3>Free Wi-Fi</h3>
+            <p>
+                Stay connected anytime with fast and reliable internet access.
+            </p>
+        </div>
+
+        <div class="amenity-card">
+            <div class="amenity-icon">☕</div>
+            <h3>Complimentary Breakfast</h3>
+            <p>
+                Enjoy fresh and delicious breakfast meals every morning.
+            </p>
+        </div>
+
+        <div class="amenity-card">
+            <div class="amenity-icon">🚗</div>
+            <h3>Parking Space</h3>
+            <p>
+                Safe and convenient parking available for all guests.
+            </p>
+        </div>
+
+        <div class="amenity-card">
+            <div class="amenity-icon">🧹</div>
+            <h3>Daily Housekeeping</h3>
+            <p>
+                Clean and well-maintained rooms prepared every day.
+            </p>
+        </div>
+
+        <div class="amenity-card">
+            <div class="amenity-icon">🛎️</div>
+            <h3>24/7 Front Desk</h3>
+            <p>
+                Friendly staff ready to assist guests anytime during their stay.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+<section class="how-section">
+
+    <div class="section-heading">
+        <p class="section-tag">HOW IT WORKS</p>
+        <h2>Book Your Stay In 3 Simple Steps</h2>
+    </div>
+
+    <div class="steps">
+
+        <div class="step-card">
+            <div class="step-number">01</div>
+
+            <h3>Choose A Room</h3>
+
+            <p>
+                Browse our available rooms and select the perfect stay for your needs.
+            </p>
+        </div>
+
+        <div class="step-card">
+            <div class="step-number">02</div>
+
+            <h3>Fill The Form</h3>
+
+            <p>
+                Enter your booking details and provide the required guest information.
+            </p>
+        </div>
+
+        <div class="step-card">
+            <div class="step-number">03</div>
+
+            <h3>Confirm Booking</h3>
+
+            <p>
+                Complete your reservation and receive instant booking confirmation.
+            </p>
+        </div>
+
+    </div>
+
+</section>
+
+<section id="track" class="track-section">
+
+    <div class="section-heading">
+        <p class="section-tag">RESERVATION TRACKING</p>
+        <h2>Manage Your Reservation Easily</h2>
+    </div>
+
+    <div class="track-container">
+
+        <div class="track-image">
+            <img src="{{ url_for('static', filename='img/reception.jpg') }}" alt="Reception">
+        </div>
+
+        <div class="track-box">
+
+            <div class="field">
+                <label>Check In</label>
+                <input type="date">
+            </div>
+
+            <div class="field">
+                <label>Check Out</label>
+                <input type="date">
+            </div>
+
+            <div class="field">
+                <label>Booking Number</label>
+                <input type="text" placeholder="Enter booking number">
+            </div>
+
+            <div class="field">
+                <label>Guest Name</label>
+                <input type="text" placeholder="Enter your name">
+            </div>
+
+            <button>Track Reservation</button>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section id="contact" class="contact-section">
+
+    <div class="section-heading">
+        <p class="section-tag">CONTACT US</p>
+        <h2>We’d Love To Hear From You</h2>
+    </div>
+
+    <div class="contact-container">
+
+        <div class="contact-info">
+
+            <div class="contact-card">
+                <h3>Address</h3>
+                <p>
+                    123 Noble Street, Auckland, New Zealand
+                </p>
+            </div>
+
+            <div class="contact-card">
+                <h3>Phone</h3>
+                <p>
+                    +64 21 123 4567
+                </p>
+            </div>
+
+            <div class="contact-card">
+                <h3>Email</h3>
+                <p>
+                    reservations@nobleinnsync.com
+                </p>
+            </div>
+
+            <div class="contact-card">
+                <h3>Follow Us</h3>
+
+                <div class="social-links">
+                    <a href="#">Facebook</a>
+                    <a href="#">Instagram</a>
+                    <a href="#">TikTok</a>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="map-box">
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18..."
+                allowfullscreen=""
+                loading="lazy">
+            </iframe>
+        </div>
+
+    </div>
+
+</section>
 
 {% endblock %}

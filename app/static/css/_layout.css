@@ -1,16 +1,11 @@
 body{
     margin: 0;
     display: flex;
-    min-height: 100vh;
-    background: #f4f5f7;
-}
+    flex-direction: column;
 
-.sidebar{
-    width: 250px;
-    border: solid 1px black;
+    background: #f4f1eb;
 }
 
 .main-content{
     flex: 1;
-    padding: 20px;
 }
