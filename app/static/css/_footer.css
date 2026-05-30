@@ -64,10 +64,76 @@
     color: #aaa;
 }
 
-@media (max-width: 1000px){
+/* =========================================
+   TABLET
+========================================= */
+@media (max-width: 900px){
 
     .footer-container{
+        width: 92%;
+
+        grid-template-columns: 1fr 1fr;
+
+        gap: 40px;
+
+        padding: 60px 0;
+    }
+
+    .footer-brand h2{
+        font-size: 32px;
+    }
+
+}
+
+
+/* =========================================
+   MOBILE
+========================================= */
+@media (max-width: 600px){
+
+    .footer{
+        text-align: center;
+        overflow: hidden;
+    }
+
+    .footer-container{
+        width: 92%;
+
         grid-template-columns: 1fr;
+
+        gap: 35px;
+
+        padding: 50px 0;
+    }
+
+    .footer-brand h2{
+        font-size: 28px;
+    }
+
+    .footer-brand p{
+        max-width: 100%;
+    }
+
+    .footer-links h3{
+        font-size: 20px;
+        margin-bottom: 18px;
+    }
+
+    .footer-links a,
+    .footer-links p{
+        font-size: 14px;
+        margin-bottom: 10px;
+
+        word-break: break-word;
+    }
+
+    .footer-socials{
+        align-items: center;
+    }
+
+    .footer-bottom{
+        padding: 20px;
+        font-size: 13px;
     }
 
 }

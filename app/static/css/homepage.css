@@ -555,7 +555,55 @@ section{
 }
 
 /* RESPONSIVE */
+/* =========================================
+   EXTRA LARGE SCREENS
+========================================= */
+@media (max-width: 1400px){
+
+    .hero-content h2{
+        font-size: 60px;
+    }
+
+    .card-grid,
+    .amenities-grid,
+    .steps{
+        gap: 25px;
+    }
+
+}
+
+
+/* =========================================
+   LAPTOP
+========================================= */
+@media (max-width: 1200px){
+
+    .hero-content h2{
+        font-size: 52px;
+        padding: 0 20px;
+    }
+
+    .availability-box{
+        width: 92%;
+    }
+
+    .about-section{
+        gap: 50px;
+    }
+
+    .about-text h2,
+    .section-heading h2{
+        font-size: 42px;
+    }
+
+}
+
+
+/* =========================================
+   TABLET
+========================================= */
 @media (max-width: 1000px){
+
     .card-grid,
     .amenities-grid,
     .steps,
@@ -565,31 +613,214 @@ section{
         grid-template-columns: 1fr;
     }
 
+    .about-section{
+        width: 92%;
+        margin: 80px auto;
+    }
+
+    .section-heading{
+        margin-bottom: 40px;
+    }
+
     .section-heading h2,
     .about-text h2{
-        font-size: 40px;
+        font-size: 38px;
     }
 
     .track-image img,
     .about-image img{
         height: 400px;
     }
+
+    .room-image{
+        height: 260px;
+    }
+
 }
 
+/* TABLET - availability becomes 2 columns */
 @media (max-width: 900px){
+
     .availability-box{
-        flex-direction: column;
-        align-items: stretch;
-        margin-top: -40px;
+        width: 92%;
+        margin: -35px auto 60px;
+        padding: 20px;
+
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        align-items: end;
+        gap: 18px;
+    }
+
+    .availability-box .field{
+        width: 100%;
+    }
+
+    .availability-box input{
+        width: 100%;
+        height: 46px;
+    }
+
+    .availability-box button{
+        width: 100%;
+        height: 55px;
+        grid-column: 1 / -1;
+        border-radius: 8px;
+    }
+}
+
+
+/* MOBILE - availability becomes 1 column */
+@media (max-width: 600px){
+
+    .availability-box{
+        grid-template-columns: 1fr;
+        margin: -25px auto 50px;
+        padding: 18px;
+        gap: 15px;
+    }
+
+    .availability-box button{
+        grid-column: auto;
+        height: 52px;
+        font-size: 16px;
+    }
+
+    .availability-box label{
+        font-size: 13px;
+    }
+
+    .availability-box input{
+        height: 46px;
+    }
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+@media (max-width: 768px){
+
+    .hero{
+        padding: 120px 20px 80px;
+    }
+
+    .hero-content img{
+        max-height: 70px;
+        margin-bottom: 30px;
+    }
+
+    .hero-content h2{
+        font-size: 36px;
+        line-height: 1.2;
+        letter-spacing: -1px;
+    }
+
+    .hero-content .btn{
+        width: 100%;
+        max-width: 260px;
+        text-align: center;
+    }
+
+
+    .availability-box input{
+        height: 45px;
     }
 
     .availability-box button{
         width: 100%;
         height: 50px;
-        border-radius: 6px;
+        border-radius: 8px;
     }
 
-    .hero-content h2{
-        font-size: 44px;
+    .rooms-section,
+    .amenities-section,
+    .how-section,
+    .track-section,
+    .contact-section{
+        padding: 80px 20px;
     }
+
+    .section-heading h2,
+    .about-text h2{
+        font-size: 32px;
+    }
+
+    .room-content{
+        padding: 22px;
+    }
+
+    .room-content h3{
+        font-size: 24px;
+    }
+
+    .room-footer{
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .amenity-card,
+    .step-card,
+    .track-box,
+    .contact-card{
+        padding: 25px;
+    }
+
+    .track-image img,
+    .about-image img{
+        height: 300px;
+    }
+
+    .map-box iframe{
+        min-height: 350px;
+    }
+
+}
+
+
+/* =========================================
+   SMALL MOBILE
+========================================= */
+@media (max-width: 480px){
+
+    .hero-content h2{
+        font-size: 28px;
+    }
+
+    .section-heading h2,
+    .about-text h2{
+        font-size: 26px;
+    }
+
+    .section-tag{
+        font-size: 13px;
+        letter-spacing: 1px;
+    }
+
+    .about-description,
+    .room-content p,
+    .amenity-card p,
+    .step-card p,
+    .contact-card p{
+        font-size: 14px;
+    }
+
+    .room-image{
+        height: 220px;
+    }
+
+    .track-image img,
+    .about-image img{
+        height: 240px;
+    }
+
+    .track-box{
+        padding: 20px;
+    }
+
+    .track-box input,
+    .track-box button{
+        height: 50px;
+    }
+
 }

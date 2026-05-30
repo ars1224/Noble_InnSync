@@ -16,9 +16,13 @@
 .navbar {
     display: flex;
     align-items: center;
-    justify-content: space-around;
-    gap: 50vw;
-    margin-top: 3vh;
+    justify-content: space-between;
+
+    width: 90%;
+    margin: auto;
+    padding: 25px 0;
+
+    gap: 30px;
 }
 
 .nav-links {
@@ -67,26 +71,73 @@
     color: black;
 }
 
-@media (max-width: 1000px) {
+/* HAMBURGER */
+.hamburger{
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 32px;
+    cursor: pointer;
+}
 
-    .sidebar-container {
+
+/* =========================================
+   TABLET + MOBILE
+========================================= */
+@media (max-width: 900px){
+
+    .topbar{
+        position: fixed;
+        background: rgba(17, 24, 39, 0.95);
+        backdrop-filter: blur(8px);
+    }
+
+    .navbar{
+        width: 92%;
+        padding: 15px 0;
+        position: relative;
+    }
+
+    .hamburger{
+        display: block;
+    }
+
+    .nav-links{
+        display: none;
+        position: fixed;
+        top: 80px;
+        left: 0;
+        width: 100vw;
+
+        background: rgba(17, 24, 39, 0.98);
+        backdrop-filter: blur(10px);
+
         flex-direction: column;
-        gap: 30px;
+        align-items: center;
+        gap: 22px;
+
+        padding: 30px 0;
+        border-radius: 0 0 18px 18px;
+
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.3s ease;
     }
 
-    .brand {
-        flex-direction: column;
-        gap: 10px;
-        text-align: center;
+    .nav-links.active{
+        display: flex;
+        opacity: 1;
+        pointer-events: auto;
     }
 
-    .navbar {
-        flex-direction: column;
-        gap: 25px;
+    .nav-links a{
+        font-size: 15px;
     }
 
-    .nav-links {
-        flex-wrap: wrap;
-        justify-content: center;
+    .nav-btn{
+        padding: 9px 20px;
+        font-size: 14px;
     }
+
 }
