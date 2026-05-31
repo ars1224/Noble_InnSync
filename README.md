@@ -12,3 +12,11 @@ app/
 ├── templates/
 ├── static/
 └── __init__.py
+
+## Technology Used
+
+- React JS – Frontend user interface
+- Tailwind CSS – Styling and responsive design
+- Flask – Backend API and server-side logic
+- SQLite – Database for rooms, bookings, and users
+- GitHub – Version control and collaboration
