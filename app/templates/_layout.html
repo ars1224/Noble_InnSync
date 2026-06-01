@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,24 +6,23 @@
 
     <title>{% block title %}Noble InnSync{% endblock %}</title>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <!-- Global styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/_layout.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mainStyleSheet.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/_footer.css') }}">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <!-- Optional page-specific CSS -->
     {% block page_css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/_sidebar.css') }}">
     {% endblock %}
+
+    <script src="https://kit.fontawesome.com/5c09730e7a.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
-
-        {% include '_sidebar.html' %}
+    {% include '_sidebar.html' %}
 
     <main class="main-content">
         {% block content %}{% endblock %}
@@ -32,7 +31,5 @@
     <footer>
         {% include '_footer.html' %}
     </footer>
-<script src="https://kit.fontawesome.com/5c09730e7a.js" crossorigin="anonymous"></script>
-<script src="{{ url_for('static', filename='js/__sidebar.js') }}"></script>
 </body>
 </html>

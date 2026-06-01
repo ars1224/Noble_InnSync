@@ -2,41 +2,45 @@
 
 {% block title %}Home | Noble InnSync{% endblock %}
 
-
 {% block content %}
 
 <section class="hero">
     <div class="hero-content">
         <img class="logo" src="/../static/img/BCO.e2f857cb-63dc-407a-aafb-4cbd96f84cd2.png" alt="The Noble InnSync Logo">
         <h2>Where Comfort Feels Noble</h2>
-        <a type="button" href="#availability" class="btn btn-outline-warning">Book Now</a>
-        <a href="#track" class="manage-link">Manage Booking</a>
+        <p class="hero-subtitle">Choose your dates, browse our rooms, and secure a comfortable stay in just a few minutes.</p>
+        <div class="hero-actions">
+            <a type="button" href="#availability" class="hero-primary-btn">Start Booking</a>
+            <a href="#track" class="hero-secondary-btn">View My Booking</a>
+        </div>
     </div>
 </section>
 
-<section id="availability" class="availability-box">
+<form id="availability" class="availability-box" action="{{ url_for('main.available_rooms') }}" method="get">
     <div class="field">
-        <label>Check In:</label>
-        <input type="date">
+        <label for="check_in">Check-in</label>
+        <input id="check_in" name="check_in" type="date" required>
     </div>
 
     <div class="field">
-        <label>Check out:</label>
-        <input type="date">
+        <label for="check_out">Check-out</label>
+        <input id="check_out" name="check_out" type="date" required>
     </div>
 
     <div class="field">
-        <label>Adult:</label>
-        <input type="number" min="1">
+        <label for="adults">Adults</label>
+        <input id="adults" name="adults" type="number" min="1" value="1" required>
     </div>
 
     <div class="field">
-        <label>Child:</label>
-        <input type="number" min="0">
+        <label for="children">Children</label>
+        <input id="children" name="children" type="number" min="0" value="0">
     </div>
 
-    <button>Check Availability</button>
-</section>
+    <div class="availability-action">
+        <button type="submit">Search Rooms</button>
+    </div>
+</form>
 
 <section id="about" class="about-section">
 
@@ -51,7 +55,7 @@
             make every guest feel relaxed, welcomed, and at home.
         </p>
 
-        <a href="#" class="about-btn">Explore Rooms</a>
+        <a href="{{ url_for('main.available_rooms') }}" class="about-btn">Browse Rooms</a>
     </div>
 
     <div class="about-image">
@@ -60,7 +64,7 @@
 
 </section>
 
-<section id="rooms" class="rooms-section">
+<section id="our-rooms" class="rooms-section">
 
     <div class="section-heading">
         <p class="section-tag">OUR ROOMS</p>
@@ -68,79 +72,53 @@
     </div>
 
     <div class="card-grid">
-
+        {% for room in rooms %}
         <div class="room-card">
-            <div class="room-image">
-                <img src="{{ url_for('static', filename='img/room1.jpg') }}" alt="Deluxe Room">
+            <div class="room-image placeholder-card-image">
+                <div class="room-image-label">Room {{ room.room_number }}</div>
             </div>
 
             <div class="room-content">
-                <h3>Deluxe Room</h3>
+                <h3>{{ room.room_type }}</h3>
 
                 <p>
-                    A cozy and modern room perfect for couples and solo travelers.
+                    {% if room.room_type == 'Single Room' %}
+                    A cozy and modern room perfect for solo travelers or short stays.
+                    {% elif room.room_type == 'Double Room' %}
+                    Spacious accommodation designed for couples or shared stays.
+                    {% elif room.room_type == 'Family Room' %}
+                    Comfortable space for families needing more room and flexibility.
+                    {% else %}
+                    Comfortable accommodation for Nobleman's Travellers Inn guests.
+                    {% endif %}
                 </p>
 
                 <div class="room-footer">
-                    <span>$120 / Night</span>
-                    <a href="#">View Details</a>
+                    <span>${{ '{:,.0f}'.format(room.price) }} / Night</span>
+                    <a href="{{ url_for('main.available_rooms') }}">See Room</a>
                 </div>
             </div>
         </div>
-
-        <div class="room-card">
-            <div class="room-image">
-                <img src="{{ url_for('static', filename='img/room2.jpg') }}" alt="Family Suite">
-            </div>
-
-            <div class="room-content">
-                <h3>Family Suite</h3>
-
-                <p>
-                    Spacious accommodation designed for families and groups.
-                </p>
-
-                <div class="room-footer">
-                    <span>$180 / Night</span>
-                    <a href="#">View Details</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="room-card">
-            <div class="room-image">
-                <img src="{{ url_for('static', filename='img/room3.jpg') }}" alt="Executive Room">
-            </div>
-
-            <div class="room-content">
-                <h3>Executive Room</h3>
-
-                <p>
-                    Premium comfort with luxury amenities and elegant interiors.
-                </p>
-
-                <div class="room-footer">
-                    <span>$250 / Night</span>
-                    <a href="#">View Details</a>
-                </div>
-            </div>
-        </div>
+        {% endfor %}
 
     </div>
 
 </section>
 
-<section class="amenities-section">
+<section id="amenities" class="amenities-section">
 
-    <div class="section-heading">
-        <p class="section-tag">AMENITIES & SERVICES</p>
-        <h2>Everything You Need For A Comfortable Stay</h2>
+    <div class="section-heading section-heading-split">
+        <div>
+            <p class="section-tag">AMENITIES &amp; SERVICES</p>
+            <h2>Everything You Need For A Comfortable Stay</h2>
+        </div>
+        <a href="#contact" class="section-link-btn">Ask About Guest Services</a>
     </div>
 
     <div class="amenities-grid">
 
         <div class="amenity-card">
-            <div class="amenity-icon">🛏️</div>
+            <div class="amenity-icon">Luxury</div>
             <h3>Luxury Rooms</h3>
             <p>
                 Comfortable and modern rooms designed for relaxation and convenience.
@@ -148,7 +126,7 @@
         </div>
 
         <div class="amenity-card">
-            <div class="amenity-icon">📶</div>
+            <div class="amenity-icon">Wi-Fi</div>
             <h3>Free Wi-Fi</h3>
             <p>
                 Stay connected anytime with fast and reliable internet access.
@@ -156,7 +134,7 @@
         </div>
 
         <div class="amenity-card">
-            <div class="amenity-icon">☕</div>
+            <div class="amenity-icon">Cafe</div>
             <h3>Complimentary Breakfast</h3>
             <p>
                 Enjoy fresh and delicious breakfast meals every morning.
@@ -164,7 +142,7 @@
         </div>
 
         <div class="amenity-card">
-            <div class="amenity-icon">🚗</div>
+            <div class="amenity-icon">Park</div>
             <h3>Parking Space</h3>
             <p>
                 Safe and convenient parking available for all guests.
@@ -172,7 +150,7 @@
         </div>
 
         <div class="amenity-card">
-            <div class="amenity-icon">🧹</div>
+            <div class="amenity-icon">Clean</div>
             <h3>Daily Housekeeping</h3>
             <p>
                 Clean and well-maintained rooms prepared every day.
@@ -180,7 +158,7 @@
         </div>
 
         <div class="amenity-card">
-            <div class="amenity-icon">🛎️</div>
+            <div class="amenity-icon">24/7</div>
             <h3>24/7 Front Desk</h3>
             <p>
                 Friendly staff ready to assist guests anytime during their stay.
@@ -247,31 +225,31 @@
             <img src="{{ url_for('static', filename='img/reception.jpg') }}" alt="Reception">
         </div>
 
-        <div class="track-box">
+        <form class="track-box" action="{{ url_for('main.available_rooms') }}" method="get">
 
             <div class="field">
-                <label>Check In</label>
-                <input type="date">
+                <label for="track_check_in">Check In</label>
+                <input id="track_check_in" name="check_in" type="date">
             </div>
 
             <div class="field">
-                <label>Check Out</label>
-                <input type="date">
+                <label for="track_check_out">Check Out</label>
+                <input id="track_check_out" name="check_out" type="date">
             </div>
 
             <div class="field">
-                <label>Booking Number</label>
-                <input type="text" placeholder="Enter booking number">
+                <label for="booking_number">Booking Number</label>
+                <input id="booking_number" type="text" placeholder="Enter booking number">
             </div>
 
             <div class="field">
-                <label>Guest Name</label>
-                <input type="text" placeholder="Enter your name">
+                <label for="guest_name">Guest Name</label>
+                <input id="guest_name" type="text" placeholder="Enter your name">
             </div>
 
-            <button>Track Reservation</button>
+            <button type="submit">Find Reservation</button>
 
-        </div>
+        </form>
 
     </div>
 
@@ -281,7 +259,7 @@
 
     <div class="section-heading">
         <p class="section-tag">CONTACT US</p>
-        <h2>We’d Love To Hear From You</h2>
+        <h2>We'd Love To Hear From You</h2>
     </div>
 
     <div class="contact-container">
@@ -334,3 +312,4 @@
 </section>
 
 {% endblock %}
+

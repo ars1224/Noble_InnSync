@@ -1,20 +1,10 @@
-body{
+﻿body{
     margin: 0;
     display: flex;
     flex-direction: column;
-
-    background: #f4f1eb;
+    background: #f4f1eb !important;
 }
 
 .main-content{
     flex: 1;
-}
-
-img{
-    max-width: 100%;
-    display: block;
-}
-
-iframe{
-    max-width: 100%;
 }
