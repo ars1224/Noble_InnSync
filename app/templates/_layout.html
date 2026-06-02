@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/_layout.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/_footer.css') }}">
-
+    {% block styles %}{% endblock %}
     <!-- Optional page-specific CSS -->
     {% block page_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/_sidebar.css') }}">

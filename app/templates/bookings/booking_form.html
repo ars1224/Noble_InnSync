@@ -1,0 +1,283 @@
+{% extends '_layout.html' %}
+
+{% block title %}Book a Room | Noble InnSync{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="booking-hero">
+
+    <div class="booking-hero-overlay"></div>
+
+    <div class="booking-hero-content">
+
+        <p class="booking-tag">
+            BOOK YOUR STAY
+        </p>
+
+        <h1>
+            Complete your booking.
+        </h1>
+
+        <p>
+            Fill in your details below to secure your reservation.
+        </p>
+
+    </div>
+
+</section>
+
+<section class="booking-section">
+
+    <div class="booking-container">
+
+        <!-- LEFT -->
+
+        <div class="booking-form-card">
+
+            <div class="booking-card-header">
+
+                <div class="booking-line"></div>
+
+                <h2>
+                    BOOKING INFORMATION
+                </h2>
+
+            </div>
+
+            <form
+                action="{{ url_for('booking.book_room') }}"
+                method="POST"
+                class="booking-form"
+            >
+
+                <div class="booking-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Full Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="guest_name"
+                            placeholder="Enter your full name"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Email Address
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="Enter your email"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+                <div class="booking-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Phone Number
+                        </label>
+
+                        <input
+                            type="text"
+                            name="phone"
+                            placeholder="Enter your phone number"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Room Type
+                        </label>
+
+                        <select name="room_type" required>
+
+                            <option value="">
+                                Select room type
+                            </option>
+
+                            <option
+                                value="Single Room"
+                                {% if selected_room == "Single Room" %}selected{% endif %}
+                            >
+                                Single Room
+                            </option>
+
+                            <option
+                                value="Double Room"
+                                {% if selected_room == "Double Room" %}selected{% endif %}
+                            >
+                                Double Room
+                            </option>
+
+                            <option
+                                value="Family Room"
+                                {% if selected_room == "Family Room" %}selected{% endif %}
+                            >
+                                Family Room
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+                <div class="booking-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Check-in
+                        </label>
+
+                        <input
+                            type="date"
+                            name="check_in"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Check-out
+                        </label>
+
+                        <input
+                            type="date"
+                            name="check_out"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+                <div class="booking-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Adults
+                        </label>
+
+                        <input
+                            type="number"
+                            name="adults"
+                            min="1"
+                            value="1"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Children
+                        </label>
+
+                        <input
+                            type="number"
+                            name="children"
+                            min="0"
+                            value="0"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="booking-btn"
+                >
+                    CONFIRM BOOKING
+                </button>
+
+            </form>
+
+        </div>
+
+        <!-- RIGHT -->
+
+        <div class="booking-summary-card">
+
+            <div class="booking-card-header">
+
+                <div class="booking-line"></div>
+
+                <h2>
+                    BOOKING SUMMARY
+                </h2>
+
+            </div>
+
+            <img
+                src="{{ url_for('static', filename='img/room1.jpg') }}"
+                class="summary-image"
+                alt="Room"
+            >
+
+            <div class="summary-room">
+
+                <p>
+                    Selected Room
+                </p>
+
+                <h3>
+                    {{ selected_room or "Room Selection" }}
+                </h3>
+
+            </div>
+
+            <div class="summary-details">
+
+                <div>
+                    <span>Status</span>
+                    <strong>Available</strong>
+                </div>
+
+                <div>
+                    <span>Reservation</span>
+                    <strong>Secure Booking</strong>
+                </div>
+
+                <div>
+                    <span>Payment</span>
+                    <strong>Pay on Arrival</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -3,23 +3,28 @@
 {% block title %}Available Rooms | Noble InnSync{% endblock %}
 
 {% block content %}
+
 <section class="listing-hero">
     <div class="listing-copy">
         <p class="section-tag">AVAILABLE ROOMS</p>
         <h1>Find the room that fits your stay.</h1>
         <p class="listing-description">
-            Review the available rooms returned by the system and continue your Noble InnSync booking flow.
+            Review the available room types and continue your Noble InnSync booking flow.
         </p>
     </div>
 </section>
 
 <section class="results-shell">
+
     <div class="results-header-card">
         <div>
             <p class="section-tag">SEARCH SUMMARY</p>
             <h2>Available rooms for your selected stay</h2>
         </div>
-        <a class="results-back-link" href="{{ url_for('main.home') }}#availability">Edit Search</a>
+
+        <a class="results-back-link" href="{{ url_for('main.home') }}#availability">
+            Edit Search
+        </a>
     </div>
 
     <div class="summary-pills">
@@ -28,41 +33,69 @@
         <span>{{ search_summary.guest_text }}</span>
     </div>
 
-    {% if rooms %}
+    {% if room_summary %}
+
     <div class="available-room-grid">
-        {% for room in rooms %}
-        <article class="available-room-card">
-            <div class="available-room-media">
-                <div class="media-placeholder">Room {{ room.room_number }}</div>
-            </div>
-            <div class="available-room-content">
-                <div class="available-room-top">
-                    <div>
-                        <h3>{{ room.room_type }}</h3>
-                        <p class="room-meta">Room {{ room.room_number }} - Real-time room status synced</p>
-                    </div>
-                    <span class="status-badge available">{{ room.status }}</span>
+
+        {% for room in room_summary %}
+
+            {% if room.available_count > 0 %}
+
+            <article class="available-room-card">
+
+                <div class="available-room-media">
+                    <img src="{{ url_for('static', filename='img/' + room.image) }}" alt="{{ room.room_type }}">
                 </div>
-                <p class="room-copy">
-                    Comfortable accommodation for Nobleman's Travellers Inn guests, ready to continue into the booking journey.
-                </p>
-                <div class="room-card-footer">
-                    <strong>${{ '{:,.0f}'.format(room.price) }}</strong>
-                    <div class="room-card-actions">
-                        <a href="#" class="ghost-btn">View Details</a>
-                        <a href="#" class="solid-btn">Book Now</a>
+
+                <div class="available-room-content">
+
+                    <div class="available-room-top">
+                        <div>
+                            <h3>{{ room.room_type }}</h3>
+                            <p class="room-meta">
+                                {{ room.available_count }} room(s) available
+                            </p>
+                        </div>
+
+                        <span class="status-badge available">Available</span>
                     </div>
+
+                    <p class="room-copy">
+                        {{ room.description }}
+                    </p>
+
+                    <div class="room-card-footer">
+                        <strong>₱{{ room.price }} / Night</strong>
+
+                        <div class="room-card-actions">
+                            <a href="#" class="ghost-btn">View Details</a>
+                            <a href="#" class="solid-btn">Book Now</a>
+                        </div>
+                    </div>
+
                 </div>
-            </div>
-        </article>
+
+            </article>
+
+            {% endif %}
+
         {% endfor %}
+
     </div>
+
     {% else %}
+
     <div class="results-empty-state">
         <h3>No rooms available for your selected dates.</h3>
         <p>Try adjusting your stay dates or guest count and search again.</p>
-        <a href="{{ url_for('main.home') }}#availability" class="solid-btn">Change Search</a>
+
+        <a href="{{ url_for('main.home') }}#availability" class="solid-btn">
+            Change Search
+        </a>
     </div>
+
     {% endif %}
+
 </section>
+
 {% endblock %}

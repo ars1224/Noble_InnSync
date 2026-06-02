@@ -6,17 +6,17 @@
 
 <section class="hero">
     <div class="hero-content">
-        <img class="logo" src="/../static/img/BCO.e2f857cb-63dc-407a-aafb-4cbd96f84cd2.png" alt="The Noble InnSync Logo">
+        <img class="logo" src="{{ url_for('static', filename='img/BCO.e2f857cb-63dc-407a-aafb-4cbd96f84cd2.png') }}" alt="The Noble InnSync Logo">
         <h2>Where Comfort Feels Noble</h2>
         <p class="hero-subtitle">Choose your dates, browse our rooms, and secure a comfortable stay in just a few minutes.</p>
         <div class="hero-actions">
-            <a type="button" href="#availability" class="hero-primary-btn">Start Booking</a>
+            <a type="button" href="{{ url_for('booking.book_room') }}" class="room-btn hero-primary-btn">Start Booking</a>
             <a href="#track" class="hero-secondary-btn">View My Booking</a>
         </div>
     </div>
 </section>
 
-<form id="availability" class="availability-box" action="{{ url_for('main.available_rooms') }}" method="get">
+<form id="availability" class="availability-box" action="{{ url_for('room.available_rooms') }}" method="get">
     <div class="field">
         <label for="check_in">Check-in</label>
         <input id="check_in" name="check_in" type="date" required>
@@ -55,7 +55,7 @@
             make every guest feel relaxed, welcomed, and at home.
         </p>
 
-        <a href="{{ url_for('main.available_rooms') }}" class="about-btn">Browse Rooms</a>
+        <a href="{{ url_for('room.available_rooms') }}" class="about-btn">Browse Rooms</a>
     </div>
 
     <div class="about-image">
@@ -72,36 +72,37 @@
     </div>
 
     <div class="card-grid">
-        {% for room in rooms %}
+
+        {% for summary in room_summary %}
+
         <div class="room-card">
-            <div class="room-image placeholder-card-image">
-                <div class="room-image-label">Room {{ room.room_number }}</div>
+
+            <div class="room-image">
+                <img src="{{ url_for('static', filename='img/' + summary.image) }}" alt="{{ summary.room_type }}">
             </div>
 
             <div class="room-content">
-                <h3>{{ room.room_type }}</h3>
+
+                <h3>{{ summary.room_type }}</h3>
 
                 <p>
-                    {% if room.room_type == 'Single Room' %}
-                    A cozy and modern room perfect for solo travelers or short stays.
-                    {% elif room.room_type == 'Double Room' %}
-                    Spacious accommodation designed for couples or shared stays.
-                    {% elif room.room_type == 'Family Room' %}
-                    Comfortable space for families needing more room and flexibility.
-                    {% else %}
-                    Comfortable accommodation for Nobleman's Travellers Inn guests.
-                    {% endif %}
+                    {{ summary.description }}
                 </p>
 
                 <div class="room-footer">
-                    <span>${{ '{:,.0f}'.format(room.price) }} / Night</span>
-                    <a href="{{ url_for('main.available_rooms') }}">See Room</a>
+                    <a href="{{ url_for('room.available_rooms') }}">
+                        View Rooms
+                    </a>
                 </div>
+
             </div>
+
         </div>
+
         {% endfor %}
 
     </div>
+
 
 </section>
 
@@ -225,7 +226,7 @@
             <img src="{{ url_for('static', filename='img/reception.jpg') }}" alt="Reception">
         </div>
 
-        <form class="track-box" action="{{ url_for('main.available_rooms') }}" method="get">
+        <form class="track-box" action="{{ url_for('room.available_rooms') }}" method="get">
 
             <div class="field">
                 <label for="track_check_in">Check In</label>

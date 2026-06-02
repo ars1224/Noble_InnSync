@@ -1,0 +1,38 @@
+{% extends '_layout.html' %}
+
+{% block title %}Booking Success | Noble InnSync{% endblock %}
+
+{% block content %}
+
+<section class="success-page">
+    <div class="success-card">
+
+        <p class="section-tag">BOOKING CONFIRMED</p>
+
+        <h1>Your booking request has been received.</h1>
+
+        <p class="success-message">
+            Thank you, {{ booking.guest_name }}. Please keep your reference number for tracking your reservation.
+        </p>
+
+        <div class="reference-box">
+            <span>Reference Number</span>
+            <strong>{{ booking.reference_number }}</strong>
+        </div>
+
+        <div class="booking-details">
+            <p><strong>Room Type:</strong> {{ booking.room_type }}</p>
+            <p><strong>Check-in:</strong> {{ booking.check_in }}</p>
+            <p><strong>Check-out:</strong> {{ booking.check_out }}</p>
+            <p><strong>Guests:</strong> {{ booking.adults }} adult(s), {{ booking.children }} child(ren)</p>
+            <p><strong>Status:</strong> {{ booking.status }}</p>
+        </div>
+
+        <a href="{{ url_for('main.home') }}" class="success-btn">
+            Back to Home
+        </a>
+
+    </div>
+</section>
+
+{% endblock %}
