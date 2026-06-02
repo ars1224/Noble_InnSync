@@ -17,33 +17,40 @@ def available_rooms():
             "room_type": "Single Room",
             "description": "Perfect for solo travelers seeking a cozy and affordable stay.",
             "price": 149,
+            "capacity_adults": 1,
+            "capacity_children": 0,
+            "bed": "1 single bed",
             "available_count": Room.query.filter_by(
                 room_type="Single Room",
                 status="Available"
             ).count(),
-            "image": "room1.jpg"
+            "image": "ChatGPT Image Jun 2, 2026, 08_37_08 PM.png"
         },
-
         {
             "room_type": "Double Room",
             "description": "Ideal for couples with spacious comfort and modern amenities.",
             "price": 229,
+            "capacity_adults": 2,
+            "capacity_children": 1,
+            "bed": "1 queen size bed",
             "available_count": Room.query.filter_by(
                 room_type="Double Room",
                 status="Available"
             ).count(),
-            "image": "room2.jpg"
+            "image": "ChatGPT Image Jun 2, 2026, 08_37_54 PM.png"
         },
-
         {
             "room_type": "Family Room",
             "description": "Designed for families and groups with extra space and comfort.",
             "price": 329,
+            "capacity_adults": 4,
+            "capacity_children": 2,
+            "bed": "2 queen size beds + 1 single bed",
             "available_count": Room.query.filter_by(
                 room_type="Family Room",
                 status="Available"
             ).count(),
-            "image": "room3.jpg"
+            "image": "ChatGPT Image Jun 2, 2026, 08_38_19 PM.png"
         }
 
     ]

@@ -1,6 +1,9 @@
 ﻿from app import create_app, db
+
 from app.models.room import Room
 from app.models.booking import Booking
+from app.models.booking_room import BookingRoom
+from app.models.accounting import Accounting
 
 app = create_app()
 

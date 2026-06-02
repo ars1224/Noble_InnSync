@@ -16,6 +16,8 @@
 
 <section class="results-shell">
 
+    <div class="results-container">
+
     <div class="results-header-card">
         <div>
             <p class="section-tag">SEARCH SUMMARY</p>
@@ -64,12 +66,25 @@
                         {{ room.description }}
                     </p>
 
+                    <p class="room-meta">
+                        Bed: {{ room.bed }}
+                    </p>
+
+                    <p class="room-meta">
+                        Capacity:
+                        {{ room.capacity_adults }} Adult(s)
+                        ·
+                        {{ room.capacity_children }} Child(ren)
+                    </p>
+
                     <div class="room-card-footer">
-                        <strong>₱{{ room.price }} / Night</strong>
+                        <strong>${{ room.price }} / Night</strong>
 
                         <div class="room-card-actions">
                             <a href="#" class="ghost-btn">View Details</a>
-                            <a href="#" class="solid-btn">Book Now</a>
+                            <a href="{{ url_for('booking.book_room', room_type=room.room_type, adults=search_summary.adults, children=search_summary.children) }}" class="solid-btn">
+                                Book Now
+                            </a>
                         </div>
                     </div>
 
@@ -95,6 +110,7 @@
     </div>
 
     {% endif %}
+    </div>
 
 </section>
 

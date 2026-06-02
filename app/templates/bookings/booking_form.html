@@ -105,43 +105,6 @@
 
                     </div>
 
-                    <div class="form-group">
-
-                        <label>
-                            Room Type
-                        </label>
-
-                        <select name="room_type" required>
-
-                            <option value="">
-                                Select room type
-                            </option>
-
-                            <option
-                                value="Single Room"
-                                {% if selected_room == "Single Room" %}selected{% endif %}
-                            >
-                                Single Room
-                            </option>
-
-                            <option
-                                value="Double Room"
-                                {% if selected_room == "Double Room" %}selected{% endif %}
-                            >
-                                Double Room
-                            </option>
-
-                            <option
-                                value="Family Room"
-                                {% if selected_room == "Family Room" %}selected{% endif %}
-                            >
-                                Family Room
-                            </option>
-
-                        </select>
-
-                    </div>
-
                 </div>
 
                 <div class="booking-grid">
@@ -212,6 +175,12 @@
 
                 </div>
 
+                <input
+                    type="hidden"
+                    name="total_price"
+                    id="hidden-total-price"
+                >
+
                 <button
                     type="submit"
                     class="booking-btn"
@@ -237,21 +206,40 @@
 
             </div>
 
-            <img
-                src="{{ url_for('static', filename='img/room1.jpg') }}"
-                class="summary-image"
-                alt="Room"
-            >
-
             <div class="summary-room">
 
                 <p>
-                    Selected Room
+                    Smart Room Allocation
                 </p>
 
                 <h3>
-                    {{ selected_room or "Room Selection" }}
+                    Suggested Rooms
                 </h3>
+
+            </div>
+
+            <div class="suggested-rooms-box">
+
+                <h4>
+                    Recommended Rooms
+                </h4>
+
+                <div id="suggested-rooms-list">
+
+                    <p class="suggested-placeholder">
+                        Adjust adults and children to see room suggestions.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="summary-price-box">
+
+                <div class="summary-total">
+                    <span>Total Price</span>
+                    <strong id="total-price">$0</strong>
+                </div>
 
             </div>
 
@@ -280,4 +268,8 @@
 
 </section>
 
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/booking.js') }}"></script>
 {% endblock %}
