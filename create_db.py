@@ -4,6 +4,7 @@ from app.models.room import Room
 from app.models.booking import Booking
 from app.models.booking_room import BookingRoom
 from app.models.accounting import Accounting
+from app.models.user import User
 
 app = create_app()
 
@@ -121,6 +122,26 @@ with app.app_context():
             'Occupied'
         ),
     }
+
+    default_users = [
+        ("admin", "admin123", "admin", "System Admin"),
+        ("staff", "staff123", "staff", "Staff User"),
+        ("manager", "manager123", "manager", "Manager User")
+    ]
+
+    for username, password, role, full_name in default_users:
+        existing_user = User.query.filter_by(username=username).first()
+
+        if not existing_user:
+            user = User(
+                username=username,
+                role=role,
+                full_name=full_name
+            )
+            user.set_password(password)
+            db.session.add(user)
+
+    db.session.commit()
 
     if Room.query.count() == 0:
 

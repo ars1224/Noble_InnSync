@@ -1,0 +1,70 @@
+{% extends '_layout.html' %}
+
+{% block title %}Edit Booking | Noble InnSync{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+<div class="admin-layout">
+
+    {% include 'admin/_admin_sidebar.html' %}
+
+    <main class="admin-content">
+
+        <section class="dashboard-page">
+
+            {% set page_tag = "BOOKING CRUD" %}
+            {% set page_title = "Edit Booking" %}
+            {% include 'admin/_admin_header.html' %}
+
+            <div class="form-card">
+
+                <form method="POST" class="admin-form">
+
+                    <label>Guest Name</label>
+                    <input type="text" name="guest_name" value="{{ booking.guest_name }}" required>
+
+                    <label>Email</label>
+                    <input type="email" name="email" value="{{ booking.email }}" required>
+
+                    <label>Phone</label>
+                    <input type="text" name="phone" value="{{ booking.phone }}" required>
+
+                    <label>Check-in</label>
+                    <input type="date" name="check_in" value="{{ booking.check_in }}" required>
+
+                    <label>Check-out</label>
+                    <input type="date" name="check_out" value="{{ booking.check_out }}" required>
+
+                    <label>Adults</label>
+                    <input type="number" name="adults" value="{{ booking.adults }}" min="1" required>
+
+                    <label>Children</label>
+                    <input type="number" name="children" value="{{ booking.children }}" min="0" required>
+
+                    <label>Total Price</label>
+                    <input type="number" name="total_price" value="{{ booking.total_price }}" step="0.01" required>
+
+                    <label>Status</label>
+                    <select name="status" required>
+                        <option value="Pending" {% if booking.status == "Pending" %}selected{% endif %}>Pending</option>
+                        <option value="Confirmed" {% if booking.status == "Confirmed" %}selected{% endif %}>Confirmed</option>
+                        <option value="Cancelled" {% if booking.status == "Cancelled" %}selected{% endif %}>Cancelled</option>
+                        <option value="Checked In" {% if booking.status == "Checked In" %}selected{% endif %}>Checked In</option>
+                        <option value="Checked Out" {% if booking.status == "Checked Out" %}selected{% endif %}>Checked Out</option>
+                    </select>
+
+                    <button type="submit">Update Booking</button>
+
+                </form>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+{% endblock %}

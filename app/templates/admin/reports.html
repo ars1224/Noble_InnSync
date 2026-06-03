@@ -1,0 +1,62 @@
+{% extends '_layout.html' %}
+
+{% block title %}Reports | Noble InnSync{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+<div class="admin-layout">
+
+    {% include 'admin/_admin_sidebar.html' %}
+
+    <main class="admin-content">
+
+        <section class="dashboard-page">
+
+            <div class="dashboard-header">
+                <p class="dashboard-tag">MANAGER REPORTS</p>
+                <h1>Reports Summary</h1>
+            </div>
+
+            <div class="dashboard-cards">
+
+                <div class="dashboard-card revenue-card">
+                    <h3>Total Revenue</h3>
+                    <h2>${{ "%.2f"|format(total_revenue) }}</h2>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Total Bookings</h3>
+                    <h2>{{ total_bookings }}</h2>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Paid Payments</h3>
+                    <h2>{{ paid_payments }}</h2>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Unpaid Payments</h3>
+                    <h2>{{ unpaid_payments }}</h2>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Occupied Rooms</h3>
+                    <h2>{{ occupied_rooms }}</h2>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Maintenance Rooms</h3>
+                    <h2>{{ maintenance_rooms }}</h2>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+{% endblock %}

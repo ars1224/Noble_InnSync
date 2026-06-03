@@ -508,6 +508,46 @@ if (phoneNumberInput) {
 
 }
 
+const expiryDateInput =
+    document.getElementById("expiry-date");
+
+if (expiryDateInput) {
+
+    expiryDateInput.addEventListener("input", () => {
+
+        let value =
+            expiryDateInput.value.replace(/\D/g, "");
+
+        value = value.substring(0, 4);
+
+        if (value.length >= 3) {
+
+            value =
+                value.slice(0, 2) +
+                "/" +
+                value.slice(2);
+        }
+
+        expiryDateInput.value = value;
+    });
+
+}
+
+const cvvInput =
+    document.getElementById("cvv");
+
+if (cvvInput) {
+
+    cvvInput.addEventListener("input", () => {
+
+        cvvInput.value =
+            cvvInput.value
+                .replace(/\D/g, "")
+                .slice(0, 3);
+    });
+
+}
+
 
 updateSuggestedRooms();
 loadManualRooms();

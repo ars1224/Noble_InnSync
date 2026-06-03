@@ -1,0 +1,12 @@
+<div class="dashboard-header">
+    <div>
+        <p class="dashboard-tag">{{ page_tag }}</p>
+        <h1>{{ page_title }}</h1>
+    </div>
+
+    <div class="admin-user-info">
+        <span>Logged in as</span>
+        <strong>{{ session.get("username") }}</strong>
+        <small>{{ session.get("user_role")|title }}</small>
+    </div>
+</div>

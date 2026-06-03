@@ -1,0 +1,50 @@
+{% extends '_layout.html' %}
+
+{% block title %}Add Room | Noble InnSync{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+<div class="admin-layout">
+    {% include 'admin/_admin_sidebar.html' %}
+
+    <main class="admin-content">
+        <section class="dashboard-page">
+
+            {% set page_tag = "ROOM CRUD" %}
+            {% set page_title = "Add New Room" %}
+            {% include 'admin/_admin_header.html' %}
+
+            <div class="form-card">
+                <form method="POST" class="admin-form">
+
+                    <label>Room Number</label>
+                    <input type="text" name="room_number" required>
+
+                    <label>Room Type</label>
+                    <input type="text" name="room_type" required>
+
+                    <label>Description</label>
+                    <textarea name="description" required></textarea>
+
+                    <label>Price</label>
+                    <input type="number" name="price" step="0.01" required>
+
+                    <label>Status</label>
+                    <select name="status" required>
+                        <option value="Available">Available</option>
+                        <option value="Occupied">Occupied</option>
+                        <option value="Maintenance">Maintenance</option>
+                    </select>
+
+                    <button type="submit">Save Room</button>
+
+                </form>
+            </div>
+
+        </section>
+    </main>
+</div>
+
+{% endblock %}

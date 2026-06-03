@@ -1,0 +1,166 @@
+const adultsInput = document.querySelector('[name="adults"]');
+const childrenInput = document.querySelector('[name="children"]');
+
+const roomCards = document.querySelectorAll(".walkin-room-card");
+const walkinTotal = document.getElementById("walkinTotal");
+
+const stepPanels = document.querySelectorAll(".walkin-step-panel");
+const stepIndicators = document.querySelectorAll(".walkin-step");
+
+const nextButtons = document.querySelectorAll(".next-step-btn");
+const backButtons = document.querySelectorAll(".back-step-btn");
+
+function showStep(stepNumber) {
+    stepPanels.forEach(function (panel) {
+        panel.classList.remove("active");
+    });
+
+    stepIndicators.forEach(function (indicator) {
+        indicator.classList.remove("active");
+    });
+
+    document.querySelector(`[data-step="${stepNumber}"]`).classList.add("active");
+
+    document.querySelector(`[data-step-indicator="${stepNumber}"]`).classList.add("active");
+}
+
+function updateWalkinTotal() {
+    let total = 0;
+
+    document.querySelectorAll(".walkin-room-checkbox").forEach(function (checkbox) {
+        if (checkbox.checked && !checkbox.disabled) {
+            total += parseFloat(checkbox.dataset.price);
+        }
+    });
+
+    walkinTotal.textContent = total.toFixed(2);
+
+    updateCapacitySummary();
+}
+
+function updateRoomAvailability() {
+    roomCards.forEach(function (card) {
+
+        const checkbox = card.querySelector(".walkin-room-checkbox");
+        const status = card.dataset.status;
+
+        const notAvailable = status !== "Available";
+
+        if (notAvailable) {
+            checkbox.checked = false;
+            checkbox.disabled = true;
+
+            card.classList.add("room-disabled");
+
+        } else {
+
+            checkbox.disabled = false;
+            card.classList.remove("room-disabled");
+        }
+    });
+
+    updateWalkinTotal();
+}
+
+function updateCapacitySummary() {
+
+    const adultsNeeded = parseInt(adultsInput.value) || 0;
+    const childrenNeeded = parseInt(childrenInput.value) || 0;
+
+    let totalAdults = 0;
+    let totalChildren = 0;
+
+    document.querySelectorAll(".walkin-room-checkbox").forEach(function (checkbox) {
+
+        if (checkbox.checked && !checkbox.disabled) {
+
+            const card = checkbox.closest(".walkin-room-card");
+
+            totalAdults += parseInt(card.dataset.maxAdults);
+            totalChildren += parseInt(card.dataset.maxChildren);
+        }
+    });
+
+    const summaryBox = document.getElementById("capacitySummary");
+
+    if (!summaryBox) return;
+
+    const adultOk = totalAdults >= adultsNeeded;
+    const childOk = totalChildren >= childrenNeeded;
+
+    if (adultOk && childOk) {
+
+        summaryBox.innerHTML = `
+            <span class="capacity-ok">
+                Capacity Covered
+                (${totalAdults} Adults / ${totalChildren} Children)
+            </span>
+        `;
+
+    } else {
+
+        summaryBox.innerHTML = `
+            <span class="capacity-warning">
+                Not Enough Capacity
+                (${totalAdults} Adults / ${totalChildren} Children)
+            </span>
+        `;
+    }
+}
+
+nextButtons.forEach(function (button) {
+
+    button.addEventListener("click", function () {
+
+        const nextStep = button.dataset.next;
+
+        if (nextStep === "3") {
+
+            const adultsNeeded = parseInt(adultsInput.value) || 0;
+            const childrenNeeded = parseInt(childrenInput.value) || 0;
+
+            let totalAdults = 0;
+            let totalChildren = 0;
+
+            document.querySelectorAll(".walkin-room-checkbox").forEach(function (checkbox) {
+
+                if (checkbox.checked && !checkbox.disabled) {
+
+                    const card = checkbox.closest(".walkin-room-card");
+
+                    totalAdults += parseInt(card.dataset.maxAdults);
+                    totalChildren += parseInt(card.dataset.maxChildren);
+                }
+            });
+
+            if (
+                totalAdults < adultsNeeded ||
+                totalChildren < childrenNeeded
+            ) {
+
+                alert("Selected rooms do not cover the total guest capacity.");
+                return;
+            }
+        }
+
+        showStep(nextStep);
+    });
+});
+
+backButtons.forEach(function (button) {
+
+    button.addEventListener("click", function () {
+        showStep(button.dataset.back);
+    });
+});
+
+adultsInput.addEventListener("input", updateCapacitySummary);
+childrenInput.addEventListener("input", updateCapacitySummary);
+
+document.querySelectorAll(".walkin-room-checkbox").forEach(function (checkbox) {
+
+    checkbox.addEventListener("change", updateWalkinTotal);
+});
+
+updateRoomAvailability();
+updateCapacitySummary();

@@ -20,9 +20,14 @@ def create_app():
     from app.routes.main_routes import main
     from app.routes.room_routes import room
     from app.routes.booking_routes import booking
+    from app.routes.admin import admin
+    from app.routes.auth import auth
+
 
     app.register_blueprint(main)
     app.register_blueprint(room)
     app.register_blueprint(booking)
+    app.register_blueprint(admin)
+    app.register_blueprint(auth)
 
     return app

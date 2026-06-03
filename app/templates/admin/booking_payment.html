@@ -1,0 +1,85 @@
+{% extends '_layout.html' %}
+
+{% block title %}Booking Payment | Noble InnSync{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+<div class="admin-layout">
+
+    {% include 'admin/_admin_sidebar.html' %}
+
+    <main class="admin-content">
+
+        <section class="dashboard-page">
+
+            {% set page_tag = "BOOKING PAYMENT" %}
+            {% set page_title = booking.reference_number %}
+            {% include 'admin/_admin_header.html' %}
+
+            <div class="form-card">
+
+                <p><strong>Guest:</strong> {{ booking.guest_name }}</p>
+                <p><strong>Total Price:</strong> ${{ "%.2f"|format(booking.total_price) }}</p>
+                <p><strong>Current Booking Status:</strong> {{ booking.status }}</p>
+
+                <br>
+
+                <form method="POST" class="admin-form">
+
+                    <label>Payment Status</label>
+                    <select name="payment_status" required>
+                        <option value="Unpaid"
+                            {% if payment and payment.payment_status == "Unpaid" %}selected{% endif %}>
+                            Unpaid
+                        </option>
+
+                        <option value="Paid"
+                            {% if payment and payment.payment_status == "Paid" %}selected{% endif %}>
+                            Paid
+                        </option>
+
+                        <option value="Refunded"
+                            {% if payment and payment.payment_status == "Refunded" %}selected{% endif %}>
+                            Refunded
+                        </option>
+                    </select>
+
+                    <label>Payment Method</label>
+                    <select name="payment_method" required>
+                        <option value="Pay on Arrival"
+                            {% if payment and payment.payment_method == "Pay on Arrival" %}selected{% endif %}>
+                            Pay on Arrival
+                        </option>
+
+                        <option value="Card"
+                            {% if payment and payment.payment_method == "Card" %}selected{% endif %}>
+                            Card
+                        </option>
+
+                        <option value="Cash"
+                            {% if payment and payment.payment_method == "Cash" %}selected{% endif %}>
+                            Cash
+                        </option>
+                    </select>
+
+                    <button type="submit">Save Payment</button>
+
+                </form>
+
+                <br>
+
+                <a href="{{ url_for('admin.bookings') }}" class="add-btn">
+                    Back to Bookings
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+{% endblock %}
