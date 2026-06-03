@@ -7,7 +7,11 @@
 <section class="listing-hero">
     <div class="listing-copy">
         <p class="section-tag">AVAILABLE ROOMS</p>
-        <h1>Find the room that fits your stay.</h1>
+
+        <h1>
+            Find the room that fits your stay.
+        </h1>
+
         <p class="listing-description">
             Review the available room types and continue your Noble InnSync booking flow.
         </p>
@@ -18,48 +22,90 @@
 
     <div class="results-container">
 
-    <div class="results-header-card">
-        <div>
-            <p class="section-tag">SEARCH SUMMARY</p>
-            <h2>Available rooms for your selected stay</h2>
+        <div class="results-header-card">
+
+            <div>
+                <p class="section-tag">
+                    SEARCH SUMMARY
+                </p>
+
+                <h2>
+                    Available rooms for your selected stay
+                </h2>
+            </div>
+
+            <a
+                class="results-back-link"
+                href="{{ url_for('main.home') }}#availability"
+            >
+                Edit Search
+            </a>
+
         </div>
 
-        <a class="results-back-link" href="{{ url_for('main.home') }}#availability">
-            Edit Search
-        </a>
-    </div>
+        <div class="summary-pills">
 
-    <div class="summary-pills">
-        <span>{{ search_summary.check_in or 'Check-in not set' }}</span>
-        <span>{{ search_summary.check_out or 'Check-out not set' }}</span>
-        <span>{{ search_summary.guest_text }}</span>
-    </div>
+            <span>
+                {{ search_summary.check_in or 'Check-in not set' }}
+            </span>
 
-    {% if room_summary %}
+            <span>
+                {{ search_summary.check_out or 'Check-out not set' }}
+            </span>
 
-    <div class="available-room-grid">
+            <span>
+                {{ search_summary.guest_text }}
+            </span>
 
-        {% for room in room_summary %}
+        </div>
 
-            {% if room.available_count > 0 %}
+        {% if room_summary %}
+
+        <div class="available-room-grid">
+
+            {% for room in room_summary %}
 
             <article class="available-room-card">
 
                 <div class="available-room-media">
-                    <img src="{{ url_for('static', filename='img/' + room.image) }}" alt="{{ room.room_type }}">
+
+                    <img
+                        src="{{ url_for('static', filename='img/' + room.image) }}"
+                        alt="{{ room.room_type }}"
+                    >
+
                 </div>
 
                 <div class="available-room-content">
 
                     <div class="available-room-top">
+
                         <div>
-                            <h3>{{ room.room_type }}</h3>
+
+                            <h3>
+                                {{ room.room_type }}
+                            </h3>
+
                             <p class="room-meta">
                                 {{ room.available_count }} room(s) available
                             </p>
+
                         </div>
 
-                        <span class="status-badge available">Available</span>
+                        {% if room.available_count > 0 %}
+
+                            <span class="status-badge available">
+                                Available
+                            </span>
+
+                        {% else %}
+
+                            <span class="status-badge full">
+                                Fully Booked
+                            </span>
+
+                        {% endif %}
+
                     </div>
 
                     <p class="room-copy">
@@ -78,38 +124,76 @@
                     </p>
 
                     <div class="room-card-footer">
-                        <strong>${{ room.price }} / Night</strong>
+
+                        <strong>
+                            ${{ room.price }} / Night
+                        </strong>
 
                         <div class="room-card-actions">
-                            <a href="#" class="ghost-btn">View Details</a>
-                            <a href="{{ url_for('booking.book_room', room_type=room.room_type, adults=search_summary.adults, children=search_summary.children) }}" class="solid-btn">
+
+                            <a href="#" class="ghost-btn">
+                                View Details
+                            </a>
+
+                            {% if room.available_count > 0 %}
+
+                            <a
+                                href="{{ url_for(
+                                    'booking.book_room',
+                                    adults=room.capacity_adults,
+                                    children=room.capacity_children
+                                ) }}"
+                                class="solid-btn"
+                            >
                                 Book Now
                             </a>
+
+                            {% else %}
+
+                                <button
+                                    class="solid-btn disabled-btn"
+                                    disabled
+                                >
+                                    Fully Booked
+                                </button>
+
+                            {% endif %}
+
                         </div>
+
                     </div>
 
                 </div>
 
             </article>
 
-            {% endif %}
+            {% endfor %}
 
-        {% endfor %}
+        </div>
 
-    </div>
+        {% else %}
 
-    {% else %}
+        <div class="results-empty-state">
 
-    <div class="results-empty-state">
-        <h3>No rooms available for your selected dates.</h3>
-        <p>Try adjusting your stay dates or guest count and search again.</p>
+            <h3>
+                No rooms available for your selected dates.
+            </h3>
 
-        <a href="{{ url_for('main.home') }}#availability" class="solid-btn">
-            Change Search
-        </a>
-    </div>
+            <p>
+                Try adjusting your stay dates or guest count and search again.
+            </p>
 
-    {% endif %}
+            <a
+                href="{{ url_for('main.home') }}#availability"
+                class="solid-btn"
+            >
+                Change Search
+            </a>
+
+        </div>
+
+        {% endif %}
+
     </div>
 
 </section>

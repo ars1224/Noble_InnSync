@@ -19,30 +19,36 @@ def generate_transaction_number():
 
 ROOM_RULES = {
     "Family Room": {
-        "adult_capacity": 4,
-        "child_capacity": 2,
+        "capacity": 6,
         "price": 329
     },
     "Double Room": {
-        "adult_capacity": 2,
-        "child_capacity": 1,
+        "capacity": 3,
         "price": 229
     },
     "Single Room": {
-        "adult_capacity": 1,
-        "child_capacity": 0,
+        "capacity": 1,
         "price": 149
     }
 }
 
 
+def calculate_required_capacity(adults, children):
+    return adults + (children * 0.5)
+
+
 def suggest_rooms(adults, children):
     selected_rooms = []
 
-    remaining_adults = adults
-    remaining_children = children
+    required_capacity = calculate_required_capacity(adults, children)
+    remaining_capacity = required_capacity
 
-    room_priority = ["Family Room", "Double Room", "Single Room"]
+    if required_capacity <= 1:
+        room_priority = ["Single Room", "Double Room", "Family Room"]
+    elif required_capacity <= 3:
+        room_priority = ["Double Room", "Family Room", "Single Room"]
+    else:
+        room_priority = ["Family Room", "Double Room", "Single Room"]
 
     for room_type in room_priority:
         rule = ROOM_RULES[room_type]
@@ -53,60 +59,74 @@ def suggest_rooms(adults, children):
         ).all()
 
         for room in available_rooms:
-
-            if remaining_adults <= 0 and remaining_children <= 0:
+            if remaining_capacity <= 0:
                 break
-
-            # Skip Single Room if only children are left
-            if room_type == "Single Room" and remaining_adults <= 0:
-                continue
 
             selected_rooms.append({
                 "room_id": room.id,
                 "room_number": room.room_number,
                 "room_type": room.room_type,
                 "price": rule["price"],
-                "adult_capacity": rule["adult_capacity"],
-                "child_capacity": rule["child_capacity"]
+                "capacity": rule["capacity"]
             })
 
-            remaining_adults -= rule["adult_capacity"]
-            remaining_children -= rule["child_capacity"]
+            remaining_capacity -= rule["capacity"]
 
-            if remaining_adults < 0:
-                remaining_adults = 0
-
-            if remaining_children < 0:
-                remaining_children = 0
-
-    total_adult_capacity = sum(room["adult_capacity"] for room in selected_rooms)
-    total_child_capacity = sum(room["child_capacity"] for room in selected_rooms)
+    total_capacity = sum(room["capacity"] for room in selected_rooms)
     total_price = sum(room["price"] for room in selected_rooms)
 
     return {
         "selected_rooms": selected_rooms,
-        "total_adult_capacity": total_adult_capacity,
-        "total_child_capacity": total_child_capacity,
+        "required_capacity": required_capacity,
+        "total_capacity": total_capacity,
         "total_price": total_price,
-        "can_fit": total_adult_capacity >= adults and total_child_capacity >= children
+        "can_fit": total_capacity >= required_capacity
     }
 
+def build_manual_room_plan(room_ids, adults, children):
+    selected_rooms = []
+    required_capacity = calculate_required_capacity(adults, children)
+
+    rooms = Room.query.filter(Room.id.in_(room_ids), Room.status == "Available").all()
+
+    for room in rooms:
+        rule = ROOM_RULES.get(room.room_type)
+
+        if rule:
+            selected_rooms.append({
+                "room_id": room.id,
+                "room_number": room.room_number,
+                "room_type": room.room_type,
+                "price": rule["price"],
+                "capacity": rule["capacity"]
+            })
+
+    total_capacity = sum(room["capacity"] for room in selected_rooms)
+    total_price = sum(room["price"] for room in selected_rooms)
+
+    return {
+        "selected_rooms": selected_rooms,
+        "required_capacity": required_capacity,
+        "total_capacity": total_capacity,
+        "total_price": total_price,
+        "can_fit": total_capacity >= required_capacity
+    }
 
 @booking.route("/book-room", methods=["GET", "POST"])
 def book_room():
-
-    room_images = {
-        "Single Room": "ChatGPT Image Jun 2, 2026, 08_37_08 PM.png",
-        "Double Room": "ChatGPT Image Jun 2, 2026, 08_37_54 PM.png",
-        "Family Room": "ChatGPT Image Jun 2, 2026, 08_38_19 PM.png",
-    }
 
     if request.method == "POST":
 
         adults = int(request.form.get("adults", 1))
         children = int(request.form.get("children", 0))
 
-        room_plan = suggest_rooms(adults, children)
+        selected_room_ids = request.form.get("selected_room_ids", "").strip()
+
+        if selected_room_ids:
+            room_ids = [int(room_id) for room_id in selected_room_ids.split(",") if room_id]
+            room_plan = build_manual_room_plan(room_ids, adults, children)
+        else:
+            room_plan = suggest_rooms(adults, children)
 
         if not room_plan["can_fit"]:
             return "Not enough available room capacity for this booking."
@@ -133,8 +153,8 @@ def book_room():
                 room_number=selected["room_number"],
                 room_type=selected["room_type"],
                 price=selected["price"],
-                adult_capacity=selected["adult_capacity"],
-                child_capacity=selected["child_capacity"]
+                adult_capacity=selected["capacity"],
+                child_capacity=0
             )
 
             db.session.add(booking_room)
@@ -163,8 +183,10 @@ def book_room():
         )
 
     return render_template(
-    "bookings/booking_form.html"
-)
+        "bookings/booking_form.html",
+        adults=request.args.get("adults", 1),
+        children=request.args.get("children", 0)
+    )
 
 
 @booking.route("/booking-success/<reference_number>")
@@ -179,6 +201,7 @@ def booking_success(reference_number):
         booking=booking_record
     )
 
+
 @booking.route("/suggest-rooms")
 def suggest_rooms_api():
     adults = int(request.args.get("adults", 1))
@@ -189,7 +212,29 @@ def suggest_rooms_api():
     return {
         "can_fit": room_plan["can_fit"],
         "selected_rooms": room_plan["selected_rooms"],
-        "total_adult_capacity": room_plan["total_adult_capacity"],
-        "total_child_capacity": room_plan["total_child_capacity"],
+        "required_capacity": room_plan["required_capacity"],
+        "total_capacity": room_plan["total_capacity"],
         "total_price": room_plan["total_price"]
+    }
+
+@booking.route("/available-room-options")
+def available_room_options():
+    rooms = Room.query.filter_by(status="Available").all()
+
+    room_options = []
+
+    for room in rooms:
+        rule = ROOM_RULES.get(room.room_type)
+
+        if rule:
+            room_options.append({
+                "room_id": room.id,
+                "room_number": room.room_number,
+                "room_type": room.room_type,
+                "price": rule["price"],
+                "capacity": rule["capacity"]
+            })
+
+    return {
+        "rooms": room_options
     }

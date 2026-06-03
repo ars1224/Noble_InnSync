@@ -348,6 +348,223 @@
     font-weight: 700;
 }
 
+.selected-room-summary{
+    margin-top: 24px;
+    padding: 24px;
+    border-radius: 22px;
+    background: rgba(25,35,58,0.04);
+}
+
+.selected-room-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+
+    margin-bottom: 20px;
+}
+
+.summary-label{
+    color: #666;
+    margin: 0 0 6px;
+}
+
+.selected-room-header h4{
+    margin: 0;
+    color: #19233a;
+}
+
+.selected-room-item{
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+
+    padding: 12px 0;
+
+    border-bottom: 1px solid rgba(25,35,58,0.08);
+}
+
+.selected-room-item strong{
+    color: #d4a762;
+}
+
+.hidden{
+    display: none !important;
+}
+
+.room-modal{
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+}
+
+.room-modal-overlay{
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    backdrop-filter: blur(4px);
+}
+
+.room-modal-content{
+    position: relative;
+    z-index: 2;
+
+    width: min(92%, 720px);
+    max-height: 85vh;
+    overflow-y: auto;
+
+    margin: 70px auto;
+    padding: 32px;
+
+    background: #fcfbf8;
+    border-radius: 28px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+}
+
+.room-modal-header{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.room-modal-header h3{
+    margin: 0;
+    font-size: 28px;
+    color: #19233a;
+}
+
+.close-modal-btn{
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 12px;
+    background: rgba(25,35,58,0.08);
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 800;
+}
+
+.manual-room-option{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 18px 0;
+    border-bottom: 1px solid rgba(25,35,58,0.10);
+}
+
+.manual-room-info strong{
+    display: block;
+    color: #19233a;
+    font-size: 18px;
+}
+
+.manual-room-info small{
+    display: block;
+    color: #666;
+    margin-top: 4px;
+}
+
+.quantity-control{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.qty-btn{
+    width: 38px;
+    height: 38px;
+    border: none;
+    border-radius: 10px;
+    background: #19233a;
+    color: white;
+    font-size: 20px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.quantity-control span{
+    min-width: 22px;
+    text-align: center;
+    font-weight: 800;
+}
+
+.modify-room-btn,
+.save-room-btn{
+    border: none;
+    border-radius: 14px;
+    background: #19233a;
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.modify-room-btn{
+    height: 44px;
+    padding: 0 18px;
+}
+
+.save-room-btn{
+    width: 100%;
+    height: 54px;
+    margin-top: 20px;
+}
+
+.manual-success{
+    color: #2f7a39;
+    font-weight: 700;
+}
+
+.manual-error{
+    color: #b91c1c;
+    font-weight: 700;
+}
+
+.manual-neutral{
+    color: #666;
+    font-weight: 600;
+}
+
+.payment-method-box{
+    margin-top: 10px;
+}
+
+.payment-title{
+    display: block;
+    margin-bottom: 14px;
+    font-weight: 700;
+    color: #19233a;
+}
+
+.payment-options{
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.payment-option{
+    flex: 1;
+    min-width: 180px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 18px;
+    border-radius: 18px;
+
+    background: white;
+    border: 1px solid rgba(25,35,58,0.08);
+
+    cursor: pointer;
+}
+
+.card-payment-fields{
+    margin-top: 24px;
+}
+
 
 @media (max-width: 1000px) {
     .booking-container {

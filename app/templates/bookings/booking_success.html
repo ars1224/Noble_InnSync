@@ -40,8 +40,13 @@
             <div class="summary-details">
 
                 <div>
-                    <span>Room Type</span>
-                    <strong>{{ booking.room_type }}</strong>
+                    <span>Room(s)</span>
+
+                    <strong>
+                        {% for room in booking.booking_rooms %}
+                            Room {{ room.room_number }} - {{ room.room_type }}{% if not loop.last %}<br>{% endif %}
+                        {% endfor %}
+                    </strong>
                 </div>
 
                 <div>
@@ -57,6 +62,14 @@
                 <div>
                     <span>Guests</span>
                     <strong>{{ booking.adults }} adult(s), {{ booking.children }} child(ren)</strong>
+                </div>
+
+                <div>
+                    <span>Payment</span>
+
+                    <strong>
+                        {{ booking.accounting[0].payment_status }}
+                    </strong>
                 </div>
 
                 <div>

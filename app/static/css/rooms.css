@@ -238,6 +238,18 @@
     transform: scale(1.05);
 }
 
+.status-badge.full{
+    background: rgba(185,28,28,0.10);
+    color: #b91c1c;
+}
+
+.disabled-btn{
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+    border: none;
+}
+
 /* RESPONSIVE */
 @media (max-width: 1100px){
     .available-room-card{
