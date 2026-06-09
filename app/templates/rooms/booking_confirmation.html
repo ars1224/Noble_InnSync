@@ -1,0 +1,163 @@
+{% extends '_layout.html' %}
+
+{% block title %}Booking Confirmed | The Noble Inn{% endblock %}
+
+{% block site_header %}
+<header class="checkout-topbar">
+    <a class="checkout-brand" href="{{ url_for('main.home') }}">The Noble Inn</a>
+    <div class="checkout-nav-actions">
+        <span>Secure Booking</span>
+        <a href="{{ url_for('main.home') }}">Back Home</a>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="checkout-page-header">
+    <div>
+        <p class="section-tag">CONFIRMATION</p>
+        <h1>Booking confirmed</h1>
+        {% if notification_sent %}
+        <p>Your booking is confirmed. We have sent the confirmation details to {{ guest_details.email }}.</p>
+        {% else %}
+        <p>Your booking is confirmed, but the email notification needs attention.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="room-detail-shell">
+    {% if notification_sent %}
+    <div class="hold-alert success">Booking confirmation and receipt sent successfully.</div>
+    {% else %}
+    <div class="hold-alert error">Booking confirmed, but the confirmation email could not be sent.</div>
+    {% endif %}
+
+    <div class="mobile-step-label">Booking complete</div>
+
+    <div class="booking-stepper">
+        <span>Room</span>
+        <span>Details</span>
+        <span>Review</span>
+        <span>Payment</span>
+        <span class="active">Confirmation</span>
+    </div>
+
+    <div class="confirmation-panel">
+        <div class="payment-result-icon success">OK</div>
+        <h2>You're all set</h2>
+        <p>Your reservation is paid and confirmed. Keep this booking reference handy for check-in.</p>
+
+        <div class="confirmation-reference">
+            <span>Booking Reference</span>
+            <strong>{{ booking_reference }}</strong>
+        </div>
+
+        <div class="confirmation-trip-strip">
+            <div>
+                <strong>{{ booking_summary.check_in }}</strong>
+                <span>Check-in</span>
+            </div>
+            <div>
+                <strong>{{ booking_summary.check_out }}</strong>
+                <span>Check-out</span>
+            </div>
+            <div>
+                <strong>{{ price_breakdown.nights }}</strong>
+                <span>nights</span>
+            </div>
+            <div>
+                <strong>{{ booking_summary.guest_text }}</strong>
+                <span>guests</span>
+            </div>
+        </div>
+
+        <div class="confirmation-grid">
+            <section class="confirmation-card">
+                <p class="section-tag">STAY DETAILS</p>
+                <h3>{{ room.room_type }}</h3>
+                <div class="review-list">
+                    <div>
+                        <strong>Guest</strong>
+                        <p>{{ guest_details.first_name }} {{ guest_details.last_name }}</p>
+                    </div>
+                    <div>
+                        <strong>Email</strong>
+                        <p>{{ guest_details.email }}</p>
+                    </div>
+                    <div>
+                        <strong>Room</strong>
+                        <p>{{ room.room_type }}</p>
+                    </div>
+                    <div>
+                        <strong>Total Paid</strong>
+                        <p>${{ '{:,.0f}'.format(price_breakdown.total) }}</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="confirmation-card">
+                <p class="section-tag">{% if notification_sent %}GUEST STATUS{% else %}NOTIFICATION{% endif %}</p>
+                {% if notification_sent %}
+                <h3>Confirmed</h3>
+                <div class="confirmation-status-list">
+                    <div>
+                        <span>Payment</span>
+                        <strong>Paid</strong>
+                    </div>
+                    <div>
+                        <span>Reservation</span>
+                        <strong>Confirmed</strong>
+                    </div>
+                    <div>
+                        <span>Email</span>
+                        <strong>Email sent</strong>
+                    </div>
+                </div>
+                <p>Confirmation and receipt were sent to {{ guest_details.email }}.</p>
+                {% else %}
+                <h3>Email not sent</h3>
+                <div class="confirmation-status-list failed">
+                    <div>
+                        <span>Payment</span>
+                        <strong>Paid</strong>
+                    </div>
+                    <div>
+                        <span>Reservation</span>
+                        <strong>Confirmed</strong>
+                    </div>
+                    <div>
+                        <span>Email</span>
+                        <strong>Email failed</strong>
+                    </div>
+                </div>
+                <p>Staff can resend the confirmation email from the booking record.</p>
+                {% endif %}
+            </section>
+        </div>
+
+        <section class="confirmation-next-steps">
+            <p class="section-tag">NEXT STEPS</p>
+            <div class="next-step-list">
+                <div>
+                    <strong>Bring your booking reference</strong>
+                    <span>Show {{ booking_reference }} when you arrive.</span>
+                </div>
+                <div>
+                    <strong>Check your email</strong>
+                    <span>{% if notification_sent %}Your confirmation has been sent.{% else %}Staff may resend the confirmation if needed.{% endif %}</span>
+                </div>
+                <div>
+                    <strong>Need changes?</strong>
+                    <span>Contact the front desk before your check-in date.</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="payment-result-actions confirmation-actions">
+            <a class="solid-btn" href="#">View Status</a>
+            <a class="ghost-btn" href="#">Download Receipt</a>
+            <a class="ghost-btn" href="{{ url_for('main.home') }}">Back Home</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

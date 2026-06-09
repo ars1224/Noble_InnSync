@@ -1,0 +1,107 @@
+{% extends '_layout.html' %}
+
+{% block title %}{{ room.room_type }} | Noble InnSync{% endblock %}
+
+{% block content %}
+<section class="room-detail-hero">
+    <div>
+        <p class="section-tag">ROOM DETAILS</p>
+        <h1>{{ room.room_type }}</h1>
+        <p>Review room information before continuing to booking.</p>
+    </div>
+</section>
+
+<section class="room-detail-shell">
+    {% if room.status != 'Available' %}
+    <div class="room-unavailable-banner">
+        This room is no longer available for the selected dates.
+    </div>
+    {% endif %}
+
+    <div class="room-detail-grid">
+        <div class="room-detail-main">
+            <div class="room-gallery">
+                <div class="room-gallery-main">Room {{ room.room_number }}</div>
+                <div class="room-gallery-thumbs">
+                    <span>Image</span>
+                    <span>Bath</span>
+                    <span>Desk</span>
+                    <span>View</span>
+                </div>
+            </div>
+
+            <div class="room-detail-copy">
+                <p class="section-tag">READY TO BOOK</p>
+                <h2>{{ details.title }}</h2>
+                <p>{{ details.description }}</p>
+            </div>
+
+            <div class="room-info-grid">
+                <div class="room-info-panel">
+                    <h3>Amenities</h3>
+                    <div class="detail-tags">
+                        {% for amenity in details.amenities %}
+                        <span>{{ amenity }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="room-info-panel">
+                    <h3>Rules / Policies</h3>
+                    <ul>
+                        {% for rule in details.rules %}
+                        <li>{{ rule }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="room-description-panel">
+                <h3>Description</h3>
+                <p>
+                    {{ room.room_type }} {{ room.room_number }} includes {{ details.bed | lower }},
+                    {{ details.capacity | lower }} capacity, essential amenities, and live availability synced from the Noble InnSync database.
+                </p>
+            </div>
+        </div>
+
+        <aside class="booking-summary-panel">
+            <p class="section-tag">BOOKING SUMMARY</p>
+            <h2>${{ '{:,.0f}'.format(room.price) }}</h2>
+            <span>per night</span>
+
+            <div class="booking-summary-list">
+                <div>
+                    <strong>Room Type</strong>
+                    <p>{{ room.room_type }}</p>
+                </div>
+                <div>
+                    <strong>Dates</strong>
+                    <p>{{ booking_summary.check_in or 'Check-in not set' }} - {{ booking_summary.check_out or 'Check-out not set' }}</p>
+                </div>
+                <div>
+                    <strong>Capacity</strong>
+                    <p>{{ details.capacity }}</p>
+                </div>
+                <div>
+                    <strong>Guests</strong>
+                    <p>{{ booking_summary.guest_text }}</p>
+                </div>
+                <div>
+                    <strong>Status</strong>
+                    <p>{{ room.status }}</p>
+                </div>
+            </div>
+
+            <div class="booking-summary-actions">
+                <a class="ghost-btn" href="{{ url_for('main.available_rooms', check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Back</a>
+                {% if room.status == 'Available' %}
+                <a class="solid-btn" href="{{ url_for('main.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Book Now</a>
+                {% else %}
+                <a class="solid-btn" href="{{ url_for('main.available_rooms', check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children) }}">Choose Another</a>
+                {% endif %}
+            </div>
+        </aside>
+    </div>
+</section>
+{% endblock %}

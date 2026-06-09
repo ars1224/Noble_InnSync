@@ -26,31 +26,72 @@
         <span>{{ search_summary.check_in or 'Check-in not set' }}</span>
         <span>{{ search_summary.check_out or 'Check-out not set' }}</span>
         <span>{{ search_summary.guest_text }}</span>
+        <span>{{ search_summary.room_type }}</span>
     </div>
 
+    <div class="results-layout">
+        <aside class="filters-panel">
+            <h3>Filters</h3>
+
+            <form action="{{ url_for('main.available_rooms') }}" method="get">
+                <input type="hidden" name="check_in" value="{{ search_summary.check_in }}">
+                <input type="hidden" name="check_out" value="{{ search_summary.check_out }}">
+                <input type="hidden" name="adults" value="{{ search_summary.adults }}">
+                <input type="hidden" name="children" value="{{ search_summary.children }}">
+
+                <div class="filter-field">
+                    <label for="max_price">Max Price</label>
+                    <input id="max_price" name="max_price" type="range" min="150" max="350" step="10" value="{{ search_summary.max_price }}">
+                    <span>${{ search_summary.max_price }}</span>
+                </div>
+
+                <div class="filter-field">
+                    <label for="room_type">Room Type</label>
+                    <select id="room_type" name="room_type">
+                        <option value="">Any room</option>
+                        {% for type in room_types %}
+                        <option value="{{ type }}" {% if search_summary.room_type == type %}selected{% endif %}>{{ type }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="filter-field">
+                    <label for="sort_by">Sort By</label>
+                    <select id="sort_by" name="sort_by">
+                        <option value="lowest_price" {% if search_summary.sort_by == 'lowest_price' %}selected{% endif %}>Lowest price</option>
+                        <option value="highest_price" {% if search_summary.sort_by == 'highest_price' %}selected{% endif %}>Highest price</option>
+                        <option value="room_type" {% if search_summary.sort_by == 'room_type' %}selected{% endif %}>Room type</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="filter-submit">Apply Filters</button>
+            </form>
+        </aside>
+
+        <div class="results-list">
     {% if rooms %}
     <div class="available-room-grid">
         {% for room in rooms %}
         <article class="available-room-card">
             <div class="available-room-media">
-                <div class="media-placeholder">Room {{ room.room_number }}</div>
+                <div class="media-placeholder">{{ room.room_type }}</div>
             </div>
             <div class="available-room-content">
                 <div class="available-room-top">
                     <div>
                         <h3>{{ room.room_type }}</h3>
-                        <p class="room-meta">Room {{ room.room_number }} - Real-time room status synced</p>
+                        <p class="room-meta">{{ room.available_count }} room{% if room.available_count != 1 %}s{% endif %} available - {{ room.details.capacity }}</p>
                     </div>
                     <span class="status-badge available">{{ room.status }}</span>
                 </div>
                 <p class="room-copy">
-                    Comfortable accommodation for Nobleman's Travellers Inn guests, ready to continue into the booking journey.
+                    {{ room.details.description }}
                 </p>
                 <div class="room-card-footer">
-                    <strong>${{ '{:,.0f}'.format(room.price) }}</strong>
+                    <strong>From ${{ '{:,.0f}'.format(room.price) }}</strong>
                     <div class="room-card-actions">
-                        <a href="#" class="ghost-btn">View Details</a>
-                        <a href="#" class="solid-btn">Book Now</a>
+                        <a href="{{ url_for('main.room_details', room_id=room.id, check_in=search_summary.check_in, check_out=search_summary.check_out, adults=search_summary.adults, children=search_summary.children, room_type=request.args.get('room_type', ''), max_price=search_summary.max_price, sort_by=search_summary.sort_by) }}" class="ghost-btn">View Details</a>
+                        <a href="{{ url_for('main.booking_form', room_id=room.id, check_in=search_summary.check_in, check_out=search_summary.check_out, adults=search_summary.adults, children=search_summary.children, room_type=request.args.get('room_type', ''), max_price=search_summary.max_price, sort_by=search_summary.sort_by) }}" class="solid-btn">Book Now</a>
                     </div>
                 </div>
             </div>
@@ -64,5 +105,7 @@
         <a href="{{ url_for('main.home') }}#availability" class="solid-btn">Change Search</a>
     </div>
     {% endif %}
+        </div>
+    </div>
 </section>
 {% endblock %}

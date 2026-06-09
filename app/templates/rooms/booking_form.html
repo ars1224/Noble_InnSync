@@ -1,0 +1,116 @@
+{% extends '_layout.html' %}
+
+{% block title %}Book {{ room.room_type }} | The Noble Inn{% endblock %}
+
+{% block site_header %}
+<header class="checkout-topbar">
+    <a class="checkout-brand" href="{{ url_for('main.home') }}">The Noble Inn</a>
+    <div class="checkout-nav-actions">
+        <span>Secure Booking</span>
+        <a href="{{ url_for('main.available_rooms') }}">Back to Rooms</a>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="checkout-page-header">
+    <div>
+        <p class="section-tag">BOOKING FORM</p>
+        <h1>Complete your stay details</h1>
+        <p>Enter guest information to continue the reservation for {{ room.room_type }}.</p>
+    </div>
+</section>
+
+<section class="room-detail-shell">
+    <div class="booking-form-grid">
+        <form class="booking-form-card" action="{{ url_for('main.booking_review', room_id=room.id) }}" method="post">
+            <p class="section-tag">GUEST DETAILS</p>
+            <h2>Guest information</h2>
+            <input type="hidden" name="room_type" value="{{ booking_summary.room_type }}">
+            <input type="hidden" name="max_price" value="{{ booking_summary.max_price }}">
+            <input type="hidden" name="sort_by" value="{{ booking_summary.sort_by }}">
+
+            <div class="booking-form-fields">
+                <div class="form-field">
+                    <label for="first_name">First Name</label>
+                    <input id="first_name" name="first_name" type="text" placeholder="Enter first name" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="last_name">Last Name</label>
+                    <input id="last_name" name="last_name" type="text" placeholder="Enter last name" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="email">Email Address</label>
+                    <input id="email" name="email" type="email" placeholder="guest@example.com" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="phone">Phone Number</label>
+                    <input id="phone" name="phone" type="tel" placeholder="+64 21 123 4567" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="check_in">Check-in</label>
+                    <input id="check_in" name="check_in" type="date" value="{{ booking_summary.check_in }}" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="check_out">Check-out</label>
+                    <input id="check_out" name="check_out" type="date" value="{{ booking_summary.check_out }}" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="adults">Adults</label>
+                    <input id="adults" name="adults" type="number" min="1" value="{{ booking_summary.adults }}" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="children">Children</label>
+                    <input id="children" name="children" type="number" min="0" value="{{ booking_summary.children }}">
+                </div>
+            </div>
+
+            <div class="form-field form-field-full">
+                <label for="requests">Special Requests</label>
+                <textarea id="requests" name="requests" rows="5" placeholder="Add arrival notes, accessibility needs, or room preferences"></textarea>
+            </div>
+
+            <div class="booking-form-actions">
+                <a class="ghost-btn" href="{{ url_for('main.room_details', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Back</a>
+                <button class="solid-btn" type="submit">Review Booking</button>
+            </div>
+        </form>
+
+        <aside class="booking-summary-panel">
+            <p class="section-tag">BOOKING SUMMARY</p>
+            <h2>${{ '{:,.0f}'.format(room.price) }}</h2>
+            <span>per night</span>
+
+            <div class="booking-summary-list">
+                <div>
+                    <strong>Room Type</strong>
+                    <p>{{ room.room_type }}</p>
+                </div>
+                <div>
+                    <strong>Dates</strong>
+                    <p>{{ booking_summary.check_in or 'Check-in not set' }} - {{ booking_summary.check_out or 'Check-out not set' }}</p>
+                </div>
+                <div>
+                    <strong>Guests</strong>
+                    <p>{{ booking_summary.guest_text }}</p>
+                </div>
+                <div>
+                    <strong>Capacity</strong>
+                    <p>{{ details.capacity }}</p>
+                </div>
+                <div>
+                    <strong>Status</strong>
+                    <p>{{ room.status }}</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+</section>
+{% endblock %}

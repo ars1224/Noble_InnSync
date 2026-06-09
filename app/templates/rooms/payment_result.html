@@ -1,0 +1,112 @@
+{% extends '_layout.html' %}
+
+{% block title %}
+{% if payment_status == 'success' %}Payment Successful{% elif payment_status == 'failed' %}Payment Failed{% else %}Payment Pending{% endif %} | The Noble Inn
+{% endblock %}
+
+{% block site_header %}
+<header class="checkout-topbar">
+    <a class="checkout-brand" href="{{ url_for('main.home') }}">The Noble Inn</a>
+    <div class="checkout-nav-actions">
+        <span>Secure Booking</span>
+        <a href="{{ url_for('main.available_rooms') }}">Back to Rooms</a>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="checkout-page-header">
+    <div>
+        <p class="section-tag">PAYMENT</p>
+        {% if payment_status == 'success' %}
+        <h1>Payment successful</h1>
+        <p>Your reservation has been confirmed.</p>
+        {% elif payment_status == 'failed' %}
+        <h1>Payment failed</h1>
+        <p>Your payment could not be processed. Please try again or choose another method.</p>
+        {% else %}
+        <h1>Payment pending</h1>
+        <p>We are waiting for the payment gateway to return a final result.</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="room-detail-shell">
+    {% if payment_status == 'success' %}
+    <div class="hold-alert success">Payment received. Booking confirmed for {{ temp_booking_id }}.</div>
+    {% elif payment_status == 'failed' %}
+    <div class="hold-alert error">Payment was not completed. Your temporary hold may expire if payment is not completed.</div>
+    {% else %}
+    <div class="hold-alert warning">Payment is being verified by the gateway.</div>
+    {% endif %}
+
+    <div class="mobile-step-label">
+        {% if payment_status == 'success' %}Step 5 of 5 - Confirmation{% else %}Step 4 of 5 - Payment{% endif %}
+    </div>
+
+    <div class="booking-stepper">
+        <span>Room</span>
+        <span>Details</span>
+        <span>Review</span>
+        <span {% if payment_status != 'success' %}class="active"{% endif %}>Payment</span>
+        <span {% if payment_status == 'success' %}class="active"{% endif %}>Confirmation</span>
+    </div>
+
+    <div class="payment-result-panel">
+        {% if payment_status == 'success' %}
+        <div class="payment-result-icon success">OK</div>
+        <h2>Your booking is confirmed</h2>
+        <p>We have sent a confirmation email to {{ guest_details.email }} with your booking reference and stay details.</p>
+        <div class="payment-result-meta">
+            <span>Reference {{ temp_booking_id }}</span>
+            <span>{{ room.room_type }}</span>
+            <span>{{ booking_summary.check_in }} - {{ booking_summary.check_out }}</span>
+            <span>{{ booking_summary.guest_text }}</span>
+        </div>
+        <div class="payment-result-actions">
+            <a class="ghost-btn" href="#">Receipt</a>
+            <a class="solid-btn" href="{{ url_for('main.home') }}">View Booking</a>
+        </div>
+        {% elif payment_status == 'failed' %}
+        <div class="payment-result-icon failed">!</div>
+        <h2>Payment could not be processed</h2>
+        <p>No payment was recorded. You can try again, change method, or return to review your booking.</p>
+        <div class="payment-result-actions">
+            <form action="{{ url_for('main.payment_pending', room_id=room.id) }}" method="post">
+                <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
+                <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
+                <input type="hidden" name="email" value="{{ guest_details.email }}">
+                <input type="hidden" name="phone" value="{{ guest_details.phone }}">
+                <input type="hidden" name="check_in" value="{{ booking_summary.check_in }}">
+                <input type="hidden" name="check_out" value="{{ booking_summary.check_out }}">
+                <input type="hidden" name="adults" value="{{ booking_summary.adults }}">
+                <input type="hidden" name="children" value="{{ booking_summary.children }}">
+                <input type="hidden" name="temp_booking_id" value="{{ temp_booking_id }}">
+                <button class="ghost-btn" type="submit">Change Method</button>
+            </form>
+            <form action="{{ url_for('main.payment_success', room_id=room.id) }}" method="post">
+                <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
+                <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
+                <input type="hidden" name="email" value="{{ guest_details.email }}">
+                <input type="hidden" name="phone" value="{{ guest_details.phone }}">
+                <input type="hidden" name="check_in" value="{{ booking_summary.check_in }}">
+                <input type="hidden" name="check_out" value="{{ booking_summary.check_out }}">
+                <input type="hidden" name="adults" value="{{ booking_summary.adults }}">
+                <input type="hidden" name="children" value="{{ booking_summary.children }}">
+                <input type="hidden" name="temp_booking_id" value="{{ temp_booking_id }}">
+                <button class="solid-btn" type="submit">Try Again</button>
+            </form>
+        </div>
+        {% else %}
+        <div class="payment-result-icon pending">...</div>
+        <h2>Waiting for payment confirmation</h2>
+        <p>The payment provider has not returned a final result yet. Please do not close this page while we check the status.</p>
+        <div class="pending-progress"><span></span></div>
+        <div class="payment-result-actions">
+            <a class="ghost-btn" href="#">Check Status</a>
+            <a class="solid-btn" href="#">Refresh</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

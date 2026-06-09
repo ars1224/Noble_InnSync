@@ -1,0 +1,36 @@
+{% extends '_layout.html' %}
+
+{% block title %}Checking Availability | Noble InnSync{% endblock %}
+
+{% block content %}
+<section class="room-detail-hero">
+    <div>
+        <p class="section-tag">SELECT ROOM</p>
+        <h1>Checking room availability</h1>
+        <p>The system is confirming the selected room against the current database status.</p>
+    </div>
+</section>
+
+<section class="room-detail-shell">
+    <div class="availability-check-panel">
+        <div class="availability-progress">
+            <span></span>
+        </div>
+
+        {% if room.status == 'Available' %}
+        <h2>Room {{ room.room_number }} is ready to book</h2>
+        <p>{{ room.room_type }} is currently available for {{ booking_summary.adults }} adult{% if booking_summary.adults != '1' %}s{% endif %} and {{ booking_summary.children }} child{% if booking_summary.children != '1' %}ren{% endif %}.</p>
+        <div class="availability-check-actions">
+            <a class="ghost-btn" href="{{ url_for('main.room_details', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children) }}">Back</a>
+            <a class="solid-btn" href="#">Continue Booking</a>
+        </div>
+        {% else %}
+        <h2>Room unavailable</h2>
+        <p>Another guest may have booked this room, or the availability changed.</p>
+        <div class="availability-check-actions">
+            <a class="solid-btn" href="{{ url_for('main.available_rooms', check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children) }}">Back to Available Rooms</a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

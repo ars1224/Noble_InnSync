@@ -8,8 +8,17 @@ with app.app_context():
 
     defaults = {
         '101': ('Single Room', 149, 'Available'),
-        '102': ('Double Room', 229, 'Available'),
-        '103': ('Family Room', 329, 'Occupied'),
+        '102': ('Single Room', 149, 'Available'),
+        '103': ('Single Room', 159, 'Available'),
+        '104': ('Single Room', 159, 'Unavailable'),
+        '201': ('Double Room', 229, 'Available'),
+        '202': ('Double Room', 229, 'Available'),
+        '203': ('Double Room', 249, 'Unavailable'),
+        '204': ('Double Room', 249, 'Available'),
+        '301': ('Family Room', 329, 'Available'),
+        '302': ('Family Room', 329, 'Unavailable'),
+        '303': ('Family Room', 349, 'Available'),
+        '304': ('Family Room', 349, 'Available'),
     }
 
     if Room.query.count() == 0:
@@ -20,11 +29,20 @@ with app.app_context():
         db.session.add_all(rooms)
         db.session.commit()
     else:
-        for room in Room.query.all():
-            if room.room_number in defaults:
-                room.room_type = defaults[room.room_number][0]
-                room.price = defaults[room.room_number][1]
-                room.status = defaults[room.room_number][2]
+        existing_rooms = {
+            room.room_number: room
+            for room in Room.query.all()
+        }
+
+        for number, (room_type, price, status) in defaults.items():
+            if number in existing_rooms:
+                existing_rooms[number].room_type = room_type
+                existing_rooms[number].price = price
+                existing_rooms[number].status = status
+            else:
+                db.session.add(
+                    Room(room_number=number, room_type=room_type, price=price, status=status)
+                )
         db.session.commit()
 
     print('Database created successfully.')

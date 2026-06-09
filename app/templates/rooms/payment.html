@@ -1,0 +1,167 @@
+{% extends '_layout.html' %}
+
+{% block title %}Payment | The Noble Inn{% endblock %}
+
+{% block site_header %}
+<header class="checkout-topbar">
+    <a class="checkout-brand" href="{{ url_for('main.home') }}">The Noble Inn</a>
+    <div class="checkout-nav-actions">
+        <span>Secure Booking</span>
+        <a href="{{ url_for('main.available_rooms') }}">Back to Rooms</a>
+    </div>
+</header>
+{% endblock %}
+
+{% block content %}
+<section class="checkout-page-header">
+    <div>
+        <p class="section-tag">PAYMENT</p>
+        <h1>Complete your secure payment</h1>
+        <p>Finish payment to confirm your Noble InnSync reservation.</p>
+    </div>
+</section>
+
+<section class="room-detail-shell">
+    {% if hold_created %}
+    <div class="payment-hold-banner">
+        <strong>Your room is held for 10:00 while you complete payment.</strong>
+        <span>{{ temp_booking_id }}</span>
+    </div>
+    {% else %}
+    <div class="hold-alert error">This room is no longer available. Please select another room.</div>
+    {% endif %}
+
+    <div class="mobile-step-label">Step 4 of 5 - Payment</div>
+
+    <div class="booking-stepper">
+        <span>Room</span>
+        <span>Details</span>
+        <span>Review</span>
+        <span class="active">Payment</span>
+        <span>Confirmation</span>
+    </div>
+
+    {% if hold_created %}
+    <div class="payment-grid">
+        <div class="payment-main">
+        <form class="payment-card" action="{{ url_for('main.payment_success', room_id=room.id) }}" method="post">
+            <p class="section-tag">PAYMENT DETAILS</p>
+            <h2>Card information</h2>
+            <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
+            <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
+            <input type="hidden" name="email" value="{{ guest_details.email }}">
+            <input type="hidden" name="phone" value="{{ guest_details.phone }}">
+            <input type="hidden" name="check_in" value="{{ booking_summary.check_in }}">
+            <input type="hidden" name="check_out" value="{{ booking_summary.check_out }}">
+            <input type="hidden" name="adults" value="{{ booking_summary.adults }}">
+            <input type="hidden" name="children" value="{{ booking_summary.children }}">
+            <input type="hidden" name="temp_booking_id" value="{{ temp_booking_id }}">
+
+            <div class="form-field form-field-full">
+                <label for="card_name">Name on Card</label>
+                <input id="card_name" name="card_name" type="text" placeholder="Maria Santos" required>
+            </div>
+
+            <div class="form-field form-field-full">
+                <label for="card_number">Card Number</label>
+                <input id="card_number" name="card_number" type="text" inputmode="numeric" placeholder="1234 5678 9012 3456" required>
+            </div>
+
+            <div class="payment-fields-row">
+                <div class="form-field">
+                    <label for="expiry">Expiry</label>
+                    <input id="expiry" name="expiry" type="text" placeholder="MM / YY" required>
+                </div>
+                <div class="form-field">
+                    <label for="cvv">CVV</label>
+                    <input id="cvv" name="cvv" type="text" inputmode="numeric" placeholder="123" required>
+                </div>
+            </div>
+
+            <p class="payment-reassurance">You will only be charged after selecting Pay Now.</p>
+
+            <div class="payment-actions">
+                <a class="ghost-btn" href="{{ url_for('main.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit Details</a>
+                <button class="solid-btn" type="submit">Pay Now</button>
+            </div>
+        </form>
+
+        <div class="prototype-payment-states">
+            <p>Prototype payment states</p>
+            <form action="{{ url_for('main.payment_failed', room_id=room.id) }}" method="post">
+                <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
+                <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
+                <input type="hidden" name="email" value="{{ guest_details.email }}">
+                <input type="hidden" name="phone" value="{{ guest_details.phone }}">
+                <input type="hidden" name="check_in" value="{{ booking_summary.check_in }}">
+                <input type="hidden" name="check_out" value="{{ booking_summary.check_out }}">
+                <input type="hidden" name="adults" value="{{ booking_summary.adults }}">
+                <input type="hidden" name="children" value="{{ booking_summary.children }}">
+                <input type="hidden" name="temp_booking_id" value="{{ temp_booking_id }}">
+                <button type="submit">Show Failed</button>
+            </form>
+            <form action="{{ url_for('main.payment_pending', room_id=room.id) }}" method="post">
+                <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
+                <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
+                <input type="hidden" name="email" value="{{ guest_details.email }}">
+                <input type="hidden" name="phone" value="{{ guest_details.phone }}">
+                <input type="hidden" name="check_in" value="{{ booking_summary.check_in }}">
+                <input type="hidden" name="check_out" value="{{ booking_summary.check_out }}">
+                <input type="hidden" name="adults" value="{{ booking_summary.adults }}">
+                <input type="hidden" name="children" value="{{ booking_summary.children }}">
+                <input type="hidden" name="temp_booking_id" value="{{ temp_booking_id }}">
+                <button type="submit">Show Pending</button>
+            </form>
+            <form action="{{ url_for('main.payment_notification_failed', room_id=room.id) }}" method="post">
+                <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
+                <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
+                <input type="hidden" name="email" value="{{ guest_details.email }}">
+                <input type="hidden" name="phone" value="{{ guest_details.phone }}">
+                <input type="hidden" name="check_in" value="{{ booking_summary.check_in }}">
+                <input type="hidden" name="check_out" value="{{ booking_summary.check_out }}">
+                <input type="hidden" name="adults" value="{{ booking_summary.adults }}">
+                <input type="hidden" name="children" value="{{ booking_summary.children }}">
+                <input type="hidden" name="temp_booking_id" value="{{ temp_booking_id }}">
+                <button type="submit">Show Email Failed</button>
+            </form>
+        </div>
+        </div>
+
+        <aside class="booking-summary-panel">
+            <p class="section-tag">BOOKING SUMMARY</p>
+            <h2>${{ '{:,.0f}'.format(price_breakdown.total) }}</h2>
+            <span>tax and fees included</span>
+
+            <div class="booking-summary-list">
+                <div>
+                    <strong>Guest</strong>
+                    <p>{{ guest_details.first_name }} {{ guest_details.last_name }}</p>
+                </div>
+                <div>
+                    <strong>Room</strong>
+                    <p>{{ room.room_type }}</p>
+                </div>
+                <div>
+                    <strong>Dates</strong>
+                    <p>{{ booking_summary.check_in }} - {{ booking_summary.check_out }}</p>
+                </div>
+                <div>
+                    <strong>Guests</strong>
+                    <p>{{ booking_summary.guest_text }}</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+    {% else %}
+    <section class="hold-main-panel">
+        <p class="section-tag">ROOM UNAVAILABLE</p>
+        <h2>Please select another room</h2>
+        <p>Another guest may have booked this room, or the room availability changed before payment started.</p>
+        <div class="hold-actions">
+            <a class="ghost-btn" href="{{ url_for('main.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit Details</a>
+            <a class="solid-btn" href="{{ url_for('main.available_rooms', check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children) }}">Select Room</a>
+        </div>
+    </section>
+    {% endif %}
+</section>
+{% endblock %}

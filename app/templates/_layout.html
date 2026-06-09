@@ -22,7 +22,9 @@
 </head>
 
 <body>
+    {% block site_header %}
     {% include '_sidebar.html' %}
+    {% endblock %}
 
     <main class="main-content">
         {% block content %}{% endblock %}
