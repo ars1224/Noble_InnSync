@@ -1,0 +1,104 @@
+{% extends '_layout.html' %}
+
+{% block title %}Dashboard | Noble InnSync{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+<div class="admin-layout">
+
+    {% include 'admin/_admin_sidebar.html' %}
+
+    <main class="admin-content">
+
+        <section class="dashboard-page">
+
+            <div class="dashboard-header">
+                <div>
+                    <p class="dashboard-tag">ADMIN PANEL</p>
+                    <h1>Noble InnSync Dashboard</h1>
+                </div>
+
+                <div class="admin-user-info">
+                    <span>Logged in as</span>
+                    <strong>{{ session.get("username") }}</strong>
+                    <small>{{ session.get("user_role")|title }}</small>
+                </div>
+
+            </div>
+
+            <div class="dashboard-cards">
+
+                <div class="dashboard-card">
+                    <h3>Total Bookings</h3>
+                    <h2>{{ total_bookings }}</h2>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Pending Bookings</h3>
+                    <h2>{{ pending_bookings }}</h2>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Confirmed Bookings</h3>
+                    <h2>{{ confirmed_bookings }}</h2>
+                </div>
+
+                <div class="dashboard-card">
+                    <h3>Available Rooms</h3>
+                    <h2>{{ available_rooms }}</h2>
+                </div>
+
+                <div class="dashboard-card revenue-card">
+                    <h3>Total Revenue</h3>
+                    <h2>${{ "%.2f"|format(total_revenue) }}</h2>
+                </div>
+
+            </div>
+
+            <div class="recent-bookings">
+
+                <div class="section-header">
+                    <h2>Recent Bookings</h2>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>Guest</th>
+                            <th>Check In</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for booking in recent_bookings %}
+                        <tr>
+                            <td>{{ booking.reference_number }}</td>
+                            <td>{{ booking.guest_name }}</td>
+                            <td>{{ booking.check_in }}</td>
+                            <td>
+                                <span class="status-badge">
+                                    {{ booking.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4">No bookings yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,89 @@
+{% extends '_layout.html' %}
+
+{% block title %}Payments | Noble InnSync{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+<div class="admin-layout">
+
+    {% include 'admin/_admin_sidebar.html' %}
+
+    <main class="admin-content">
+
+        <section class="dashboard-page">
+
+            <div class="dashboard-header">
+                <p class="dashboard-tag">PAYMENT RECORDS</p>
+                <h1>Payments</h1>
+            </div>
+
+            <div class="recent-bookings">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Transaction No.</th>
+                            <th>Booking ID</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Method</th>
+                            <th>Action/th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.transaction_no }}</td>
+                            <td>{{ payment.booking_id }}</td>
+                            <td>{{ payment.check_in }}</td>
+                            <td>{{ payment.check_out }}</td>
+                            <td>${{ "%.2f"|format(payment.total_price) }}</td>
+                            <td>
+                                <span class="status-badge">
+                                    {{ payment.payment_status }}
+                                </span>
+                            </td>
+                            <td>{{ payment.payment_method }}</td>
+                            <td>
+                                <form method="POST"
+                                    action="{{ url_for('admin.update_payment_status', payment_id=payment.id) }}"
+                                    class="status-form">
+
+                                    <select name="payment_status">
+                                        <option value="Unpaid" {% if payment.payment_status == "Unpaid" %}selected{% endif %}>Unpaid</option>
+                                        <option value="Paid" {% if payment.payment_status == "Paid" %}selected{% endif %}>Paid</option>
+                                        <option value="Refunded" {% if payment.payment_status == "Refunded" %}selected{% endif %}>Refunded</option>
+                                    </select>
+
+                                    <select name="payment_method">
+                                        <option value="Pay on Arrival" {% if payment.payment_method == "Pay on Arrival" %}selected{% endif %}>Pay on Arrival</option>
+                                        <option value="Card" {% if payment.payment_method == "Card" %}selected{% endif %}>Card</option>
+                                    </select>
+
+                                    <button type="submit">Update</button>
+
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8">No payment records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+{% endblock %}

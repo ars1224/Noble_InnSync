@@ -1,0 +1,50 @@
+<aside class="admin-sidebar">
+
+    <div class="admin-brand">
+        <h2>Noble InnSync</h2>
+        <p>{{ session.get("user_role", "staff")|title }} Panel</p>
+    </div>
+
+    <nav class="admin-nav">
+
+        <a href="{{ url_for('admin.dashboard') }}"
+           class="{% if request.path == '/admin/dashboard' %}active{% endif %}">
+            Dashboard
+        </a>
+
+        <a href="{{ url_for('admin.walkin_booking') }}"
+        class="{% if request.path == '/admin/walk-in-booking' %}active{% endif %}">
+            Walk-in Booking
+        </a>
+
+        {% if session.get("user_role") in ["admin", "staff", "manager"] %}
+            <a href="{{ url_for('admin.bookings') }}"
+               class="{% if request.path == '/admin/bookings' %}active{% endif %}">
+                Bookings
+            </a>
+
+            <a href="{{ url_for('admin.rooms') }}"
+               class="{% if request.path == '/admin/rooms' %}active{% endif %}">
+                Rooms
+            </a>
+
+            <a href="{{ url_for('admin.payments') }}"
+               class="{% if request.path == '/admin/payments' %}active{% endif %}">
+                Payments
+            </a>
+        {% endif %}
+
+        {% if session.get("user_role") in ["admin", "manager"] %}
+            <a href="{{ url_for('admin.reports') }}"
+               class="{% if request.path == '/admin/reports' %}active{% endif %}">
+                Reports
+            </a>
+        {% endif %}
+
+    </nav>
+
+    <div class="admin-logout">
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+    </div>
+
+</aside>

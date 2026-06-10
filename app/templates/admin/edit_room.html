@@ -1,0 +1,50 @@
+{% extends '_layout.html' %}
+
+{% block title %}Edit Room | Noble InnSync{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+<div class="admin-layout">
+    {% include 'admin/_admin_sidebar.html' %}
+
+    <main class="admin-content">
+        <section class="dashboard-page">
+
+            {% set page_tag = "ROOM CRUD" %}
+            {% set page_title = "Edit Room" %}
+            {% include 'admin/_admin_header.html' %}
+
+            <div class="form-card">
+                <form method="POST" class="admin-form">
+
+                    <label>Room Number</label>
+                    <input type="text" name="room_number" value="{{ room.room_number }}" required>
+
+                    <label>Room Type</label>
+                    <input type="text" name="room_type" value="{{ room.room_type }}" required>
+
+                    <label>Description</label>
+                    <textarea name="description" required>{{ room.description }}</textarea>
+
+                    <label>Price</label>
+                    <input type="number" name="price" step="0.01" value="{{ room.price }}" required>
+
+                    <label>Status</label>
+                    <select name="status" required>
+                        <option value="Available" {% if room.status == "Available" %}selected{% endif %}>Available</option>
+                        <option value="Occupied" {% if room.status == "Occupied" %}selected{% endif %}>Occupied</option>
+                        <option value="Maintenance" {% if room.status == "Maintenance" %}selected{% endif %}>Maintenance</option>
+                    </select>
+
+                    <button type="submit">Update Room</button>
+
+                </form>
+            </div>
+
+        </section>
+    </main>
+</div>
+
+{% endblock %}

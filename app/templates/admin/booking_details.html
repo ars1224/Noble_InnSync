@@ -1,0 +1,73 @@
+{% extends '_layout.html' %}
+
+{% block title %}Booking Details | Noble InnSync{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+<div class="admin-layout">
+
+    {% include 'admin/_admin_sidebar.html' %}
+
+    <main class="admin-content">
+
+        <section class="dashboard-page">
+
+            {% set page_tag = "BOOKING DETAILS" %}
+            {% set page_title = booking.reference_number %}
+            {% include 'admin/_admin_header.html' %}
+
+            <div class="form-card">
+
+                <h2>Guest Information</h2>
+
+                <p><strong>Name:</strong> {{ booking.guest_name }}</p>
+                <p><strong>Email:</strong> {{ booking.email }}</p>
+                <p><strong>Phone:</strong> {{ booking.phone }}</p>
+
+                <br>
+
+                <h2>Stay Information</h2>
+
+                <p><strong>Check-in:</strong> {{ booking.check_in }}</p>
+                <p><strong>Check-out:</strong> {{ booking.check_out }}</p>
+                <p><strong>Adults:</strong> {{ booking.adults }}</p>
+                <p><strong>Children:</strong> {{ booking.children }}</p>
+                <p><strong>Total Price:</strong> ${{ "%.2f"|format(booking.total_price) }}</p>
+                <p><strong>Status:</strong> {{ booking.status }}</p>
+
+                <br>
+
+                <h2>Rooms Booked</h2>
+
+                {% for room in booking.booking_rooms %}
+                    <p>
+                        <strong>{{ room.room_number }}</strong>
+                        — {{ room.room_type }}
+                        — ${{ "%.2f"|format(room.price) }}
+                    </p>
+                {% else %}
+                    <p>No rooms attached to this booking.</p>
+                {% endfor %}
+
+                <br>
+
+                <a href="{{ url_for('admin.edit_booking', booking_id=booking.id) }}"
+                class="add-btn">
+                    Edit Booking
+                </a>
+
+                <a href="{{ url_for('admin.bookings') }}" class="add-btn">
+                    Back to Bookings
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+{% endblock %}

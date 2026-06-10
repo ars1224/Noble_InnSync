@@ -8,9 +8,9 @@
             <a href="{{ url_for('main.home') }}#amenities">Amenities</a>
             <a href="{{ url_for('main.home') }}#contact">Contact</a>
         </div>
-        <a href="{{ url_for('main.login_selection') }}" class="nav-btn desktop-login">
+        <a href="{{ url_for('auth.staff_login') }}" class="nav-btn desktop-login">
             <span class="nav-user-icon" aria-hidden="true"></span>
-            <span>Log In</span>
+            <span>Staff Log In</span>
         </a>
 
         <details class="mobile-nav">
@@ -27,7 +27,7 @@
                 <a href="{{ url_for('main.home') }}#our-rooms">Rooms</a>
                 <a href="{{ url_for('main.home') }}#amenities">Amenities</a>
                 <a href="{{ url_for('main.home') }}#contact">Contact</a>
-                <a href="{{ url_for('main.login_selection') }}" class="mobile-login-link">Log In</a>
+                <a href="{{ url_for('auth.staff_login') }}" class="mobile-login-link">Staff Log In</a>
             </div>
         </details>
     </nav>

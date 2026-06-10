@@ -11,8 +11,11 @@
     <!-- Global styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/_layout.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/rooms.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/_footer.css') }}">
-
+    {% block styles %}{% endblock %}
     <!-- Optional page-specific CSS -->
     {% block page_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/_sidebar.css') }}">
@@ -22,16 +25,35 @@
 </head>
 
 <body>
-    {% block site_header %}
-    {% include '_sidebar.html' %}
-    {% endblock %}
+    {% if request.path not in [
+        '/auth/staff-login', 
+        '/admin/dashboard', 
+        '/admin/bookings', 
+        '/admin/rooms', 
+        '/admin/payments', 
+        '/admin/reports', 
+        '/admin/access-denied'
+    ] %}
+        <nav>{% include '_sidebar.html' %}</nav>
+    {% endif %}
 
     <main class="main-content">
         {% block content %}{% endblock %}
     </main>
 
+     {% if request.path not in [
+        '/auth/staff-login', 
+        '/admin/dashboard', 
+        '/admin/bookings', 
+        '/admin/rooms', 
+        '/admin/payments', 
+        '/admin/reports'
+        '/admin/access-denied'
+    ] %}
     <footer>
         {% include '_footer.html' %}
     </footer>
+ {% endif %}
+    {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,0 +1,451 @@
+{% extends '_layout.html' %}
+
+{% block title %}Book a Room | Noble InnSync{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="booking-hero">
+
+    <div class="booking-hero-overlay"></div>
+
+    <div class="booking-hero-content">
+
+        <p class="booking-tag">
+            BOOK YOUR STAY
+        </p>
+
+        <h1>
+            Complete your booking.
+        </h1>
+
+        <p>
+            Fill in your details below to secure your reservation.
+        </p>
+
+    </div>
+
+</section>
+
+<section class="booking-section">
+
+    <div class="booking-container">
+
+        <!-- LEFT -->
+
+        <div class="booking-form-card">
+
+            <div class="booking-card-header">
+
+                <div class="booking-line"></div>
+
+                <h2>
+                    BOOKING INFORMATION
+                </h2>
+
+            </div>
+
+            <form
+                action="{{ url_for('booking.book_room') }}"
+                method="POST"
+                class="booking-form"
+            >
+
+                <div class="booking-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Full Name
+                        </label>
+
+                        <input
+                            type="text"
+                            name="guest_name"
+                            placeholder="Enter your full name"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Email Address
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            placeholder="Enter your email"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+                <div class="booking-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Phone Number
+                        </label>
+
+                        <input
+                            type="text"
+                            id="phone-number"
+                            name="phone"
+                            placeholder="Enter your phone number"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+                <div class="booking-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Check-in
+                        </label>
+
+                        <input
+                            type="date"
+                            name="check_in"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Check-out
+                        </label>
+
+                        <input
+                            type="date"
+                            name="check_out"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+                <div class="booking-grid">
+
+                    <div class="form-group">
+
+                        <label>
+                            Adults
+                        </label>
+
+                        <input
+                            type="number"
+                            name="adults"
+                            min="1"
+                            value="{{ adults or 1 }}"
+                            required
+                        >
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label>
+                            Children
+                        </label>
+
+                            <input
+                                type="number"
+                                name="children"
+                                min="0"
+                                value="{{ children or 0 }}"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+                    <input
+                        type="hidden"
+                        name="selected_room_ids"
+                        id="selected-room-ids"
+                    >
+
+                  <div class="payment-method-box">
+
+                        <label class="payment-title">
+                            Payment Method
+                        </label>
+
+                        <div class="payment-options">
+
+                            <label class="payment-option">
+
+                                <input
+                                    type="radio"
+                                    name="payment_method"
+                                    value="Pay on Arrival"
+                                    checked
+                                >
+
+                                <span>
+                                    Pay on Arrival
+                                </span>
+
+                            </label>
+
+                            <label class="payment-option">
+
+                                <input
+                                    type="radio"
+                                    name="payment_method"
+                                    value="Card Payment"
+                                >
+
+                                <span>
+                                    Card Payment
+                                </span>
+
+                            </label>
+
+                        </div>
+
+                    </div>
+
+                    <div
+                        class="card-payment-fields hidden"
+                        id="card-payment-fields"
+                    >
+
+                        <div class="booking-grid">
+
+                            <div class="form-group">
+
+                                <label>
+                                    Cardholder Name
+                                </label>
+
+                                <input
+                                    type="text"
+                                    placeholder="John Smith"
+                                    required
+                                >
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label>
+                                    Card Number
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="card-number"
+                                    maxlength="19"
+                                    placeholder="1234 5678 9012 3456"
+                                    required
+                                >
+
+                            </div>
+
+                        </div>
+
+                        <div class="booking-grid">
+
+                            <div class="form-group">
+
+                                <label>
+                                    Expiry Date
+                                </label>
+
+                                <input
+                                    type="text"
+                                    id="expiry-date"
+                                    maxlength="5"
+                                    placeholder="MM/YY"
+                                    required
+                                >
+
+                            </div>
+
+                            <div class="form-group">
+
+                                <label>
+                                    CVV
+                                </label>
+
+                                <input
+                                    type="password"
+                                    id="cvv"
+                                    maxlength="3"
+                                    placeholder="123"
+                                    required
+                                >
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                <button
+                    type="submit"
+                    class="booking-btn"
+                >
+                    CONFIRM BOOKING
+                </button>
+
+            </form>
+
+        </div>
+
+        <!-- RIGHT -->
+
+    <div class="booking-summary-card">
+
+        <div class="booking-card-header">
+
+            <div class="booking-line"></div>
+
+            <h2>
+                BOOKING SUMMARY
+            </h2>
+
+        </div>
+
+        <div class="summary-room">
+
+            <p>
+                Smart Room Allocation
+            </p>
+
+            <h3>
+                Suggested Rooms
+            </h3>
+
+        </div>
+
+        <div class="suggested-rooms-box">
+
+            <div class="selected-room-header">
+
+                <div>
+                    <p class="summary-label">
+                        Current Selection
+                    </p>
+
+                    <h4>
+                        Recommended Rooms
+                    </h4>
+                </div>
+
+                <button
+                    type="button"
+                    class="modify-room-btn"
+                    id="modify-room-btn"
+                >
+                    Modify
+                </button>
+
+            </div>
+
+            <div id="suggested-rooms-list">
+
+                <p class="suggested-placeholder">
+                    Adjust adults and children to see room suggestions.
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- POPUP MODAL -->
+        <div class="room-modal hidden" id="room-modal">
+
+            <div class="room-modal-overlay" id="room-modal-overlay"></div>
+
+            <div class="room-modal-content">
+
+                <div class="room-modal-header">
+
+                    <h3>
+                        Customize Room Selection
+                    </h3>
+
+                    <button
+                        type="button"
+                        class="close-modal-btn"
+                        id="close-modal-btn"
+                    >
+                        ✕
+                    </button>
+
+                </div>
+
+                <p class="manual-note">
+                    Adjust room quantities if you prefer a different room combination.
+                </p>
+
+                <div id="manual-rooms-list">
+                    Loading available rooms...
+                </div>
+
+                <p id="manual-room-message"></p>
+
+                <button
+                    type="button"
+                    class="save-room-btn"
+                    id="save-room-btn"
+                >
+                    Save Room Selection
+                </button>
+
+            </div>
+
+        </div>
+
+        <div class="summary-details">
+
+            <div>
+                <span>Status</span>
+                <strong>Available</strong>
+            </div>
+
+            <div>
+                <span>Reservation</span>
+                <strong>Secure Booking</strong>
+            </div>
+
+            <div>
+                <span>Payment</span>
+
+                <strong id="payment-summary-method">
+                    Pay on Arrival
+                </strong>
+            </div>
+
+        </div>
+
+    </div>
+
+    </div>
+
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/booking.js') }}"></script>
+{% endblock %}

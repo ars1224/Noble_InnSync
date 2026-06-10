@@ -1,0 +1,208 @@
+{% extends '_layout.html' %}
+
+{% block title %}Walk-in Booking | Noble InnSync{% endblock %}
+
+{% block content %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+<div class="admin-layout">
+    {% include 'admin/_admin_sidebar.html' %}
+
+    <main class="admin-content">
+        <section class="dashboard-page">
+
+            {% set page_tag = "WALK-IN BOOKING" %}
+            {% set page_title = "Create Walk-in Booking" %}
+            {% include 'admin/_admin_header.html' %}
+
+            <form method="POST" class="form-card walkin-step-form">
+
+                <div class="walkin-steps">
+                    <div class="walkin-step active" data-step-indicator="1">1. Guest Details</div>
+                    <div class="walkin-step" data-step-indicator="2">2. Choose Room/s</div>
+                    <div class="walkin-step" data-step-indicator="3">3. Payment</div>
+                </div>
+
+                <!-- STEP 1 -->
+                <div class="walkin-step-panel active" data-step="1">
+                    <h2>Guest Details</h2>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Guest Name</label>
+                            <input type="text" name="guest_name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" name="email" value="walkin@nobleinnsync.com" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <input type="text" name="phone" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Check-in</label>
+                            <input
+                                type="date"
+                                name="check_in"
+                                value="{{ today }}"
+                                min="{{ today }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label>Check-out</label>
+                            <input
+                                type="date"
+                                name="check_out"
+                                min="{{ today }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label>Adults</label>
+                            <input type="number" name="adults" min="1" value="1" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Children</label>
+                            <input type="number" name="children" min="0" value="0" required>
+                        </div>
+                    </div>
+
+                    <div class="step-buttons">
+                        <button type="button" class="next-step-btn" data-next="2">
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 2 -->
+                <div class="walkin-step-panel" data-step="2">
+                    <div class="section-header">
+                        <div>
+                            <h2>Choose Room/s</h2>
+                            <p>Select rooms that fit the guest count. Occupied or maintenance rooms are disabled.</p>
+                        </div>
+                    </div>
+
+                    <div class="walkin-room-grid">
+                        {% for room in available_rooms %}
+
+                            {% set max_adults = 1 %}
+                            {% set max_children = 0 %}
+
+                            {% if room.room_type == "Double Room" %}
+                                {% set max_adults = 2 %}
+                                {% set max_children = 1 %}
+                            {% elif room.room_type == "Family Room" %}
+                                {% set max_adults = 4 %}
+                                {% set max_children = 2 %}
+                            {% endif %}
+
+                            <label class="walkin-room-card"
+                                   data-max-adults="{{ max_adults }}"
+                                   data-max-children="{{ max_children }}"
+                                   data-status="{{ room.status }}">
+
+                                <input
+                                    type="checkbox"
+                                    name="room_ids"
+                                    value="{{ room.id }}"
+                                    data-price="{{ room.price }}"
+                                    class="walkin-room-checkbox"
+                                >
+
+                                <div class="room-card-content">
+                                    <div class="room-card-top">
+                                        <h3>Room {{ room.room_number }}</h3>
+
+                                        {% if room.status == "Available" %}
+                                            <span class="room-status available">Available</span>
+                                        {% else %}
+                                            <span class="room-status unavailable">{{ room.status }}</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <p>{{ room.room_type }}</p>
+
+                                    <small>
+                                        Fits {{ max_adults }} adult/s, {{ max_children }} child/children
+                                    </small>
+
+                                    <strong>${{ "%.2f"|format(room.price) }}</strong>
+                                </div>
+                            </label>
+
+                        {% else %}
+                            <p>No rooms found.</p>
+                        {% endfor %}
+                    </div>
+
+                    <div id="capacitySummary" class="capacity-summary-box"></div>
+
+                    <div class="step-buttons">
+                        <button type="button" class="back-step-btn" data-back="1">
+                            Back
+                        </button>
+
+                        <button type="button" class="next-step-btn" data-next="3">
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3 -->
+                <div class="walkin-step-panel" data-step="3">
+                    <h2>Payment & Summary</h2>
+
+                    <div class="walkin-summary-box">
+                        <span>Total</span>
+                        <strong>$<span id="walkinTotal">0.00</span></strong>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Payment Status</label>
+                            <select name="payment_status" required>
+                                <option value="Unpaid">Unpaid</option>
+                                <option value="Paid">Paid</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Payment Method</label>
+                            <select name="payment_method" required>
+                                <option value="Pay on Arrival">Pay on Arrival</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Card">Card</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="step-buttons">
+                        <button type="button" class="back-step-btn" data-back="2">
+                            Back
+                        </button>
+
+                        <button type="submit" class="submit-walkin-btn">
+                            Create Walk-in Booking
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+
+        </section>
+    </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/walkin_booking,js') }}"></script>
+
+{% endblock %}

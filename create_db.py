@@ -1,48 +1,178 @@
 ﻿from app import create_app, db
+
 from app.models.room import Room
+from app.models.booking import Booking
+from app.models.booking_room import BookingRoom
+from app.models.accounting import Accounting
+from app.models.user import User
 
 app = create_app()
 
 with app.app_context():
+
     db.create_all()
 
     defaults = {
-        '101': ('Single Room', 149, 'Available'),
-        '102': ('Single Room', 149, 'Available'),
-        '103': ('Single Room', 159, 'Available'),
-        '104': ('Single Room', 159, 'Unavailable'),
-        '201': ('Double Room', 229, 'Available'),
-        '202': ('Double Room', 229, 'Available'),
-        '203': ('Double Room', 249, 'Unavailable'),
-        '204': ('Double Room', 249, 'Available'),
-        '301': ('Family Room', 329, 'Available'),
-        '302': ('Family Room', 329, 'Unavailable'),
-        '303': ('Family Room', 349, 'Available'),
-        '304': ('Family Room', 349, 'Available'),
+
+        # SINGLE ROOMS
+        '101': (
+            'Single Room',
+            'Perfect for solo travelers seeking a cozy and affordable stay.',
+            149,
+            'Available'
+        ),
+
+        '102': (
+            'Single Room',
+            'Perfect for solo travelers seeking a cozy and affordable stay.',
+            149,
+            'Available'
+        ),
+
+        '103': (
+            'Single Room',
+            'Perfect for solo travelers seeking a cozy and affordable stay.',
+            149,
+            'Available'
+        ),
+
+        '104': (
+            'Single Room',
+            'Perfect for solo travelers seeking a cozy and affordable stay.',
+            149,
+            'Occupied'
+        ),
+
+        '105': (
+            'Single Room',
+            'Perfect for solo travelers seeking a cozy and affordable stay.',
+            149,
+            'Available'
+        ),
+
+        # DOUBLE ROOMS
+        '201': (
+            'Double Room',
+            'Ideal for couples with spacious comfort and modern amenities.',
+            229,
+            'Available'
+        ),
+
+        '202': (
+            'Double Room',
+            'Ideal for couples with spacious comfort and modern amenities.',
+            229,
+            'Occupied'
+        ),
+
+        '203': (
+            'Double Room',
+            'Ideal for couples with spacious comfort and modern amenities.',
+            229,
+            'Available'
+        ),
+
+        '204': (
+            'Double Room',
+            'Ideal for couples with spacious comfort and modern amenities.',
+            229,
+            'Available'
+        ),
+
+        '205': (
+            'Double Room',
+            'Ideal for couples with spacious comfort and modern amenities.',
+            229,
+            'Maintenance'
+        ),
+
+        # FAMILY ROOMS
+        '301': (
+            'Family Room',
+            'Designed for families and groups with extra space and comfort.',
+            329,
+            'Available'
+        ),
+
+        '302': (
+            'Family Room',
+            'Designed for families and groups with extra space and comfort.',
+            329,
+            'Available'
+        ),
+
+        '303': (
+            'Family Room',
+            'Designed for families and groups with extra space and comfort.',
+            329,
+            'Occupied'
+        ),
+
+        '304': (
+            'Family Room',
+            'Designed for families and groups with extra space and comfort.',
+            329,
+            'Occupied'
+        ),
+
+        '305': (
+            'Family Room',
+            'Designed for families and groups with extra space and comfort.',
+            329,
+            'Occupied'
+        ),
     }
 
+    default_users = [
+        ("admin", "admin123", "admin", "System Admin"),
+        ("staff", "staff123", "staff", "Staff User"),
+        ("manager", "manager123", "manager", "Manager User")
+    ]
+
+    for username, password, role, full_name in default_users:
+        existing_user = User.query.filter_by(username=username).first()
+
+        if not existing_user:
+            user = User(
+                username=username,
+                role=role,
+                full_name=full_name
+            )
+            user.set_password(password)
+            db.session.add(user)
+
+    db.session.commit()
+
     if Room.query.count() == 0:
+
         rooms = [
-            Room(room_number=number, room_type=room_type, price=price, status=status)
-            for number, (room_type, price, status) in defaults.items()
+
+            Room(
+                room_number=number,
+                room_type=room_type,
+                description=description,
+                price=price,
+                status=status
+            )
+
+            for number, (room_type, description, price, status) in defaults.items()
+
         ]
+
         db.session.add_all(rooms)
         db.session.commit()
-    else:
-        existing_rooms = {
-            room.room_number: room
-            for room in Room.query.all()
-        }
 
-        for number, (room_type, price, status) in defaults.items():
-            if number in existing_rooms:
-                existing_rooms[number].room_type = room_type
-                existing_rooms[number].price = price
-                existing_rooms[number].status = status
-            else:
-                db.session.add(
-                    Room(room_number=number, room_type=room_type, price=price, status=status)
-                )
+    else:
+
+        for room in Room.query.all():
+
+            if room.room_number in defaults:
+
+                room.room_type = defaults[room.room_number][0]
+                room.description = defaults[room.room_number][1]
+                room.price = defaults[room.room_number][2]
+                room.status = defaults[room.room_number][3]
+
         db.session.commit()
 
     print('Database created successfully.')

@@ -1,0 +1,91 @@
+{% extends '_layout.html' %}
+
+{% block title %}Booking Confirmed | Noble InnSync{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="booking-hero">
+    <div class="booking-hero-overlay"></div>
+
+    <div class="booking-hero-content">
+        <p class="booking-tag">BOOKING CONFIRMED</p>
+
+        <h1>Your booking request has been received.</h1>
+
+        <p>
+            Thank you, {{ booking.guest_name }}. Please keep your reference number for tracking your reservation.
+        </p>
+    </div>
+</section>
+
+<section class="booking-section">
+    <div class="booking-container success-container">
+
+        <div class="booking-form-card success-card">
+
+            <div class="booking-card-header">
+                <div class="booking-line"></div>
+                <h2>RESERVATION DETAILS</h2>
+            </div>
+
+            <div class="success-reference">
+                <span>Reference Number</span>
+                <h3>{{ booking.reference_number }}</h3>
+            </div>
+
+            <div class="summary-details">
+
+                <div>
+                    <span>Room(s)</span>
+
+                    <strong>
+                        {% for room in booking.booking_rooms %}
+                            Room {{ room.room_number }} - {{ room.room_type }}{% if not loop.last %}<br>{% endif %}
+                        {% endfor %}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Check-in</span>
+                    <strong>{{ booking.check_in }}</strong>
+                </div>
+
+                <div>
+                    <span>Check-out</span>
+                    <strong>{{ booking.check_out }}</strong>
+                </div>
+
+                <div>
+                    <span>Guests</span>
+                    <strong>{{ booking.adults }} adult(s), {{ booking.children }} child(ren)</strong>
+                </div>
+
+                <div>
+                    <span>Payment</span>
+
+                    <strong>
+                        {{ booking.accounting[0].payment_status }}
+                    </strong>
+                </div>
+
+                <div>
+                    <span>Status</span>
+                    <strong>{{ booking.status }}</strong>
+                </div>
+
+            </div>
+
+            <a href="{{ url_for('main.home') }}" class="booking-btn success-btn">
+                BACK TO HOME
+            </a>
+
+        </div>
+
+    </div>
+</section>
+
+{% endblock %}
