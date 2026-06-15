@@ -7,56 +7,226 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
 
 <div class="admin-layout">
-
     {% include 'admin/_admin_sidebar.html' %}
 
     <main class="admin-content">
-
         <section class="dashboard-page">
 
             <div class="dashboard-header">
-                <p class="dashboard-tag">MANAGER REPORTS</p>
-                <h1>Reports Summary</h1>
+                <div>
+                    <p class="dashboard-tag">MANAGER REPORTS</p>
+                    <h1>Hotel Performance Report</h1>
+                    <p class="dashboard-subtitle">
+                        All-time operational and financial summary.
+                        Generated {{ generated_at.strftime("%d %b %Y, %I:%M %p") }}.
+                    </p>
+                </div>
             </div>
 
-            <div class="dashboard-cards">
-
-                <div class="dashboard-card revenue-card">
-                    <h3>Total Revenue</h3>
-                    <h2>${{ "%.2f"|format(total_revenue) }}</h2>
+            <section class="report-section">
+                <div class="report-section-heading">
+                    <div>
+                        <p class="dashboard-tag">FINANCIAL HEALTH</p>
+                        <h2>Revenue and collections</h2>
+                    </div>
+                    <span class="report-rate">{{ collection_rate }}% collected</span>
                 </div>
 
-                <div class="dashboard-card">
-                    <h3>Total Bookings</h3>
-                    <h2>{{ total_bookings }}</h2>
+                <div class="report-metric-grid">
+                    <article class="report-metric-card report-metric-primary">
+                        <span>Collected Revenue</span>
+                        <strong>${{ "%.2f"|format(total_revenue) }}</strong>
+                        <small>{{ paid_payments }} paid transaction(s)</small>
+                    </article>
+                    <article class="report-metric-card">
+                        <span>Outstanding Balance</span>
+                        <strong>${{ "%.2f"|format(outstanding_revenue) }}</strong>
+                        <small>{{ unpaid_payments }} unpaid transaction(s)</small>
+                    </article>
+                    <article class="report-metric-card">
+                        <span>Gross Booking Value</span>
+                        <strong>${{ "%.2f"|format(gross_booking_value) }}</strong>
+                        <small>Excludes cancelled bookings</small>
+                    </article>
+                    <article class="report-metric-card">
+                        <span>Average Booking</span>
+                        <strong>${{ "%.2f"|format(average_booking_value) }}</strong>
+                        <small>Average active booking value</small>
+                    </article>
                 </div>
 
-                <div class="dashboard-card">
-                    <h3>Paid Payments</h3>
-                    <h2>{{ paid_payments }}</h2>
+                <div class="report-progress-card">
+                    <div class="report-progress-copy">
+                        <span>Collection progress</span>
+                        <strong>{{ collection_rate }}%</strong>
+                    </div>
+                    <div class="report-progress-track">
+                        <span style="width: {{ collection_rate }}%"></span>
+                    </div>
+                    <div class="report-payment-summary">
+                        <span><i class="report-dot paid"></i>{{ paid_payments }} Paid</span>
+                        <span><i class="report-dot unpaid"></i>{{ unpaid_payments }} Unpaid</span>
+                        <span><i class="report-dot refunded"></i>{{ refunded_payments }} Refunded</span>
+                    </div>
                 </div>
+            </section>
 
-                <div class="dashboard-card">
-                    <h3>Unpaid Payments</h3>
-                    <h2>{{ unpaid_payments }}</h2>
-                </div>
+            <div class="report-two-column">
+                <section class="report-section">
+                    <div class="report-section-heading">
+                        <div>
+                            <p class="dashboard-tag">BOOKING PIPELINE</p>
+                            <h2>{{ total_bookings }} total bookings</h2>
+                        </div>
+                    </div>
 
-                <div class="dashboard-card">
-                    <h3>Occupied Rooms</h3>
-                    <h2>{{ occupied_rooms }}</h2>
-                </div>
+                    <div class="booking-status-report">
+                        {% for item in booking_status_report %}
+                            <div class="booking-status-row">
+                                <div class="booking-status-label">
+                                    <span class="status-badge {{ item.class_name }}">{{ item.label }}</span>
+                                    <strong>{{ item.count }}</strong>
+                                </div>
+                                <div class="booking-status-bar">
+                                    <span class="{{ item.class_name }}" style="width: {{ item.percentage }}%"></span>
+                                </div>
+                                <small>{{ item.percentage }}%</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
 
-                <div class="dashboard-card">
-                    <h3>Maintenance Rooms</h3>
-                    <h2>{{ maintenance_rooms }}</h2>
-                </div>
+                <section class="report-section">
+                    <div class="report-section-heading">
+                        <div>
+                            <p class="dashboard-tag">ROOM UTILIZATION</p>
+                            <h2>{{ occupancy_rate }}% occupied</h2>
+                        </div>
+                        <span class="report-rate">{{ total_rooms }} rooms</span>
+                    </div>
 
+                    <div class="report-room-status-grid">
+                        <div class="report-room-status available">
+                            <span>Available</span>
+                            <strong>{{ available_rooms }}</strong>
+                        </div>
+                        <div class="report-room-status reserved">
+                            <span>Reserved</span>
+                            <strong>{{ reserved_rooms }}</strong>
+                        </div>
+                        <div class="report-room-status occupied">
+                            <span>Occupied</span>
+                            <strong>{{ occupied_rooms }}</strong>
+                        </div>
+                        <div class="report-room-status maintenance">
+                            <span>Maintenance</span>
+                            <strong>{{ maintenance_rooms }}</strong>
+                        </div>
+                    </div>
+                </section>
             </div>
+
+            <section class="report-section">
+                <div class="report-section-heading">
+                    <div>
+                        <p class="dashboard-tag">ROOM TYPE PERFORMANCE</p>
+                        <h2>Inventory and booking demand</h2>
+                    </div>
+                </div>
+
+                <div class="report-table-wrap">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Room Type</th>
+                                <th>Inventory</th>
+                                <th>Available</th>
+                                <th>Reserved</th>
+                                <th>Occupied</th>
+                                <th>Bookings</th>
+                                <th>Room Nights</th>
+                                <th>Booked Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in room_type_report %}
+                                <tr>
+                                    <td><strong>{{ item.room_type }}</strong></td>
+                                    <td>{{ item.inventory }}</td>
+                                    <td><span class="status-badge room-available">{{ item.available }}</span></td>
+                                    <td><span class="status-badge room-reserved">{{ item.reserved }}</span></td>
+                                    <td><span class="status-badge room-occupied">{{ item.occupied }}</span></td>
+                                    <td>{{ item.bookings }}</td>
+                                    <td>{{ item.room_nights }}</td>
+                                    <td>${{ "%.2f"|format(item.booked_value) }}</td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="8">No room performance data available.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="report-section">
+                <div class="report-section-heading">
+                    <div>
+                        <p class="dashboard-tag">RECENT ACTIVITY</p>
+                        <h2>Latest payment transactions</h2>
+                    </div>
+                    <a href="{{ url_for('admin.payments') }}" class="report-link">View all payments</a>
+                </div>
+
+                <div class="report-table-wrap">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Transaction</th>
+                                <th>Booking</th>
+                                <th>Stay</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in recent_transactions %}
+                                <tr>
+                                    <td>{{ payment.transaction_no }}</td>
+                                    <td>
+                                        {% if payment.booking %}
+                                            {{ payment.booking.reference_number }}
+                                        {% else %}
+                                            Booking #{{ payment.booking_id }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.check_in }} to {{ payment.check_out }}</td>
+                                    <td><strong>${{ "%.2f"|format(payment.total_price) }}</strong></td>
+                                    <td>{{ payment.payment_method }}</td>
+                                    <td>
+                                        <span class="status-badge
+                                            {% if payment.payment_status == 'Paid' %}payment-paid
+                                            {% elif payment.payment_status == 'Unpaid' %}payment-unpaid
+                                            {% elif payment.payment_status == 'Refunded' %}payment-refunded
+                                            {% endif %}">
+                                            {{ payment.payment_status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="6">No payment transactions available.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
         </section>
-
     </main>
-
 </div>
 
 {% endblock %}

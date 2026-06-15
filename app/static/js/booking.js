@@ -1,5 +1,7 @@
 const adultsInput = document.querySelector('[name="adults"]');
 const childrenInput = document.querySelector('[name="children"]');
+const checkInInput = document.querySelector('[name="check_in"]');
+const checkOutInput = document.querySelector('[name="check_out"]');
 
 const suggestedRoomsList = document.getElementById("suggested-rooms-list");
 const manualRoomsList = document.getElementById("manual-rooms-list");
@@ -21,6 +23,16 @@ let requiredCapacity = 1;
 let manualRooms = [];
 let selectedRooms = {};
 
+function getStayNights() {
+    if (!checkInInput.value || !checkOutInput.value) return 0;
+
+    const checkIn = Date.parse(`${checkInInput.value}T00:00:00Z`);
+    const checkOut = Date.parse(`${checkOutInput.value}T00:00:00Z`);
+    const nights = Math.round((checkOut - checkIn) / 86400000);
+
+    return nights > 0 ? nights : 0;
+}
+
 function getGuestValues() {
     return {
         adults: parseInt(adultsInput.value) || 1,
@@ -32,8 +44,14 @@ async function updateSuggestedRooms() {
 
     const { adults, children } = getGuestValues();
 
-    const response =
-        await fetch(`/suggest-rooms?adults=${adults}&children=${children}`);
+    const params = new URLSearchParams({
+        adults,
+        children,
+        check_in: checkInInput.value,
+        check_out: checkOutInput.value
+    });
+
+    const response = await fetch(`/suggest-rooms?${params.toString()}`);
 
     const data = await response.json();
 
@@ -57,17 +75,28 @@ async function updateSuggestedRooms() {
         html += `
             <div class="suggested-room-item">
                 <span>${room.room_number} - ${room.room_type}</span>
-                <strong>$${room.price.toFixed(2)}</strong>
+                <strong>$${room.price.toFixed(2)} / night</strong>
             </div>
         `;
     });
 
+    const stayText = data.nights
+        ? `${data.nights} night(s)`
+        : "Select valid dates";
+
     html += `
         <div class="suggested-room-total">
-            <span>Total Price</span>
-            <strong>$${data.total_price.toFixed(2)}</strong>
+            <span>Rooms per night</span>
+            <strong>$${data.nightly_total.toFixed(2)}</strong>
         </div>
-
+        <div class="suggested-room-total">
+            <span>Length of stay</span>
+            <strong>${stayText}</strong>
+        </div>
+        <div class="suggested-room-total">
+            <span>Total stay price</span>
+            <strong>${data.nights ? `$${data.total_price.toFixed(2)}` : "Pending dates"}</strong>
+        </div>
         <p class="suggested-capacity">
             Fits ${adults} adult(s) and ${children} child(ren)
         </p>
@@ -227,7 +256,7 @@ function changeRoomQuantity(roomType, change) {
 function validateManualRooms() {
 
     let selectedCapacity = 0;
-    let selectedTotal = 0;
+    let selectedNightlyTotal = 0;
     let selectedIds = [];
 
     Object.entries(selectedRooms).forEach(([roomType, quantity]) => {
@@ -250,7 +279,7 @@ function validateManualRooms() {
             }
 
             selectedCapacity += room.capacity;
-            selectedTotal += room.price;
+            selectedNightlyTotal += room.price;
 
             selectedIds.push(room.room_id);
         }
@@ -273,9 +302,13 @@ function validateManualRooms() {
     }
 
     if (selectedCapacity >= requiredCapacity) {
+        const nights = getStayNights();
+        const stayTotal = selectedNightlyTotal * nights;
 
         manualRoomMessage.textContent =
-            `Selected rooms fit all guests. Total: $${selectedTotal.toFixed(2)}`;
+            nights
+                ? `Selected rooms fit all guests. $${selectedNightlyTotal.toFixed(2)} per night × ${nights} night(s) = $${stayTotal.toFixed(2)}.`
+                : "Selected rooms fit all guests. Select valid dates to calculate the stay total.";
 
         manualRoomMessage.className =
             "manual-success";
@@ -296,8 +329,9 @@ function validateManualRooms() {
 
 function updateCustomerChoiceSummary() {
     let html = "";
-    let total = 0;
+    let nightlyTotal = 0;
     let hasManualSelection = false;
+    const nights = getStayNights();
 
     Object.entries(selectedRooms).forEach(([roomType, quantity]) => {
         if (quantity <= 0) {
@@ -313,12 +347,12 @@ function updateCustomerChoiceSummary() {
         hasManualSelection = true;
 
         const lineTotal = room.price * quantity;
-        total += lineTotal;
+        nightlyTotal += lineTotal;
 
         html += `
             <div class="suggested-room-item">
                 <span>${quantity} × ${roomType}</span>
-                <strong>$${lineTotal.toFixed(2)}</strong>
+                <strong>$${lineTotal.toFixed(2)} / night</strong>
             </div>
         `;
     });
@@ -330,8 +364,16 @@ function updateCustomerChoiceSummary() {
 
     html += `
         <div class="suggested-room-total">
-            <span>Total Price</span>
-            <strong>$${total.toFixed(2)}</strong>
+            <span>Rooms per night</span>
+            <strong>$${nightlyTotal.toFixed(2)}</strong>
+        </div>
+        <div class="suggested-room-total">
+            <span>Length of stay</span>
+            <strong>${nights ? `${nights} night(s)` : "Select valid dates"}</strong>
+        </div>
+        <div class="suggested-room-total">
+            <span>Total stay price</span>
+            <strong>${nights ? `$${(nightlyTotal * nights).toFixed(2)}` : "Pending dates"}</strong>
         </div>
 
         <p class="suggested-capacity">
@@ -350,6 +392,16 @@ adultsInput.addEventListener("input", () => {
 
 childrenInput.addEventListener("input", () => {
     selectedRoomIdsInput.value = "";
+    updateSuggestedRooms();
+    validateManualRooms();
+});
+
+checkInInput.addEventListener("change", () => {
+    updateSuggestedRooms();
+    validateManualRooms();
+});
+
+checkOutInput.addEventListener("change", () => {
     updateSuggestedRooms();
     validateManualRooms();
 });

@@ -31,7 +31,7 @@
                             <th>Total</th>
                             <th>Status</th>
                             <th>Method</th>
-                            <th>Action/th>
+                            <th>Action</th>
                         </tr>
                     </thead>
 
@@ -44,7 +44,11 @@
                             <td>{{ payment.check_out }}</td>
                             <td>${{ "%.2f"|format(payment.total_price) }}</td>
                             <td>
-                                <span class="status-badge">
+                                <span class="status-badge
+                                    {% if payment.payment_status == 'Paid' %}payment-paid
+                                    {% elif payment.payment_status == 'Unpaid' %}payment-unpaid
+                                    {% elif payment.payment_status == 'Refunded' %}payment-refunded
+                                    {% endif %}">
                                     {{ payment.payment_status }}
                                 </span>
                             </td>

@@ -131,7 +131,17 @@
 
                         <div class="room-card-actions">
 
-                            <a href="#" class="ghost-btn">
+                            <a
+                                href="{{ url_for(
+                                    'room.room_details',
+                                    room_slug=room.slug,
+                                    check_in=search_summary.check_in,
+                                    check_out=search_summary.check_out,
+                                    adults=search_summary.adults,
+                                    children=search_summary.children
+                                ) }}"
+                                class="ghost-btn"
+                            >
                                 View Details
                             </a>
 
@@ -140,8 +150,10 @@
                             <a
                                 href="{{ url_for(
                                     'booking.book_room',
-                                    adults=room.capacity_adults,
-                                    children=room.capacity_children
+                                    adults=search_summary.adults,
+                                    children=search_summary.children,
+                                    check_in=search_summary.check_in,
+                                    check_out=search_summary.check_out
                                 ) }}"
                                 class="solid-btn"
                             >

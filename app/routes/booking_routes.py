@@ -4,6 +4,7 @@ from app.models.booking import Booking
 from app.models.booking_room import BookingRoom
 from app.models.accounting import Accounting
 from app.models.room import Room
+from app.utils.pricing import calculate_stay_total
 import random
 
 booking = Blueprint("booking", __name__)
@@ -73,13 +74,13 @@ def suggest_rooms(adults, children):
             remaining_capacity -= rule["capacity"]
 
     total_capacity = sum(room["capacity"] for room in selected_rooms)
-    total_price = sum(room["price"] for room in selected_rooms)
+    nightly_total = sum(room["price"] for room in selected_rooms)
 
     return {
         "selected_rooms": selected_rooms,
         "required_capacity": required_capacity,
         "total_capacity": total_capacity,
-        "total_price": total_price,
+        "nightly_total": nightly_total,
         "can_fit": total_capacity >= required_capacity
     }
 
@@ -102,13 +103,13 @@ def build_manual_room_plan(room_ids, adults, children):
             })
 
     total_capacity = sum(room["capacity"] for room in selected_rooms)
-    total_price = sum(room["price"] for room in selected_rooms)
+    nightly_total = sum(room["price"] for room in selected_rooms)
 
     return {
         "selected_rooms": selected_rooms,
         "required_capacity": required_capacity,
         "total_capacity": total_capacity,
-        "total_price": total_price,
+        "nightly_total": nightly_total,
         "can_fit": total_capacity >= required_capacity
     }
 
@@ -119,6 +120,8 @@ def book_room():
 
         adults = int(request.form.get("adults", 1))
         children = int(request.form.get("children", 0))
+        check_in = request.form.get("check_in")
+        check_out = request.form.get("check_out")
 
         selected_room_ids = request.form.get("selected_room_ids", "").strip()
 
@@ -131,15 +134,24 @@ def book_room():
         if not room_plan["can_fit"]:
             return "Not enough available room capacity for this booking."
 
+        try:
+            nights, total_price = calculate_stay_total(
+                room_plan["nightly_total"],
+                check_in,
+                check_out
+            )
+        except ValueError as error:
+            return str(error), 400
+
         new_booking = Booking(
             guest_name=request.form.get("guest_name"),
             email=request.form.get("email"),
             phone=request.form.get("phone"),
-            check_in=request.form.get("check_in"),
-            check_out=request.form.get("check_out"),
+            check_in=check_in,
+            check_out=check_out,
             adults=adults,
             children=children,
-            total_price=room_plan["total_price"],
+            total_price=total_price,
             reference_number=generate_reference_number()
         )
 
@@ -160,14 +172,14 @@ def book_room():
             db.session.add(booking_room)
 
             room_record = Room.query.get(selected["room_id"])
-            room_record.status = "Booked"
+            room_record.status = "Reserved"
 
         accounting_record = Accounting(
             transaction_no=generate_transaction_number(),
             booking_id=new_booking.id,
             check_in=new_booking.check_in,
             check_out=new_booking.check_out,
-            total_price=room_plan["total_price"],
+            total_price=total_price,
             payment_status="Unpaid",
             payment_method="Pay on Arrival"
         )
@@ -185,7 +197,9 @@ def book_room():
     return render_template(
         "bookings/booking_form.html",
         adults=request.args.get("adults", 1),
-        children=request.args.get("children", 0)
+        children=request.args.get("children", 0),
+        check_in=request.args.get("check_in", ""),
+        check_out=request.args.get("check_out", "")
     )
 
 
@@ -206,16 +220,34 @@ def booking_success(reference_number):
 def suggest_rooms_api():
     adults = int(request.args.get("adults", 1))
     children = int(request.args.get("children", 0))
+    check_in = request.args.get("check_in", "")
+    check_out = request.args.get("check_out", "")
 
     room_plan = suggest_rooms(adults, children)
 
-    return {
+    response = {
         "can_fit": room_plan["can_fit"],
         "selected_rooms": room_plan["selected_rooms"],
         "required_capacity": room_plan["required_capacity"],
         "total_capacity": room_plan["total_capacity"],
-        "total_price": room_plan["total_price"]
+        "nightly_total": room_plan["nightly_total"],
+        "nights": None,
+        "total_price": room_plan["nightly_total"]
     }
+
+    if check_in and check_out:
+        try:
+            nights, total_price = calculate_stay_total(
+                room_plan["nightly_total"],
+                check_in,
+                check_out
+            )
+            response["nights"] = nights
+            response["total_price"] = total_price
+        except ValueError as error:
+            response["date_error"] = str(error)
+
+    return response
 
 @booking.route("/available-room-options")
 def available_room_options():

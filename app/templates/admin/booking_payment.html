@@ -1,85 +1,223 @@
 {% extends '_layout.html' %}
 
-{% block title %}Booking Payment | Noble InnSync{% endblock %}
+{% block title %}Payment {{ booking.reference_number }} | Noble InnSync{% endblock %}
 
 {% block content %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
 
 <div class="admin-layout">
-
     {% include 'admin/_admin_sidebar.html' %}
 
     <main class="admin-content">
-
         <section class="dashboard-page">
-
-            {% set page_tag = "BOOKING PAYMENT" %}
-            {% set page_title = booking.reference_number %}
-            {% include 'admin/_admin_header.html' %}
-
-            <div class="form-card">
-
-                <p><strong>Guest:</strong> {{ booking.guest_name }}</p>
-                <p><strong>Total Price:</strong> ${{ "%.2f"|format(booking.total_price) }}</p>
-                <p><strong>Current Booking Status:</strong> {{ booking.status }}</p>
-
-                <br>
-
-                <form method="POST" class="admin-form">
-
-                    <label>Payment Status</label>
-                    <select name="payment_status" required>
-                        <option value="Unpaid"
-                            {% if payment and payment.payment_status == "Unpaid" %}selected{% endif %}>
-                            Unpaid
-                        </option>
-
-                        <option value="Paid"
-                            {% if payment and payment.payment_status == "Paid" %}selected{% endif %}>
-                            Paid
-                        </option>
-
-                        <option value="Refunded"
-                            {% if payment and payment.payment_status == "Refunded" %}selected{% endif %}>
-                            Refunded
-                        </option>
-                    </select>
-
-                    <label>Payment Method</label>
-                    <select name="payment_method" required>
-                        <option value="Pay on Arrival"
-                            {% if payment and payment.payment_method == "Pay on Arrival" %}selected{% endif %}>
-                            Pay on Arrival
-                        </option>
-
-                        <option value="Card"
-                            {% if payment and payment.payment_method == "Card" %}selected{% endif %}>
-                            Card
-                        </option>
-
-                        <option value="Cash"
-                            {% if payment and payment.payment_method == "Cash" %}selected{% endif %}>
-                            Cash
-                        </option>
-                    </select>
-
-                    <button type="submit">Save Payment</button>
-
-                </form>
-
-                <br>
-
-                <a href="{{ url_for('admin.bookings') }}" class="add-btn">
-                    Back to Bookings
-                </a>
-
+            <div class="booking-detail-header">
+                <div>
+                    <a href="{{ url_for('admin.booking_details', booking_id=booking.id) }}" class="booking-detail-back">
+                        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                        Back to booking
+                    </a>
+                    <p class="dashboard-tag">MANAGE PAYMENT</p>
+                    <div class="booking-detail-title">
+                        <h1>{{ booking.reference_number }}</h1>
+                        {% if payment %}
+                            <span class="status-badge
+                                {% if payment.payment_status == 'Paid' %}payment-paid
+                                {% elif payment.payment_status == 'Unpaid' %}payment-unpaid
+                                {% elif payment.payment_status == 'Refunded' %}payment-refunded
+                                {% endif %}">
+                                {{ payment.payment_status }}
+                            </span>
+                        {% else %}
+                            <span class="status-badge payment-unpaid">No record</span>
+                        {% endif %}
+                    </div>
+                    <p class="dashboard-subtitle">
+                        Record how this booking will be paid and keep its account status current.
+                    </p>
+                </div>
             </div>
 
+            {% if form_errors %}
+                <div class="booking-edit-error" role="alert">
+                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                    <div>
+                        <strong>We could not save the payment.</strong>
+                        <ul>
+                            {% for error in form_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+
+            <form method="POST" class="booking-payment-edit-form">
+                <div class="booking-detail-layout">
+                    <div class="booking-detail-main">
+                        <section class="booking-detail-card">
+                            <div class="booking-detail-card-heading">
+                                <div>
+                                    <p class="dashboard-tag">PAYMENT STATUS</p>
+                                    <h2>Account state</h2>
+                                </div>
+                                <span class="booking-detail-icon">
+                                    <i class="fa-solid fa-receipt" aria-hidden="true"></i>
+                                </span>
+                            </div>
+
+                            <p class="booking-edit-section-copy">
+                                Select the status that matches the money actually received or returned.
+                            </p>
+
+                            <div class="payment-edit-options">
+                                {% for status in allowed_statuses %}
+                                    {% set status_key = status|lower %}
+                                    <label class="payment-edit-option payment-{{ status_key }}">
+                                        <input
+                                            type="radio"
+                                            name="payment_status"
+                                            value="{{ status }}"
+                                            {% if form_values.payment_status == status %}checked{% endif %}
+                                            required
+                                        >
+                                        <span class="payment-edit-option-icon">
+                                            {% if status == "Paid" %}
+                                                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                            {% elif status == "Refunded" %}
+                                                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                                            {% else %}
+                                                <i class="fa-solid fa-clock" aria-hidden="true"></i>
+                                            {% endif %}
+                                        </span>
+                                        <span>
+                                            <strong>{{ status }}</strong>
+                                            <small>
+                                                {% if status == "Paid" %}Payment has been received
+                                                {% elif status == "Refunded" %}Payment has been returned
+                                                {% else %}Payment is still outstanding
+                                                {% endif %}
+                                            </small>
+                                        </span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </section>
+
+                        <section class="booking-detail-card">
+                            <div class="booking-detail-card-heading">
+                                <div>
+                                    <p class="dashboard-tag">PAYMENT METHOD</p>
+                                    <h2>How the guest pays</h2>
+                                </div>
+                                <span class="booking-detail-icon">
+                                    <i class="fa-solid fa-wallet" aria-hidden="true"></i>
+                                </span>
+                            </div>
+
+                            <div class="payment-method-options">
+                                {% for method in allowed_methods %}
+                                    <label class="payment-method-option">
+                                        <input
+                                            type="radio"
+                                            name="payment_method"
+                                            value="{{ method }}"
+                                            {% if form_values.payment_method == method %}checked{% endif %}
+                                            required
+                                        >
+                                        <span class="payment-method-icon">
+                                            {% if method == "Card" %}
+                                                <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
+                                            {% elif method == "Cash" %}
+                                                <i class="fa-solid fa-money-bill-wave" aria-hidden="true"></i>
+                                            {% else %}
+                                                <i class="fa-solid fa-hotel" aria-hidden="true"></i>
+                                            {% endif %}
+                                        </span>
+                                        <span>
+                                            <strong>{{ method }}</strong>
+                                            <small>
+                                                {% if method == "Card" %}Debit or credit card
+                                                {% elif method == "Cash" %}Cash received at the desk
+                                                {% else %}Collect during check-in
+                                                {% endif %}
+                                            </small>
+                                        </span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </section>
+                    </div>
+
+                    <aside class="booking-detail-sidebar">
+                        <section class="booking-detail-card booking-edit-summary">
+                            <div class="booking-detail-card-heading">
+                                <div>
+                                    <p class="dashboard-tag">ACCOUNT SUMMARY</p>
+                                    <h2>${{ "%.2f"|format(booking.total_price) }}</h2>
+                                </div>
+                            </div>
+
+                            <div class="payment-edit-guest">
+                                <span class="payment-edit-avatar">
+                                    {{ booking.guest_name[:1]|upper }}
+                                </span>
+                                <div>
+                                    <strong>{{ booking.guest_name }}</strong>
+                                    <small>{{ booking.email }}</small>
+                                </div>
+                            </div>
+
+                            <div class="booking-price-list">
+                                <div>
+                                    <span>Rooms per night</span>
+                                    <strong>${{ "%.2f"|format(nightly_total) }}</strong>
+                                </div>
+                                <div>
+                                    <span>Length of stay</span>
+                                    <strong>{{ nights }} night(s)</strong>
+                                </div>
+                                <div>
+                                    <span>Stay dates</span>
+                                    <strong>{{ booking.check_in }} to {{ booking.check_out }}</strong>
+                                </div>
+                                <div>
+                                    <span>Booking status</span>
+                                    <strong>{{ booking.status }}</strong>
+                                </div>
+                                <div class="booking-price-total">
+                                    <span>Amount due</span>
+                                    <strong>${{ "%.2f"|format(booking.total_price) }}</strong>
+                                </div>
+                            </div>
+
+                            {% if payment %}
+                                <div class="payment-edit-transaction">
+                                    <span>Transaction number</span>
+                                    <strong>{{ payment.transaction_no }}</strong>
+                                </div>
+                            {% else %}
+                                <div class="booking-edit-price-note">
+                                    <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+                                    <p>A payment record will be created when these details are saved.</p>
+                                </div>
+                            {% endif %}
+
+                            <div class="booking-edit-actions">
+                                <button type="submit" class="booking-edit-save">
+                                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                    Save payment
+                                </button>
+                                <a href="{{ url_for('admin.booking_details', booking_id=booking.id) }}" class="booking-edit-cancel">
+                                    Cancel
+                                </a>
+                            </div>
+                        </section>
+                    </aside>
+                </div>
+            </form>
         </section>
-
     </main>
-
 </div>
 
 {% endblock %}

@@ -6,7 +6,9 @@ from app.models.room import Room
 from app.models.accounting import Accounting
 from app.utils.auth import login_required, role_required
 from datetime import datetime
+from collections import Counter, defaultdict
 from app.models.booking_room import BookingRoom
+from app.utils.pricing import calculate_nights, calculate_stay_total
 
 
 admin = Blueprint("admin", __name__, url_prefix="/admin")
@@ -15,23 +17,109 @@ admin = Blueprint("admin", __name__, url_prefix="/admin")
 @admin.route("/dashboard")
 @login_required
 def dashboard():
-    total_bookings = Booking.query.count()
-    pending_bookings = Booking.query.filter_by(status="Pending").count()
-    confirmed_bookings = Booking.query.filter_by(status="Confirmed").count()
-    available_rooms = Room.query.filter_by(status="Available").count()
+    today = datetime.today().strftime("%Y-%m-%d")
+    all_bookings = Booking.query.order_by(Booking.created_at.desc()).all()
+    all_payments = Accounting.query.order_by(Accounting.created_at.desc()).all()
+    all_rooms = Room.query.order_by(Room.room_number.asc()).all()
 
-    paid_transactions = Accounting.query.filter_by(payment_status="Paid").all()
-    total_revenue = sum(transaction.total_price for transaction in paid_transactions)
+    arrivals_today = [
+        booking for booking in all_bookings
+        if booking.check_in == today
+        and booking.status in ["Pending", "Confirmed", "Checked In"]
+    ]
+    departures_today = [
+        booking for booking in all_bookings
+        if booking.check_out == today
+        and booking.status in ["Checked In", "Checked Out"]
+    ]
+    upcoming_arrivals_count = len([
+        booking for booking in all_bookings
+        if booking.check_in >= today
+        and booking.status in ["Pending", "Confirmed"]
+    ])
 
-    recent_bookings = Booking.query.order_by(Booking.created_at.desc()).limit(5).all()
+    pending_bookings = sum(
+        booking.status == "Pending" for booking in all_bookings
+    )
+    in_house_bookings = sum(
+        booking.status == "Checked In" for booking in all_bookings
+    )
+
+    room_status_counts = Counter(
+        "Reserved" if room.status == "Booked" else room.status
+        for room in all_rooms
+    )
+    total_rooms = len(all_rooms)
+    available_rooms = room_status_counts.get("Available", 0)
+    reserved_rooms = room_status_counts.get("Reserved", 0)
+    occupied_rooms = room_status_counts.get("Occupied", 0)
+    maintenance_rooms = room_status_counts.get("Maintenance", 0)
+    occupancy_rate = (
+        round((occupied_rooms / total_rooms) * 100)
+        if total_rooms else 0
+    )
+
+    paid_transactions = [
+        payment for payment in all_payments
+        if payment.payment_status == "Paid"
+    ]
+    unpaid_transactions = [
+        payment for payment in all_payments
+        if payment.payment_status == "Unpaid"
+    ]
+    total_revenue = sum(payment.total_price for payment in paid_transactions)
+    outstanding_revenue = sum(
+        payment.total_price for payment in unpaid_transactions
+    )
+
+    attention_items = [
+        {
+            "label": "Pending bookings",
+            "count": pending_bookings,
+            "detail": "Need confirmation or cancellation",
+            "class_name": "warning",
+            "endpoint": "admin.bookings",
+            "roles": ["admin", "staff"]
+        },
+        {
+            "label": "Unpaid bookings",
+            "count": len(unpaid_transactions),
+            "detail": f"${outstanding_revenue:.2f} outstanding",
+            "class_name": "danger",
+            "endpoint": "admin.payments",
+            "roles": ["admin", "manager"]
+        },
+        {
+            "label": "Maintenance rooms",
+            "count": maintenance_rooms,
+            "detail": "Unavailable for new guests",
+            "class_name": "neutral",
+            "endpoint": "admin.rooms",
+            "roles": ["admin", "staff"]
+        }
+    ]
+
+    recent_bookings = all_bookings[:6]
 
     return render_template(
         "admin/dashboard.html",
-        total_bookings=total_bookings,
+        today=datetime.today(),
+        arrivals_today=arrivals_today,
+        departures_today=departures_today,
+        upcoming_arrivals_count=upcoming_arrivals_count,
         pending_bookings=pending_bookings,
-        confirmed_bookings=confirmed_bookings,
+        in_house_bookings=in_house_bookings,
+        total_rooms=total_rooms,
         available_rooms=available_rooms,
+        reserved_rooms=reserved_rooms,
+        occupied_rooms=occupied_rooms,
+        maintenance_rooms=maintenance_rooms,
+        occupancy_rate=occupancy_rate,
         total_revenue=total_revenue,
+        outstanding_revenue=outstanding_revenue,
+        paid_payments=len(paid_transactions),
+        unpaid_payments=len(unpaid_transactions),
+        attention_items=attention_items,
         recent_bookings=recent_bookings
     )
 
@@ -69,10 +157,22 @@ def bookings():
 @role_required(["admin", "staff"])
 def rooms():
     all_rooms = Room.query.order_by(Room.room_number.asc()).all()
+    total_rooms = len(all_rooms)
+    available_rooms = sum(room.status == "Available" for room in all_rooms)
+    reserved_rooms = sum(room.status in ["Reserved", "Booked"] for room in all_rooms)
+    occupied_rooms = sum(room.status == "Occupied" for room in all_rooms)
+    maintenance_rooms = sum(room.status == "Maintenance" for room in all_rooms)
+    occupancy_rate = round((occupied_rooms / total_rooms) * 100) if total_rooms else 0
 
     return render_template(
         "admin/rooms.html",
-        rooms=all_rooms
+        rooms=all_rooms,
+        total_rooms=total_rooms,
+        available_rooms=available_rooms,
+        reserved_rooms=reserved_rooms,
+        occupied_rooms=occupied_rooms,
+        maintenance_rooms=maintenance_rooms,
+        occupancy_rate=occupancy_rate
     )
 
 
@@ -92,25 +192,144 @@ def payments():
 @login_required
 @role_required(["admin", "manager"])
 def reports():
-    total_bookings = Booking.query.count()
+    all_bookings = Booking.query.order_by(Booking.created_at.desc()).all()
+    all_payments = Accounting.query.order_by(Accounting.created_at.desc()).all()
+    all_rooms = Room.query.order_by(Room.room_number.asc()).all()
 
-    paid_payments = Accounting.query.filter_by(payment_status="Paid").count()
-    unpaid_payments = Accounting.query.filter_by(payment_status="Unpaid").count()
+    total_bookings = len(all_bookings)
+    active_bookings = [
+        booking for booking in all_bookings
+        if booking.status != "Cancelled"
+    ]
 
-    paid_transactions = Accounting.query.filter_by(payment_status="Paid").all()
+    paid_transactions = [
+        payment for payment in all_payments
+        if payment.payment_status == "Paid"
+    ]
+    unpaid_transactions = [
+        payment for payment in all_payments
+        if payment.payment_status == "Unpaid"
+    ]
+    refunded_transactions = [
+        payment for payment in all_payments
+        if payment.payment_status == "Refunded"
+    ]
+
     total_revenue = sum(payment.total_price for payment in paid_transactions)
+    outstanding_revenue = sum(payment.total_price for payment in unpaid_transactions)
+    gross_booking_value = sum(booking.total_price for booking in active_bookings)
+    average_booking_value = (
+        gross_booking_value / len(active_bookings)
+        if active_bookings else 0
+    )
+    collectible_total = total_revenue + outstanding_revenue
+    collection_rate = (
+        round((total_revenue / collectible_total) * 100)
+        if collectible_total else 0
+    )
 
-    occupied_rooms = Room.query.filter_by(status="Occupied").count()
-    maintenance_rooms = Room.query.filter_by(status="Maintenance").count()
+    booking_status_counts = Counter(booking.status for booking in all_bookings)
+    booking_status_order = [
+        ("Pending", "status-pending"),
+        ("Confirmed", "status-confirmed"),
+        ("Checked In", "status-checked-in"),
+        ("Checked Out", "status-checked-out"),
+        ("Cancelled", "status-cancelled"),
+    ]
+    booking_status_report = [
+        {
+            "label": status,
+            "count": booking_status_counts.get(status, 0),
+            "percentage": round(
+                (booking_status_counts.get(status, 0) / total_bookings) * 100
+            ) if total_bookings else 0,
+            "class_name": class_name
+        }
+        for status, class_name in booking_status_order
+    ]
+
+    room_status_counts = Counter(
+        "Reserved" if room.status == "Booked" else room.status
+        for room in all_rooms
+    )
+    total_rooms = len(all_rooms)
+    occupied_rooms = room_status_counts.get("Occupied", 0)
+    available_rooms = room_status_counts.get("Available", 0)
+    reserved_rooms = room_status_counts.get("Reserved", 0)
+    maintenance_rooms = room_status_counts.get("Maintenance", 0)
+    occupancy_rate = (
+        round((occupied_rooms / total_rooms) * 100)
+        if total_rooms else 0
+    )
+
+    room_type_data = defaultdict(lambda: {
+        "inventory": 0,
+        "available": 0,
+        "reserved": 0,
+        "occupied": 0,
+        "maintenance": 0,
+        "booking_ids": set(),
+        "room_nights": 0,
+        "booked_value": 0
+    })
+
+    for room in all_rooms:
+        data = room_type_data[room.room_type]
+        normalized_status = "Reserved" if room.status == "Booked" else room.status
+        data["inventory"] += 1
+        status_key = normalized_status.lower()
+        if status_key in ["available", "reserved", "occupied", "maintenance"]:
+            data[status_key] += 1
+
+    for booking in active_bookings:
+        try:
+            nights = calculate_nights(booking.check_in, booking.check_out)
+        except ValueError:
+            nights = 0
+
+        for booked_room in booking.booking_rooms:
+            data = room_type_data[booked_room.room_type]
+            data["booking_ids"].add(booking.id)
+            data["room_nights"] += nights
+            data["booked_value"] += booked_room.price * nights
+
+    room_type_report = []
+    for room_type, data in sorted(room_type_data.items()):
+        room_type_report.append({
+            "room_type": room_type,
+            "inventory": data["inventory"],
+            "available": data["available"],
+            "reserved": data["reserved"],
+            "occupied": data["occupied"],
+            "maintenance": data["maintenance"],
+            "bookings": len(data["booking_ids"]),
+            "room_nights": data["room_nights"],
+            "booked_value": data["booked_value"],
+        })
+
+    recent_transactions = all_payments[:8]
 
     return render_template(
         "admin/reports.html",
         total_bookings=total_bookings,
-        paid_payments=paid_payments,
-        unpaid_payments=unpaid_payments,
+        paid_payments=len(paid_transactions),
+        unpaid_payments=len(unpaid_transactions),
+        refunded_payments=len(refunded_transactions),
         total_revenue=total_revenue,
+        outstanding_revenue=outstanding_revenue,
+        gross_booking_value=gross_booking_value,
+        average_booking_value=average_booking_value,
+        collection_rate=collection_rate,
+        booking_status_report=booking_status_report,
+        total_rooms=total_rooms,
+        available_rooms=available_rooms,
+        reserved_rooms=reserved_rooms,
         occupied_rooms=occupied_rooms,
-        maintenance_rooms=maintenance_rooms
+        maintenance_rooms=maintenance_rooms,
+        occupancy_rate=occupancy_rate,
+        room_type_report=room_type_report,
+        recent_transactions=recent_transactions,
+        generated_at=datetime.now()
     )
 
 
@@ -120,6 +339,11 @@ def reports():
 def approve_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     booking.status = "Confirmed"
+
+    for booked_room in booking.booking_rooms:
+        room = Room.query.filter_by(room_number=booked_room.room_number).first()
+        if room and room.status != "Occupied":
+            room.status = "Reserved"
 
     db.session.commit()
 
@@ -133,6 +357,11 @@ def cancel_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
     booking.status = "Cancelled"
 
+    for booked_room in booking.booking_rooms:
+        room = Room.query.filter_by(room_number=booked_room.room_number).first()
+        if room:
+            room.status = "Available"
+
     db.session.commit()
 
     return redirect(url_for("admin.bookings"))
@@ -145,7 +374,7 @@ def update_room_status(room_id):
     room = Room.query.get_or_404(room_id)
     new_status = request.form.get("status")
 
-    if new_status in ["Available", "Occupied", "Maintenance"]:
+    if new_status in ["Available", "Reserved", "Occupied", "Maintenance"]:
         room.status = new_status
         db.session.commit()
 
@@ -162,7 +391,7 @@ def update_payment_status(payment_id):
     new_method = request.form.get("payment_method")
 
     allowed_statuses = ["Unpaid", "Paid", "Refunded"]
-    allowed_methods = ["Pay on Arrival", "Card"]
+    allowed_methods = ["Pay on Arrival", "Card", "Cash"]
 
     if new_status in allowed_statuses:
         payment.payment_status = new_status
@@ -236,10 +465,20 @@ def delete_room(room_id):
 @role_required(["admin", "staff"])
 def booking_details(booking_id):
     booking = Booking.query.get_or_404(booking_id)
+    payment = booking.accounting[0] if booking.accounting else None
+    nightly_total = sum(room.price for room in booking.booking_rooms)
+
+    try:
+        nights = calculate_nights(booking.check_in, booking.check_out)
+    except ValueError:
+        nights = 0
 
     return render_template(
         "admin/booking_details.html",
-        booking=booking
+        booking=booking,
+        payment=payment,
+        nightly_total=nightly_total,
+        nights=nights
     )
 
 @admin.route("/bookings/<int:booking_id>/edit", methods=["GET", "POST"])
@@ -247,53 +486,202 @@ def booking_details(booking_id):
 @role_required(["admin", "staff"])
 def edit_booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
+    allowed_statuses = (
+        "Pending",
+        "Confirmed",
+        "Checked In",
+        "Checked Out",
+        "Cancelled"
+    )
+    nightly_total = sum(room.price for room in booking.booking_rooms)
+
+    def render_edit_form(form_values=None, form_errors=None, status_code=200):
+        if form_values is None:
+            form_values = {
+                "guest_name": booking.guest_name,
+                "email": booking.email,
+                "phone": booking.phone,
+                "check_in": booking.check_in,
+                "check_out": booking.check_out,
+                "adults": booking.adults,
+                "children": booking.children,
+                "status": booking.status
+            }
+
+        try:
+            preview_nights, preview_total = calculate_stay_total(
+                nightly_total,
+                form_values["check_in"],
+                form_values["check_out"]
+            )
+        except ValueError:
+            preview_nights = 0
+            preview_total = 0
+
+        rendered_page = render_template(
+            "admin/edit_booking.html",
+            booking=booking,
+            form_values=form_values,
+            form_errors=form_errors or [],
+            allowed_statuses=allowed_statuses,
+            nightly_total=nightly_total,
+            preview_nights=preview_nights,
+            preview_total=preview_total
+        )
+        return rendered_page, status_code
 
     if request.method == "POST":
-        booking.guest_name = request.form.get("guest_name")
-        booking.email = request.form.get("email")
-        booking.phone = request.form.get("phone")
-        booking.check_in = request.form.get("check_in")
-        booking.check_out = request.form.get("check_out")
-        booking.adults = int(request.form.get("adults"))
-        booking.children = int(request.form.get("children"))
-        booking.total_price = float(request.form.get("total_price"))
-        booking.status = request.form.get("status")
-        if booking.status == "Checked In":
-            for booked_room in booking.booking_rooms:
-                room = Room.query.filter_by(room_number=booked_room.room_number).first()
-                if room:
-                    room.status = "Occupied"
+        form_values = {
+            "guest_name": request.form.get("guest_name", "").strip(),
+            "email": request.form.get("email", "").strip(),
+            "phone": request.form.get("phone", "").strip(),
+            "check_in": request.form.get("check_in", "").strip(),
+            "check_out": request.form.get("check_out", "").strip(),
+            "adults": request.form.get("adults", "").strip(),
+            "children": request.form.get("children", "").strip(),
+            "status": request.form.get("status", "").strip()
+        }
+        form_errors = []
 
-        elif booking.status in ["Checked Out", "Cancelled"]:
-            for booked_room in booking.booking_rooms:
-                room = Room.query.filter_by(room_number=booked_room.room_number).first()
-                if room:
-                    room.status = "Available"
+        if not form_values["guest_name"]:
+            form_errors.append("Guest name is required.")
+
+        if not form_values["email"] or "@" not in form_values["email"]:
+            form_errors.append("Enter a valid guest email address.")
+
+        if not form_values["phone"]:
+            form_errors.append("Phone number is required.")
+
+        try:
+            adults = int(form_values["adults"])
+            if adults < 1:
+                raise ValueError
+        except (TypeError, ValueError):
+            adults = None
+            form_errors.append("Adults must be at least 1.")
+
+        try:
+            children = int(form_values["children"])
+            if children < 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            children = None
+            form_errors.append("Children cannot be negative.")
+
+        if form_values["status"] not in allowed_statuses:
+            form_errors.append("Choose a valid booking status.")
+
+        try:
+            nights, total_price = calculate_stay_total(
+                nightly_total,
+                form_values["check_in"],
+                form_values["check_out"]
+            )
+        except ValueError as error:
+            nights = None
+            total_price = None
+            form_errors.append(str(error))
+
+        if form_errors:
+            return render_edit_form(form_values, form_errors, 400)
+
+        booking.guest_name = form_values["guest_name"]
+        booking.email = form_values["email"]
+        booking.phone = form_values["phone"]
+        booking.check_in = form_values["check_in"]
+        booking.check_out = form_values["check_out"]
+        booking.adults = adults
+        booking.children = children
+        booking.total_price = total_price
+        booking.status = form_values["status"]
+
+        room_status = {
+            "Pending": "Reserved",
+            "Confirmed": "Reserved",
+            "Checked In": "Occupied",
+            "Checked Out": "Available",
+            "Cancelled": "Available"
+        }[booking.status]
+
+        for booked_room in booking.booking_rooms:
+            room = Room.query.filter_by(
+                room_number=booked_room.room_number
+            ).first()
+            if room:
+                room.status = room_status
+
+        for payment in booking.accounting:
+            payment.check_in = booking.check_in
+            payment.check_out = booking.check_out
+            payment.total_price = booking.total_price
 
         db.session.commit()
 
         return redirect(url_for("admin.booking_details", booking_id=booking.id))
 
-    return render_template(
-        "admin/edit_booking.html",
-        booking=booking
-    )
+    return render_edit_form()
 
 @admin.route("/bookings/<int:booking_id>/payment", methods=["GET", "POST"])
 @login_required
 @role_required(["admin", "staff", "manager"])
 def booking_payment(booking_id):
     booking = Booking.query.get_or_404(booking_id)
-
     payment = Accounting.query.filter_by(booking_id=booking.id).first()
+    allowed_statuses = ("Unpaid", "Paid", "Refunded")
+    allowed_methods = ("Pay on Arrival", "Card", "Cash")
+
+    try:
+        nights = calculate_nights(booking.check_in, booking.check_out)
+    except ValueError:
+        nights = 0
+
+    nightly_total = sum(room.price for room in booking.booking_rooms)
+
+    def render_payment_form(form_values=None, form_errors=None, status_code=200):
+        if form_values is None:
+            form_values = {
+                "payment_status": (
+                    payment.payment_status if payment else "Unpaid"
+                ),
+                "payment_method": (
+                    payment.payment_method if payment else "Pay on Arrival"
+                )
+            }
+
+        rendered_page = render_template(
+            "admin/booking_payment.html",
+            booking=booking,
+            payment=payment,
+            form_values=form_values,
+            form_errors=form_errors or [],
+            allowed_statuses=allowed_statuses,
+            allowed_methods=allowed_methods,
+            nightly_total=nightly_total,
+            nights=nights
+        )
+        return rendered_page, status_code
 
     if request.method == "POST":
-        payment_status = request.form.get("payment_status")
-        payment_method = request.form.get("payment_method")
+        form_values = {
+            "payment_status": request.form.get("payment_status", "").strip(),
+            "payment_method": request.form.get("payment_method", "").strip()
+        }
+        form_errors = []
+
+        if form_values["payment_status"] not in allowed_statuses:
+            form_errors.append("Choose a valid payment status.")
+
+        if form_values["payment_method"] not in allowed_methods:
+            form_errors.append("Choose a valid payment method.")
+
+        if form_errors:
+            return render_payment_form(form_values, form_errors, 400)
 
         if payment:
-            payment.payment_status = payment_status
-            payment.payment_method = payment_method
+            payment.payment_status = form_values["payment_status"]
+            payment.payment_method = form_values["payment_method"]
+            payment.check_in = booking.check_in
+            payment.check_out = booking.check_out
             payment.total_price = booking.total_price
         else:
             payment = Accounting(
@@ -302,20 +690,18 @@ def booking_payment(booking_id):
                 check_in=booking.check_in,
                 check_out=booking.check_out,
                 total_price=booking.total_price,
-                payment_status=payment_status,
-                payment_method=payment_method
+                payment_status=form_values["payment_status"],
+                payment_method=form_values["payment_method"]
             )
             db.session.add(payment)
 
         db.session.commit()
 
-        return redirect(url_for("admin.bookings"))
+        return redirect(
+            url_for("admin.booking_details", booking_id=booking.id)
+        )
 
-    return render_template(
-        "admin/booking_payment.html",
-        booking=booking,
-        payment=payment
-    )
+    return render_payment_form()
 
 @admin.route("/bookings/<int:booking_id>/update-status/<status>")
 @login_required
@@ -384,7 +770,16 @@ def walkin_booking():
         if not valid_rooms:
             return redirect(url_for("admin.walkin_booking"))
 
-        total_price = sum(room.price for room in valid_rooms)
+        nightly_total = sum(room.price for room in valid_rooms)
+
+        try:
+            nights, total_price = calculate_stay_total(
+                nightly_total,
+                check_in,
+                check_out
+            )
+        except ValueError as error:
+            return str(error), 400
 
         reference_number = "WALK-" + datetime.now().strftime("%Y%m%d%H%M%S")
         transaction_no = "TXN-" + reference_number
