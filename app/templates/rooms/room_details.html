@@ -119,15 +119,9 @@
                     <a
                         class="solid-btn"
                         href="{{ url_for(
-                            'room.booking_form',
-                            room_id=room.id,
-                            check_in=booking_summary.check_in,
-                            check_out=booking_summary.check_out,
+                            'booking.book_room',
                             adults=booking_summary.adults,
-                            children=booking_summary.children,
-                            room_type=booking_summary.room_type,
-                            max_price=booking_summary.max_price,
-                            sort_by=booking_summary.sort_by
+                            children=booking_summary.children
                         ) }}"
                     >
                         Book Now
