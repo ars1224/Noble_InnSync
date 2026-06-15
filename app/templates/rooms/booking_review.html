@@ -7,7 +7,7 @@
     <a class="checkout-brand" href="{{ url_for('main.home') }}">The Noble Inn</a>
     <div class="checkout-nav-actions">
         <span>Secure Booking</span>
-        <a href="{{ url_for('main.available_rooms') }}">Back to Rooms</a>
+        <a href="{{ url_for('room.available_rooms') }}">Back to Rooms</a>
     </div>
 </header>
 {% endblock %}
@@ -43,7 +43,7 @@
         <section class="review-panel">
             <div class="review-panel-heading">
                 <p class="section-tag">GUEST DETAILS</p>
-                <a href="{{ url_for('main.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit</a>
+                <a href="{{ url_for('room.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit</a>
             </div>
             <h2>{{ guest_details.first_name }} {{ guest_details.last_name }}</h2>
             <div class="review-list">
@@ -67,7 +67,7 @@
         <section class="review-panel">
             <div class="review-panel-heading">
                 <p class="section-tag">STAY DETAILS</p>
-                <a href="{{ url_for('main.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit</a>
+                <a href="{{ url_for('room.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit</a>
             </div>
             <h2>{{ room.room_type }}</h2>
             <div class="review-list">
@@ -117,7 +117,7 @@
         </section>
     </div>
 
-    <form class="review-actions" action="{{ url_for('main.temporary_booking_hold', room_id=room.id) }}" method="post">
+    <form class="review-actions" action="{{ url_for('room.temporary_booking_hold', room_id=room.id) }}" method="post">
         <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
         <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
         <input type="hidden" name="email" value="{{ guest_details.email }}">
@@ -131,7 +131,7 @@
         <input type="hidden" name="max_price" value="{{ booking_summary.max_price }}">
         <input type="hidden" name="sort_by" value="{{ booking_summary.sort_by }}">
 
-        <a class="ghost-btn" href="{{ url_for('main.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit Details</a>
+        <a class="ghost-btn" href="{{ url_for('room.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit Details</a>
         <button class="solid-btn" type="submit">Continue to Payment</button>
     </form>
 </section>

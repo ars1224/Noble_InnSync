@@ -21,7 +21,12 @@
     <div class="room-detail-grid">
         <div class="room-detail-main">
             <div class="room-gallery">
-                <div class="room-gallery-main">Room {{ room.room_number }}</div>
+                <div class="room-gallery-main">
+                    <img
+                        src="{{ url_for('static', filename='img/' + details.image) }}"
+                        alt="{{ room.room_type }}"
+                    >
+                </div>
                 <div class="room-gallery-thumbs">
                     <span>Image</span>
                     <span>Bath</span>
@@ -94,11 +99,52 @@
             </div>
 
             <div class="booking-summary-actions">
-                <a class="ghost-btn" href="{{ url_for('main.available_rooms', check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Back</a>
-                {% if room.status == 'Available' %}
-                <a class="solid-btn" href="{{ url_for('main.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Book Now</a>
+                <a
+                    class="ghost-btn"
+                    href="{{ url_for(
+                        'room.available_rooms',
+                        check_in=booking_summary.check_in,
+                        check_out=booking_summary.check_out,
+                        adults=booking_summary.adults,
+                        children=booking_summary.children,
+                        room_type=booking_summary.room_type,
+                        max_price=booking_summary.max_price,
+                        sort_by=booking_summary.sort_by
+                    ) }}"
+                >
+                    Back
+                </a>
+
+                {% if room.status == "Available" %}
+                    <a
+                        class="solid-btn"
+                        href="{{ url_for(
+                            'room.booking_form',
+                            room_id=room.id,
+                            check_in=booking_summary.check_in,
+                            check_out=booking_summary.check_out,
+                            adults=booking_summary.adults,
+                            children=booking_summary.children,
+                            room_type=booking_summary.room_type,
+                            max_price=booking_summary.max_price,
+                            sort_by=booking_summary.sort_by
+                        ) }}"
+                    >
+                        Book Now
+                    </a>
                 {% else %}
-                <a class="solid-btn" href="{{ url_for('main.available_rooms', check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children) }}">Choose Another</a>
+                    <a
+                        class="solid-btn"
+                        href="{{ url_for(
+                            'room.available_rooms',
+                            check_in=booking_summary.check_in,
+                            check_out=booking_summary.check_out,
+                            adults=booking_summary.adults,
+                            children=booking_summary.children
+                        ) }}"
+                    >
+                        Choose Another
+                    </a>
                 {% endif %}
             </div>
         </aside>
