@@ -16,6 +16,9 @@ def create_app():
     from app.models.booking import Booking
     from app.models.booking_room import BookingRoom
     from app.models.accounting import Accounting
+    from app.models.inventory import InventoryItem
+    from app.models.equipment import EquipmentIssue
+    from app.models.activity_log import ActivityLog
 
     from app.routes.main_routes import main
     from app.routes.room_routes import room

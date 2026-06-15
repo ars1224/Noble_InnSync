@@ -1,0 +1,101 @@
+{% extends '_layout.html' %}
+
+{% block title %}Inventory | Noble InnSync{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+<div class="admin-layout">
+    {% include 'admin/_admin_sidebar.html' %}
+
+    <main class="admin-content">
+        <section class="dashboard-page">
+            <div class="dashboard-header">
+                <div>
+                    <p class="dashboard-tag">INVENTORY / SUPPLIES</p>
+                    <h1>Inventory Monitoring</h1>
+                    <p class="page-description">Track hotel consumables and notify the manager before supplies run out.</p>
+                </div>
+            </div>
+
+            <div class="dashboard-cards operations-summary">
+                <div class="dashboard-card"><h3>Low Stock</h3><h2>{{ low_stock_count }}</h2></div>
+                <div class="dashboard-card"><h3>Supplies</h3><h2>{{ items|length }}</h2></div>
+                <div class="dashboard-card"><h3>Alerts Sent</h3><h2>{{ alerts_sent }}</h2></div>
+            </div>
+
+            {% if session.get('user_role') in ['admin', 'staff'] %}
+            <details class="operations-form-card">
+                <summary>Add Inventory Item</summary>
+                <form method="POST" action="{{ url_for('admin.add_inventory_item') }}" class="inline-record-form">
+                    <input name="item_name" placeholder="Item name" required>
+                    <select name="category">
+                        <option>Guest Supplies</option>
+                        <option>Housekeeping</option>
+                        <option>Food and Beverage</option>
+                        <option>Cleaning Supplies</option>
+                    </select>
+                    <input name="current_stock" type="number" min="0" value="0" aria-label="Current stock">
+                    <input name="reorder_level" type="number" min="0" value="10" aria-label="Reorder level">
+                    <input name="unit" value="items" placeholder="Unit">
+                    <button type="submit">Add Item</button>
+                </form>
+            </details>
+            {% endif %}
+
+            <div class="recent-bookings operations-table-card">
+                <div class="section-header">
+                    <h2>Inventory Records</h2>
+                    <p>Stock at or below its reorder level is shown as low.</p>
+                </div>
+
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th><th>Category</th><th>Stock</th><th>Reorder At</th><th>Status</th><th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td><strong>{{ item.item_name }}</strong></td>
+                                <td>{{ item.category }}</td>
+                                <td>{{ item.current_stock }} {{ item.unit }}</td>
+                                <td>{{ item.reorder_level }} {{ item.unit }}</td>
+                                <td><span class="record-status status-{{ item.stock_status|lower|replace(' ', '-') }}">{{ item.stock_status }}</span></td>
+                                <td>
+                                    {% if session.get('user_role') in ['admin', 'staff'] %}
+                                    <div class="table-actions">
+                                        <form method="POST" action="{{ url_for('admin.add_inventory_stock', item_id=item.id) }}" class="compact-form">
+                                            <input name="quantity" type="number" min="1" value="1" aria-label="Quantity to add">
+                                            <button type="submit">Add Stock</button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('admin.update_inventory_item', item_id=item.id) }}" class="compact-form">
+                                            <input name="current_stock" type="number" min="0" value="{{ item.current_stock }}" aria-label="Current stock">
+                                            <input name="reorder_level" type="number" min="0" value="{{ item.reorder_level }}" aria-label="Reorder level">
+                                            <button type="submit">Update</button>
+                                        </form>
+                                        {% if item.stock_status != 'OK' %}
+                                        <form method="POST" action="{{ url_for('admin.send_inventory_alert', item_id=item.id) }}">
+                                            <button class="gold-action" type="submit">Send Alert</button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                    {% else %}
+                                    <span class="muted-text">Manager review</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6">No inventory records yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}
+

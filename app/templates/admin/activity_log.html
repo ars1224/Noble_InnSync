@@ -1,0 +1,54 @@
+{% extends '_layout.html' %}
+
+{% block title %}Activity Log | Noble InnSync{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
+
+<div class="admin-layout">
+    {% include 'admin/_admin_sidebar.html' %}
+
+    <main class="admin-content">
+        <section class="dashboard-page">
+            <div class="dashboard-header">
+                <div>
+                    <p class="dashboard-tag">NOTIFICATIONS / ACTIVITY</p>
+                    <h1>{% if session.get('user_role') == 'manager' %}Manager Alerts{% else %}Activity Log{% endif %}</h1>
+                    <p class="page-description">Review inventory alerts, equipment reports, and delivery status.</p>
+                </div>
+            </div>
+
+            <div class="recent-bookings operations-table-card">
+                <div class="table-scroll">
+                    <table>
+                        <thead><tr><th>Time</th><th>Type</th><th>Activity</th><th>Created By</th><th>Status</th><th>Action</th></tr></thead>
+                        <tbody>
+                            {% for activity in activities %}
+                            <tr>
+                                <td>{{ activity.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+                                <td>{{ activity.event_type }}</td>
+                                <td>{{ activity.message }}</td>
+                                <td>{{ activity.created_by }}</td>
+                                <td><span class="record-status status-{{ activity.delivery_status|lower }}">{{ activity.delivery_status }}</span></td>
+                                <td>
+                                    {% if session.get('user_role') in ['admin', 'manager'] and activity.delivery_status in ['Pending', 'Failed'] %}
+                                    <form method="POST" action="{{ url_for('admin.resend_activity', activity_id=activity.id) }}">
+                                        <button type="submit">Resend / Mark Sent</button>
+                                    </form>
+                                    {% else %}
+                                    <span class="muted-text">No action needed</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6">No activity recorded yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}
+

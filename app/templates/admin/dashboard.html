@@ -55,6 +55,24 @@
                     <h2>${{ "%.2f"|format(total_revenue) }}</h2>
                 </div>
 
+                <a class="dashboard-card operations-card" href="{{ url_for('admin.inventory') }}">
+                    <h3>Low-stock Items</h3>
+                    <h2>{{ low_stock_count }}</h2>
+                    <span>Open inventory</span>
+                </a>
+
+                <a class="dashboard-card operations-card" href="{{ url_for('admin.equipment') }}">
+                    <h3>Equipment Issues</h3>
+                    <h2>{{ equipment_issue_count }}</h2>
+                    <span>Open equipment</span>
+                </a>
+
+                <a class="dashboard-card operations-card" href="{{ url_for('admin.activity_log') }}">
+                    <h3>Pending Alerts</h3>
+                    <h2>{{ pending_alert_count }}</h2>
+                    <span>Review activity</span>
+                </a>
+
             </div>
 
             <div class="recent-bookings">

@@ -25,15 +25,7 @@
 </head>
 
 <body>
-    {% if request.path not in [
-        '/auth/staff-login', 
-        '/admin/dashboard', 
-        '/admin/bookings', 
-        '/admin/rooms', 
-        '/admin/payments', 
-        '/admin/reports', 
-        '/admin/access-denied'
-    ] %}
+    {% if not request.path.startswith('/admin') and request.path != '/auth/staff-login' %}
         <nav>{% include '_sidebar.html' %}</nav>
     {% endif %}
 
@@ -41,19 +33,11 @@
         {% block content %}{% endblock %}
     </main>
 
-     {% if request.path not in [
-        '/auth/staff-login', 
-        '/admin/dashboard', 
-        '/admin/bookings', 
-        '/admin/rooms', 
-        '/admin/payments', 
-        '/admin/reports'
-        '/admin/access-denied'
-    ] %}
+    {% if not request.path.startswith('/admin') and request.path != '/auth/staff-login' %}
     <footer>
         {% include '_footer.html' %}
     </footer>
- {% endif %}
+    {% endif %}
     {% block scripts %}{% endblock %}
 </body>
 </html>

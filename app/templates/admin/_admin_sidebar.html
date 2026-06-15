@@ -41,6 +41,21 @@
             </a>
         {% endif %}
 
+        <a href="{{ url_for('admin.inventory') }}"
+           class="{% if request.path.startswith('/admin/inventory') %}active{% endif %}">
+            Inventory
+        </a>
+
+        <a href="{{ url_for('admin.equipment') }}"
+           class="{% if request.path.startswith('/admin/equipment') %}active{% endif %}">
+            Equipment
+        </a>
+
+        <a href="{{ url_for('admin.activity_log') }}"
+           class="{% if request.path.startswith('/admin/activity-log') %}active{% endif %}">
+            {% if session.get("user_role") == "manager" %}Manager Alerts{% else %}Activity Log{% endif %}
+        </a>
+
     </nav>
 
     <div class="admin-logout">

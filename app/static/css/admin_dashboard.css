@@ -914,3 +914,182 @@ table tbody tr {
         grid-template-columns: 1fr;
     }
 }
+
+.page-description {
+    margin-top: 8px;
+    color: #6b7280;
+}
+
+.operations-card {
+    color: inherit;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: 0.2s ease;
+}
+
+.operations-card:hover {
+    border-color: #d4a762;
+    transform: translateY(-2px);
+}
+
+.operations-card span {
+    color: #d4a762;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.operations-summary {
+    grid-template-columns: repeat(3, minmax(180px, 1fr));
+}
+
+.operations-form-card {
+    display: block;
+    margin-bottom: 24px;
+    padding: 24px;
+    background: white;
+    border-radius: 18px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.operations-form-card summary,
+.operations-form-card h2 {
+    color: #111827;
+    font-size: 20px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.operations-form-card[open] summary {
+    margin-bottom: 18px;
+}
+
+.inline-record-form {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(110px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.inline-record-form input,
+.inline-record-form select,
+.compact-form input {
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 9px;
+}
+
+.inline-record-form button,
+.operations-table-card button {
+    padding: 10px 13px;
+    border: 0;
+    border-radius: 9px;
+    background: #111827;
+    color: white;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.inline-record-form button:hover,
+.operations-table-card button:hover,
+.operations-table-card .gold-action {
+    background: #d4a762;
+    color: #111827;
+}
+
+.equipment-report-form {
+    grid-template-columns: repeat(5, minmax(120px, 1fr)) auto;
+}
+
+.table-scroll {
+    overflow-x: auto;
+}
+
+.operations-table-card table {
+    min-width: 850px;
+}
+
+.table-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.compact-form {
+    display: flex;
+    gap: 6px;
+}
+
+.compact-form input {
+    width: 76px;
+}
+
+.record-status {
+    display: inline-block;
+    padding: 6px 10px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.status-ok,
+.status-working,
+.status-sent,
+.priority-low {
+    background: #dcfce7;
+    border-color: #86c58e;
+    color: #166534;
+}
+
+.status-low-stock,
+.status-check-needed,
+.status-pending,
+.priority-medium {
+    background: #fffbeb;
+    border-color: #d4a762;
+    color: #92400e;
+}
+
+.status-out-of-stock,
+.status-broken,
+.status-failed,
+.priority-high {
+    background: #fef2f2;
+    border-color: #ef8f86;
+    color: #b42318;
+}
+
+.table-note {
+    display: block;
+    margin-top: 5px;
+    color: #6b7280;
+}
+
+@media (max-width: 900px) {
+    .admin-layout {
+        display: block;
+    }
+
+    .admin-sidebar {
+        width: auto;
+        min-height: auto;
+    }
+
+    .admin-nav {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .inline-record-form,
+    .equipment-report-form,
+    .operations-summary {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-page {
+        padding: 24px 16px;
+    }
+}
