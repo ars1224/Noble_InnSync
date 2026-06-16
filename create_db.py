@@ -5,12 +5,34 @@ from app.models.booking import Booking
 from app.models.booking_room import BookingRoom
 from app.models.accounting import Accounting
 from app.models.user import User
+from app.models.inventory import InventoryItem
+from app.models.equipment import EquipmentIssue
+from app.models.activity_log import ActivityLog
 
 app = create_app()
 
 with app.app_context():
 
     db.create_all()
+
+    default_inventory = [
+        ("Bath Towels", "Guest Supplies", 8, 12, "pieces"),
+        ("Hand Soap", "Guest Supplies", 36, 15, "bottles"),
+        ("Shampoo", "Guest Supplies", 18, 15, "bottles"),
+        ("Toilet Paper", "Housekeeping", 24, 20, "rolls"),
+        ("Bed Sheets", "Housekeeping", 10, 12, "sets"),
+        ("Coffee Sachets", "Food and Beverage", 42, 20, "sachets"),
+    ]
+
+    for item_name, category, stock, reorder_level, unit in default_inventory:
+        if not InventoryItem.query.filter_by(item_name=item_name).first():
+            db.session.add(InventoryItem(
+                item_name=item_name,
+                category=category,
+                current_stock=stock,
+                reorder_level=reorder_level,
+                unit=unit,
+            ))
 
     defaults = {
 

@@ -1,6 +1,4 @@
 from flask import Blueprint, abort, render_template, request
-
-from flask import Blueprint, render_template, request
 from app import db
 from app.models.room import Room
 from app.utils.pricing import calculate_stay_total
@@ -116,17 +114,43 @@ ROOM_POLICIES = [
 
 
 def build_room_summary(room_slug, details):
-    available_count = Room.query.filter_by(
-        room_type=details["room_type"],
-        status="Available"
-    ).count()
+    available_rooms = (
+        Room.query
+        .filter_by(
+            room_type=details["room_type"],
+            status="Available"
+        )
+        .order_by(Room.room_number.asc())
+        .all()
+    )
+    first_available_room = available_rooms[0] if available_rooms else None
+    available_count = len(available_rooms)
 
     return {
+        "id": first_available_room.id if first_available_room else None,
         "slug": room_slug,
+        "status": first_available_room.status if first_available_room else "Unavailable",
         **details,
         "image": details["images"][0],
         "available_count": available_count,
     }
+
+
+def build_room_detail_summary(selected_room):
+    room_slug = next(
+        (
+            slug for slug, details in ROOM_CATALOG.items()
+            if details["room_type"] == selected_room.room_type
+        ),
+        None
+    )
+    if not room_slug:
+        abort(404)
+
+    room_summary = build_room_summary(room_slug, ROOM_CATALOG[room_slug])
+    room_summary["id"] = selected_room.id
+    room_summary["status"] = selected_room.status
+    return room_summary
 
 
 
@@ -168,6 +192,56 @@ def build_booking_summary(source):
     return summary
 
 
+def build_room_booking_summary(room_summary, source):
+    check_in = source.get("check_in", "")
+    check_out = source.get("check_out", "")
+
+    try:
+        adults_count = max(1, int(source.get("adults", "1")))
+    except (TypeError, ValueError):
+        adults_count = 1
+
+    try:
+        children_count = max(0, int(source.get("children", "0")))
+    except (TypeError, ValueError):
+        children_count = 0
+
+    nights = None
+    stay_total = None
+    date_error = None
+
+    if check_in and check_out:
+        try:
+            nights, stay_total = calculate_stay_total(
+                room_summary["price"],
+                check_in,
+                check_out
+            )
+        except ValueError as error:
+            date_error = str(error)
+
+    return {
+        "check_in": check_in,
+        "check_out": check_out,
+        "adults": adults_count,
+        "children": children_count,
+        "room_type": source.get("room_type", ""),
+        "max_price": source.get("max_price", ""),
+        "sort_by": source.get("sort_by", "lowest_price"),
+        "guest_text": (
+            f"{adults_count} adult{'s' if adults_count != 1 else ''}, "
+            f"{children_count} child{'ren' if children_count != 1 else ''}"
+        ),
+        "nights": nights,
+        "stay_total": stay_total,
+        "date_error": date_error,
+        "fits_guests": (
+            adults_count <= room_summary["capacity_adults"]
+            and children_count <= room_summary["capacity_children"]
+        ),
+    }
+
+
 def build_guest_details(source):
     return {
         "first_name": source.get("first_name", ""),
@@ -205,72 +279,9 @@ def available_rooms():
     adults = request.args.get("adults", "1")
     children = request.args.get("children", "0")
 
-    single_room = (
-        Room.query
-        .filter_by(room_type="Single Room", status="Available")
-        .order_by(Room.room_number.asc())
-        .first()
-    )
-
-    double_room = (
-        Room.query
-        .filter_by(room_type="Double Room", status="Available")
-        .order_by(Room.room_number.asc())
-        .first()
-    )
-
-    family_room = (
-        Room.query
-        .filter_by(room_type="Family Room", status="Available")
-        .order_by(Room.room_number.asc())
-        .first()
-    )
-
     room_summary = [
         build_room_summary(room_slug, details)
         for room_slug, details in ROOM_CATALOG.items()
-        {
-            "id": single_room.id if single_room else None,
-            "room_type": "Single Room",
-            "description": "Perfect for solo travelers seeking a cozy and affordable stay.",
-            "price": 149,
-            "capacity_adults": 1,
-            "capacity_children": 0,
-            "bed": "1 single bed",
-            "available_count": Room.query.filter_by(
-                room_type="Single Room",
-                status="Available",
-            ).count(),
-            "image": "ChatGPT Image Jun 2, 2026, 08_37_08 PM.png",
-        },
-        {
-            "id": double_room.id if double_room else None,
-            "room_type": "Double Room",
-            "description": "Ideal for couples with spacious comfort and modern amenities.",
-            "price": 229,
-            "capacity_adults": 2,
-            "capacity_children": 1,
-            "bed": "1 queen size bed",
-            "available_count": Room.query.filter_by(
-                room_type="Double Room",
-                status="Available",
-            ).count(),
-            "image": "ChatGPT Image Jun 2, 2026, 08_37_54 PM.png",
-        },
-        {
-            "id": family_room.id if family_room else None,
-            "room_type": "Family Room",
-            "description": "Designed for families and groups with extra space and comfort.",
-            "price": 329,
-            "capacity_adults": 4,
-            "capacity_children": 2,
-            "bed": "2 queen size beds + 1 single bed",
-            "available_count": Room.query.filter_by(
-                room_type="Family Room",
-                status="Available",
-            ).count(),
-            "image": "ChatGPT Image Jun 2, 2026, 08_38_19 PM.png",
-        },
     ]
 
     search_summary = {
@@ -279,10 +290,7 @@ def available_rooms():
         "adults": adults,
         "children": children,
         "guest_text": (
-        "guest_text": (
             f"{adults} adult{'s' if adults != '1' else ''}, "
-            f"{children} child{'ren' if children != '1' else ''}"
-        ),
             f"{children} child{'ren' if children != '1' else ''}"
         ),
     }
@@ -295,60 +303,13 @@ def available_rooms():
 
 
 @room.route("/rooms/<room_slug>")
-def room_details(room_slug):
+def room_type_details(room_slug):
     details = ROOM_CATALOG.get(room_slug)
     if not details:
         abort(404)
 
     room_summary = build_room_summary(room_slug, details)
-    check_in = request.args.get("check_in", "")
-    check_out = request.args.get("check_out", "")
-    adults = request.args.get("adults", "1")
-    children = request.args.get("children", "0")
-
-    try:
-        adults_count = max(1, int(adults))
-    except (TypeError, ValueError):
-        adults_count = 1
-
-    try:
-        children_count = max(0, int(children))
-    except (TypeError, ValueError):
-        children_count = 0
-
-    nights = None
-    stay_total = None
-    date_error = None
-
-    if check_in and check_out:
-        try:
-            nights, stay_total = calculate_stay_total(
-                room_summary["price"],
-                check_in,
-                check_out
-            )
-        except ValueError as error:
-            date_error = str(error)
-
-    fits_guests = (
-        adults_count <= room_summary["capacity_adults"]
-        and children_count <= room_summary["capacity_children"]
-    )
-
-    booking_summary = {
-        "check_in": check_in,
-        "check_out": check_out,
-        "adults": adults_count,
-        "children": children_count,
-        "guest_text": (
-            f"{adults_count} adult{'s' if adults_count != 1 else ''}, "
-            f"{children_count} child{'ren' if children_count != 1 else ''}"
-        ),
-        "nights": nights,
-        "stay_total": stay_total,
-        "date_error": date_error,
-        "fits_guests": fits_guests,
-    }
+    booking_summary = build_room_booking_summary(room_summary, request.args)
 
     return render_template(
         "rooms/room_details.html",
@@ -357,19 +318,17 @@ def room_details(room_slug):
         policies=ROOM_POLICIES
     )
 
-        search_summary=search_summary,
-    )
-
-
 @room.route("/rooms/<int:room_id>")
 def room_details(room_id):
     selected_room = Room.query.get_or_404(room_id)
+    room_summary = build_room_detail_summary(selected_room)
+    booking_summary = build_room_booking_summary(room_summary, request.args)
 
     return render_template(
         "rooms/room_details.html",
-        room=selected_room,
-        details=get_room_details(selected_room),
-        booking_summary=build_booking_summary(request.args),
+        room=room_summary,
+        booking_summary=booking_summary,
+        policies=ROOM_POLICIES,
     )
 
 

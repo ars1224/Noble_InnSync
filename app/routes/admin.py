@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request
+from flask import Blueprint, render_template, redirect, url_for, request, session
 
 from app import db
 from app.models.booking import Booking
@@ -8,6 +8,9 @@ from app.utils.auth import login_required, role_required
 from datetime import datetime
 from collections import Counter, defaultdict
 from app.models.booking_room import BookingRoom
+from app.models.inventory import InventoryItem
+from app.models.equipment import EquipmentIssue
+from app.models.activity_log import ActivityLog
 from app.utils.pricing import calculate_nights, calculate_stay_total
 
 
@@ -99,6 +102,43 @@ def dashboard():
         }
     ]
 
+    low_stock_count = InventoryItem.query.filter(
+        InventoryItem.current_stock <= InventoryItem.reorder_level
+    ).count()
+    equipment_issue_count = EquipmentIssue.query.filter(
+        EquipmentIssue.status != "Working"
+    ).count()
+    pending_alert_count = ActivityLog.query.filter(
+        ActivityLog.delivery_status.in_(["Pending", "Failed"])
+    ).count()
+
+    attention_items.extend([
+        {
+            "label": "Low-stock items",
+            "count": low_stock_count,
+            "detail": "Inventory needs replenishment",
+            "class_name": "warning",
+            "endpoint": "admin.inventory",
+            "roles": ["admin", "staff", "manager"]
+        },
+        {
+            "label": "Equipment issues",
+            "count": equipment_issue_count,
+            "detail": "Rooms or assets need follow-up",
+            "class_name": "danger",
+            "endpoint": "admin.equipment",
+            "roles": ["admin", "staff", "manager"]
+        },
+        {
+            "label": "Pending alerts",
+            "count": pending_alert_count,
+            "detail": "Activity messages waiting to send",
+            "class_name": "neutral",
+            "endpoint": "admin.activity_log",
+            "roles": ["admin", "staff", "manager"]
+        }
+    ])
+
     recent_bookings = all_bookings[:6]
 
     return render_template(
@@ -116,12 +156,200 @@ def dashboard():
         maintenance_rooms=maintenance_rooms,
         occupancy_rate=occupancy_rate,
         total_revenue=total_revenue,
+        low_stock_count=low_stock_count,
+        equipment_issue_count=equipment_issue_count,
+        pending_alert_count=pending_alert_count,
         outstanding_revenue=outstanding_revenue,
         paid_payments=len(paid_transactions),
         unpaid_payments=len(unpaid_transactions),
         attention_items=attention_items,
         recent_bookings=recent_bookings
     )
+
+
+def add_activity(event_type, message, delivery_status="Pending"):
+    activity = ActivityLog(
+        event_type=event_type,
+        message=message,
+        delivery_status=delivery_status,
+        created_by=session.get("username", "system"),
+        target_role="manager",
+    )
+    db.session.add(activity)
+
+
+@admin.route("/inventory")
+@login_required
+@role_required(["admin", "staff", "manager"])
+def inventory():
+    items = InventoryItem.query.order_by(InventoryItem.item_name.asc()).all()
+    low_stock_count = sum(item.stock_status != "OK" for item in items)
+    alerts_sent = ActivityLog.query.filter_by(
+        event_type="Inventory", delivery_status="Sent"
+    ).count()
+
+    return render_template(
+        "admin/inventory.html",
+        items=items,
+        low_stock_count=low_stock_count,
+        alerts_sent=alerts_sent,
+    )
+
+
+@admin.route("/inventory/add", methods=["POST"])
+@login_required
+@role_required(["admin", "staff"])
+def add_inventory_item():
+    item_name = request.form.get("item_name", "").strip()
+    if item_name and not InventoryItem.query.filter_by(item_name=item_name).first():
+        item = InventoryItem(
+            item_name=item_name,
+            category=request.form.get("category", "Guest Supplies").strip(),
+            current_stock=max(0, request.form.get("current_stock", 0, type=int)),
+            reorder_level=max(0, request.form.get("reorder_level", 10, type=int)),
+            unit=request.form.get("unit", "items").strip(),
+        )
+        db.session.add(item)
+        add_activity("Inventory", f"{item_name} was added to inventory.", "Sent")
+        db.session.commit()
+
+    return redirect(url_for("admin.inventory"))
+
+
+@admin.route("/inventory/<int:item_id>/update", methods=["POST"])
+@login_required
+@role_required(["admin", "staff"])
+def update_inventory_item(item_id):
+    item = InventoryItem.query.get_or_404(item_id)
+    item.current_stock = max(
+        0, request.form.get("current_stock", item.current_stock, type=int)
+    )
+    item.reorder_level = max(
+        0, request.form.get("reorder_level", item.reorder_level, type=int)
+    )
+    add_activity(
+        "Inventory",
+        f"{item.item_name} stock updated to {item.current_stock} {item.unit}.",
+        "Sent",
+    )
+    db.session.commit()
+    return redirect(url_for("admin.inventory"))
+
+
+@admin.route("/inventory/<int:item_id>/add-stock", methods=["POST"])
+@login_required
+@role_required(["admin", "staff"])
+def add_inventory_stock(item_id):
+    item = InventoryItem.query.get_or_404(item_id)
+    quantity = max(0, request.form.get("quantity", 0, type=int))
+    item.current_stock += quantity
+    add_activity(
+        "Inventory",
+        f"Added {quantity} {item.unit} to {item.item_name}.",
+        "Sent",
+    )
+    db.session.commit()
+    return redirect(url_for("admin.inventory"))
+
+
+@admin.route("/inventory/<int:item_id>/send-alert", methods=["POST"])
+@login_required
+@role_required(["admin", "staff"])
+def send_inventory_alert(item_id):
+    item = InventoryItem.query.get_or_404(item_id)
+    add_activity(
+        "Inventory",
+        f"Low-stock alert: {item.item_name} has {item.current_stock} {item.unit} remaining.",
+        "Sent",
+    )
+    db.session.commit()
+    return redirect(url_for("admin.inventory"))
+
+
+@admin.route("/equipment")
+@login_required
+@role_required(["admin", "staff", "manager"])
+def equipment():
+    issues = EquipmentIssue.query.order_by(EquipmentIssue.created_at.desc()).all()
+    rooms = Room.query.order_by(Room.room_number.asc()).all()
+    return render_template("admin/equipment.html", issues=issues, rooms=rooms)
+
+
+@admin.route("/equipment/report", methods=["POST"])
+@login_required
+@role_required(["admin", "staff"])
+def report_equipment_issue():
+    room = Room.query.get_or_404(request.form.get("room_id", type=int))
+    equipment_name = request.form.get("equipment_name", "").strip()
+    if equipment_name:
+        issue = EquipmentIssue(
+            room_id=room.id,
+            equipment_name=equipment_name,
+            status=request.form.get("status", "Check Needed"),
+            priority=request.form.get("priority", "Medium"),
+            notes=request.form.get("notes", "").strip(),
+            reported_by=session.get("username", "staff"),
+        )
+        db.session.add(issue)
+        add_activity(
+            "Equipment",
+            f"{equipment_name} issue reported for room {room.room_number}.",
+        )
+        db.session.commit()
+
+    return redirect(url_for("admin.equipment"))
+
+
+@admin.route("/equipment/<int:issue_id>/request-maintenance", methods=["POST"])
+@login_required
+@role_required(["admin", "staff"])
+def request_equipment_maintenance(issue_id):
+    issue = EquipmentIssue.query.get_or_404(issue_id)
+    issue.maintenance_status = "Requested"
+    if issue.status == "Broken":
+        issue.room.status = "Maintenance"
+    add_activity(
+        "Equipment",
+        f"Maintenance requested for {issue.equipment_name} in room {issue.room.room_number}.",
+    )
+    db.session.commit()
+    return redirect(url_for("admin.equipment"))
+
+
+@admin.route("/equipment/<int:issue_id>/resolve", methods=["POST"])
+@login_required
+@role_required(["admin", "manager"])
+def resolve_equipment_issue(issue_id):
+    issue = EquipmentIssue.query.get_or_404(issue_id)
+    issue.status = "Working"
+    issue.maintenance_status = "Resolved"
+    if issue.room.status == "Maintenance":
+        issue.room.status = "Available"
+    add_activity(
+        "Equipment",
+        f"{issue.equipment_name} in room {issue.room.room_number} marked resolved.",
+        "Sent",
+    )
+    db.session.commit()
+    return redirect(url_for("admin.equipment"))
+
+
+@admin.route("/activity-log")
+@login_required
+@role_required(["admin", "staff", "manager"])
+def activity_log():
+    activities = ActivityLog.query.order_by(ActivityLog.created_at.desc()).all()
+    return render_template("admin/activity_log.html", activities=activities)
+
+
+@admin.route("/activity-log/<int:activity_id>/resend", methods=["POST"])
+@login_required
+@role_required(["admin", "manager"])
+def resend_activity(activity_id):
+    activity = ActivityLog.query.get_or_404(activity_id)
+    activity.delivery_status = "Sent"
+    db.session.commit()
+    return redirect(url_for("admin.activity_log"))
 
 
 @admin.route("/bookings")

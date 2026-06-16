@@ -36,6 +36,26 @@
 
             {% endif %}
 
+            {% if session.get("user_role") in ["admin", "staff", "manager"] %}
+                <a href="{{ url_for('admin.inventory') }}"
+                   class="{% if request.path.startswith('/admin/inventory') %}active{% endif %}">
+                    <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
+                    <span>Inventory</span>
+                </a>
+
+                <a href="{{ url_for('admin.equipment') }}"
+                   class="{% if request.path.startswith('/admin/equipment') %}active{% endif %}">
+                    <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+                    <span>Equipment</span>
+                </a>
+
+                <a href="{{ url_for('admin.activity_log') }}"
+                   class="{% if request.path.startswith('/admin/activity-log') %}active{% endif %}">
+                    <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                    <span>{% if session.get("user_role") == "manager" %}Manager Alerts{% else %}Activity Log{% endif %}</span>
+                </a>
+            {% endif %}
+
             {% if session.get("user_role") in ["admin", "manager"] %}
                 <a href="{{ url_for('admin.payments') }}"
                    class="{% if request.endpoint == 'admin.payments' %}active{% endif %}">

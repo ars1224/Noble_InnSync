@@ -49,6 +49,20 @@
                         View report
                     </a>
                 {% endif %}
+                {% if session.get("user_role") in ["admin", "staff", "manager"] %}
+                    <a href="{{ url_for('admin.inventory') }}">
+                        <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
+                        Inventory
+                    </a>
+                    <a href="{{ url_for('admin.equipment') }}">
+                        <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+                        Equipment
+                    </a>
+                    <a href="{{ url_for('admin.activity_log') }}">
+                        <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                        Activity log
+                    </a>
+                {% endif %}
             </div>
 
             <div class="operations-metric-grid">

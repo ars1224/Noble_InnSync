@@ -30,7 +30,7 @@
             <div class="room-gallery">
                 <div class="room-gallery-main">
                     <img
-                        src="{{ url_for('static', filename='img/' + details.image) }}"
+                        src="{{ url_for('static', filename='img/' + room.image) }}"
                         alt="{{ room.room_type }}"
                     >
                 </div>
@@ -170,30 +170,6 @@
                     Back
                 </a>
 
-                {% if room.status == "Available" %}
-                    <a
-                        class="solid-btn"
-                        href="{{ url_for(
-                            'booking.book_room',
-                            adults=booking_summary.adults,
-                            children=booking_summary.children
-                        ) }}"
-                    >
-                        Book Now
-                    </a>
-                <a
-                    class="ghost-btn"
-                    href="{{ url_for(
-                        'room.available_rooms',
-                        check_in=booking_summary.check_in,
-                        check_out=booking_summary.check_out,
-                        adults=booking_summary.adults,
-                        children=booking_summary.children
-                    ) }}"
-                >
-                    Back to Rooms
-                </a>
-
                 {% if room.available_count > 0 %}
                     <a
                         class="solid-btn"
@@ -208,18 +184,6 @@
                         Continue Booking
                     </a>
                 {% else %}
-                    <a
-                        class="solid-btn"
-                        href="{{ url_for(
-                            'room.available_rooms',
-                            check_in=booking_summary.check_in,
-                            check_out=booking_summary.check_out,
-                            adults=booking_summary.adults,
-                            children=booking_summary.children
-                        ) }}"
-                    >
-                        Choose Another
-                    </a>
                     <a
                         class="solid-btn"
                         href="{{ url_for(
