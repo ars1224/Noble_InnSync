@@ -9,7 +9,7 @@
     <a class="checkout-brand" href="{{ url_for('main.home') }}">The Noble Inn</a>
     <div class="checkout-nav-actions">
         <span>Secure Booking</span>
-        <a href="{{ url_for('main.available_rooms') }}">Back to Rooms</a>
+        <a href="{{ url_for('room.available_rooms') }}">Back to Rooms</a>
     </div>
 </header>
 {% endblock %}
@@ -72,7 +72,7 @@
         <h2>Payment could not be processed</h2>
         <p>No payment was recorded. You can try again, change method, or return to review your booking.</p>
         <div class="payment-result-actions">
-            <form action="{{ url_for('main.payment_pending', room_id=room.id) }}" method="post">
+            <form action="{{ url_for('room.payment_pending', room_id=room.id) }}" method="post">
                 <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
                 <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
                 <input type="hidden" name="email" value="{{ guest_details.email }}">
@@ -84,7 +84,7 @@
                 <input type="hidden" name="temp_booking_id" value="{{ temp_booking_id }}">
                 <button class="ghost-btn" type="submit">Change Method</button>
             </form>
-            <form action="{{ url_for('main.payment_success', room_id=room.id) }}" method="post">
+            <form action="{{ url_for('room.payment_success', room_id=room.id) }}" method="post">
                 <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
                 <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
                 <input type="hidden" name="email" value="{{ guest_details.email }}">

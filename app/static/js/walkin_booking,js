@@ -1,7 +1,11 @@
 const adultsInput = document.querySelector('[name="adults"]');
 const childrenInput = document.querySelector('[name="children"]');
+const checkInInput = document.querySelector('[name="check_in"]');
+const checkOutInput = document.querySelector('[name="check_out"]');
 
 const roomCards = document.querySelectorAll(".walkin-room-card");
+const walkinNightlyTotal = document.getElementById("walkinNightlyTotal");
+const walkinNights = document.getElementById("walkinNights");
 const walkinTotal = document.getElementById("walkinTotal");
 
 const stepPanels = document.querySelectorAll(".walkin-step-panel");
@@ -25,15 +29,25 @@ function showStep(stepNumber) {
 }
 
 function updateWalkinTotal() {
-    let total = 0;
+    let nightlyTotal = 0;
 
     document.querySelectorAll(".walkin-room-checkbox").forEach(function (checkbox) {
         if (checkbox.checked && !checkbox.disabled) {
-            total += parseFloat(checkbox.dataset.price);
+            nightlyTotal += parseFloat(checkbox.dataset.price);
         }
     });
 
-    walkinTotal.textContent = total.toFixed(2);
+    let nights = 0;
+
+    if (checkInInput.value && checkOutInput.value) {
+        const checkIn = Date.parse(`${checkInInput.value}T00:00:00Z`);
+        const checkOut = Date.parse(`${checkOutInput.value}T00:00:00Z`);
+        nights = Math.max(0, Math.round((checkOut - checkIn) / 86400000));
+    }
+
+    walkinNightlyTotal.textContent = nightlyTotal.toFixed(2);
+    walkinNights.textContent = nights;
+    walkinTotal.textContent = (nightlyTotal * nights).toFixed(2);
 
     updateCapacitySummary();
 }
@@ -156,6 +170,8 @@ backButtons.forEach(function (button) {
 
 adultsInput.addEventListener("input", updateCapacitySummary);
 childrenInput.addEventListener("input", updateCapacitySummary);
+checkInInput.addEventListener("change", updateWalkinTotal);
+checkOutInput.addEventListener("change", updateWalkinTotal);
 
 document.querySelectorAll(".walkin-room-checkbox").forEach(function (checkbox) {
 

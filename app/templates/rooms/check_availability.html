@@ -21,14 +21,14 @@
         <h2>Room {{ room.room_number }} is ready to book</h2>
         <p>{{ room.room_type }} is currently available for {{ booking_summary.adults }} adult{% if booking_summary.adults != '1' %}s{% endif %} and {{ booking_summary.children }} child{% if booking_summary.children != '1' %}ren{% endif %}.</p>
         <div class="availability-check-actions">
-            <a class="ghost-btn" href="{{ url_for('main.room_details', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children) }}">Back</a>
+            <a class="ghost-btn" href="{{ url_for('room.room_details', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children) }}">Back</a>
             <a class="solid-btn" href="#">Continue Booking</a>
         </div>
         {% else %}
         <h2>Room unavailable</h2>
         <p>Another guest may have booked this room, or the availability changed.</p>
         <div class="availability-check-actions">
-            <a class="solid-btn" href="{{ url_for('main.available_rooms', check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children) }}">Back to Available Rooms</a>
+            <a class="solid-btn" href="{{ url_for('room.available_rooms', check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children) }}">Back to Available Rooms</a>
         </div>
         {% endif %}
     </div>

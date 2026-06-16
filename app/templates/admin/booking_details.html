@@ -1,73 +1,292 @@
 {% extends '_layout.html' %}
 
-{% block title %}Booking Details | Noble InnSync{% endblock %}
+{% block title %}{{ booking.reference_number }} | Noble InnSync{% endblock %}
 
 {% block content %}
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
 
 <div class="admin-layout">
-
     {% include 'admin/_admin_sidebar.html' %}
 
     <main class="admin-content">
-
         <section class="dashboard-page">
 
-            {% set page_tag = "BOOKING DETAILS" %}
-            {% set page_title = booking.reference_number %}
-            {% include 'admin/_admin_header.html' %}
-
-            <div class="form-card">
-
-                <h2>Guest Information</h2>
-
-                <p><strong>Name:</strong> {{ booking.guest_name }}</p>
-                <p><strong>Email:</strong> {{ booking.email }}</p>
-                <p><strong>Phone:</strong> {{ booking.phone }}</p>
-
-                <br>
-
-                <h2>Stay Information</h2>
-
-                <p><strong>Check-in:</strong> {{ booking.check_in }}</p>
-                <p><strong>Check-out:</strong> {{ booking.check_out }}</p>
-                <p><strong>Adults:</strong> {{ booking.adults }}</p>
-                <p><strong>Children:</strong> {{ booking.children }}</p>
-                <p><strong>Total Price:</strong> ${{ "%.2f"|format(booking.total_price) }}</p>
-                <p><strong>Status:</strong> {{ booking.status }}</p>
-
-                <br>
-
-                <h2>Rooms Booked</h2>
-
-                {% for room in booking.booking_rooms %}
-                    <p>
-                        <strong>{{ room.room_number }}</strong>
-                        — {{ room.room_type }}
-                        — ${{ "%.2f"|format(room.price) }}
+            <div class="booking-detail-header">
+                <div>
+                    <a href="{{ url_for('admin.bookings') }}" class="booking-detail-back">
+                        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                        All bookings
+                    </a>
+                    <p class="dashboard-tag">BOOKING DETAILS</p>
+                    <div class="booking-detail-title">
+                        <h1>{{ booking.reference_number }}</h1>
+                        <span class="status-badge
+                            {% if booking.status == 'Pending' %}status-pending
+                            {% elif booking.status == 'Checked In' %}status-checked-in
+                            {% elif booking.status == 'Checked Out' %}status-checked-out
+                            {% elif booking.status == 'Confirmed' %}status-confirmed
+                            {% elif booking.status == 'Cancelled' %}status-cancelled
+                            {% endif %}">
+                            {{ booking.status }}
+                        </span>
+                    </div>
+                    <p class="dashboard-subtitle">
+                        Created {{ booking.created_at.strftime("%d %b %Y, %I:%M %p") if booking.created_at else "date unavailable" }}
                     </p>
-                {% else %}
-                    <p>No rooms attached to this booking.</p>
-                {% endfor %}
+                </div>
 
-                <br>
+                <div class="booking-detail-header-actions">
+                    <a href="{{ url_for('admin.edit_booking', booking_id=booking.id) }}" class="booking-detail-action secondary">
+                        <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                        Edit booking
+                    </a>
+                    <a href="{{ url_for('admin.booking_payment', booking_id=booking.id) }}" class="booking-detail-action primary">
+                        <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
+                        Manage payment
+                    </a>
+                </div>
+            </div>
 
-                <a href="{{ url_for('admin.edit_booking', booking_id=booking.id) }}"
-                class="add-btn">
-                    Edit Booking
-                </a>
+            <div class="booking-detail-overview">
+                <article>
+                    <span>Guest</span>
+                    <strong>{{ booking.guest_name }}</strong>
+                    <small>{{ booking.adults }} adult(s), {{ booking.children }} child(ren)</small>
+                </article>
+                <article>
+                    <span>Check-in</span>
+                    <strong>{{ booking.check_in }}</strong>
+                    <small>Arrival date</small>
+                </article>
+                <article>
+                    <span>Check-out</span>
+                    <strong>{{ booking.check_out }}</strong>
+                    <small>Departure date</small>
+                </article>
+                <article>
+                    <span>Length of stay</span>
+                    <strong>{{ nights }} night(s)</strong>
+                    <small>{{ booking.booking_rooms|length }} room(s) allocated</small>
+                </article>
+                <article class="booking-total-overview">
+                    <span>Total stay</span>
+                    <strong>${{ "%.2f"|format(booking.total_price) }}</strong>
+                    <small>
+                        {% if payment %}{{ payment.payment_status }} via {{ payment.payment_method }}{% else %}No payment record{% endif %}
+                    </small>
+                </article>
+            </div>
 
-                <a href="{{ url_for('admin.bookings') }}" class="add-btn">
-                    Back to Bookings
-                </a>
+            <div class="booking-detail-layout">
+                <div class="booking-detail-main">
+                    <section class="booking-detail-card">
+                        <div class="booking-detail-card-heading">
+                            <div>
+                                <p class="dashboard-tag">GUEST PROFILE</p>
+                                <h2>Contact information</h2>
+                            </div>
+                            <span class="booking-detail-icon">
+                                <i class="fa-solid fa-user" aria-hidden="true"></i>
+                            </span>
+                        </div>
 
+                        <div class="guest-detail-grid">
+                            <div>
+                                <span>Full name</span>
+                                <strong>{{ booking.guest_name }}</strong>
+                            </div>
+                            <div>
+                                <span>Email address</span>
+                                <a href="mailto:{{ booking.email }}">{{ booking.email }}</a>
+                            </div>
+                            <div>
+                                <span>Phone number</span>
+                                <a href="tel:{{ booking.phone }}">{{ booking.phone }}</a>
+                            </div>
+                            <div>
+                                <span>Guest party</span>
+                                <strong>{{ booking.adults }} adult(s), {{ booking.children }} child(ren)</strong>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="booking-detail-card">
+                        <div class="booking-detail-card-heading">
+                            <div>
+                                <p class="dashboard-tag">ROOM ALLOCATION</p>
+                                <h2>{{ booking.booking_rooms|length }} room(s) assigned</h2>
+                            </div>
+                            <span class="booking-detail-icon">
+                                <i class="fa-solid fa-bed" aria-hidden="true"></i>
+                            </span>
+                        </div>
+
+                        <div class="booking-room-list">
+                            {% for room in booking.booking_rooms %}
+                                <article class="booking-room-item">
+                                    <div class="booking-room-number">
+                                        <span>Room</span>
+                                        <strong>{{ room.room_number }}</strong>
+                                    </div>
+                                    <div class="booking-room-copy">
+                                        <strong>{{ room.room_type }}</strong>
+                                        <span>
+                                            Capacity recorded for
+                                            {{ room.adult_capacity }} adult(s)
+                                            {% if room.child_capacity %} and {{ room.child_capacity }} child(ren){% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="booking-room-rate">
+                                        <strong>${{ "%.2f"|format(room.price) }}</strong>
+                                        <span>per night</span>
+                                    </div>
+                                </article>
+                            {% else %}
+                                <div class="booking-detail-empty">No rooms are attached to this booking.</div>
+                            {% endfor %}
+                        </div>
+                    </section>
+
+                    <section class="booking-detail-card">
+                        <div class="booking-detail-card-heading">
+                            <div>
+                                <p class="dashboard-tag">STAY TIMELINE</p>
+                                <h2>Reservation journey</h2>
+                            </div>
+                            <span class="booking-detail-icon">
+                                <i class="fa-solid fa-route" aria-hidden="true"></i>
+                            </span>
+                        </div>
+
+                        <div class="booking-stay-timeline">
+                            <div>
+                                <span class="booking-timeline-marker"></span>
+                                <small>Check-in</small>
+                                <strong>{{ booking.check_in }}</strong>
+                                <p>Guest arrival and room handover.</p>
+                            </div>
+                            <div>
+                                <span class="booking-timeline-line"></span>
+                                <small>Stay</small>
+                                <strong>{{ nights }} night(s)</strong>
+                                <p>{{ booking.booking_rooms|length }} allocated room(s).</p>
+                            </div>
+                            <div>
+                                <span class="booking-timeline-marker end"></span>
+                                <small>Check-out</small>
+                                <strong>{{ booking.check_out }}</strong>
+                                <p>Room release and final account check.</p>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="booking-detail-sidebar">
+                    <section class="booking-detail-card booking-payment-card">
+                        <div class="booking-detail-card-heading">
+                            <div>
+                                <p class="dashboard-tag">PAYMENT</p>
+                                <h2>Account summary</h2>
+                            </div>
+                        </div>
+
+                        {% if payment %}
+                            <div class="booking-payment-status">
+                                <span class="status-badge
+                                    {% if payment.payment_status == 'Paid' %}payment-paid
+                                    {% elif payment.payment_status == 'Unpaid' %}payment-unpaid
+                                    {% elif payment.payment_status == 'Refunded' %}payment-refunded
+                                    {% endif %}">
+                                    {{ payment.payment_status }}
+                                </span>
+                                <small>{{ payment.transaction_no }}</small>
+                            </div>
+                        {% else %}
+                            <div class="booking-detail-empty">No payment record found.</div>
+                        {% endif %}
+
+                        <div class="booking-price-list">
+                            <div>
+                                <span>Rooms per night</span>
+                                <strong>${{ "%.2f"|format(nightly_total) }}</strong>
+                            </div>
+                            <div>
+                                <span>Length of stay</span>
+                                <strong>{{ nights }} night(s)</strong>
+                            </div>
+                            <div>
+                                <span>Payment method</span>
+                                <strong>{{ payment.payment_method if payment else "Not set" }}</strong>
+                            </div>
+                            <div class="booking-price-total">
+                                <span>Total booking</span>
+                                <strong>${{ "%.2f"|format(booking.total_price) }}</strong>
+                            </div>
+                        </div>
+
+                        <a href="{{ url_for('admin.booking_payment', booking_id=booking.id) }}" class="booking-detail-wide-action">
+                            Update payment
+                        </a>
+                    </section>
+
+                    <section class="booking-detail-card">
+                        <div class="booking-detail-card-heading">
+                            <div>
+                                <p class="dashboard-tag">ACTIONS</p>
+                                <h2>Booking workflow</h2>
+                            </div>
+                        </div>
+
+                        <div class="booking-workflow-actions">
+                            {% if booking.status == "Pending" %}
+                                <a href="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='confirmed') }}" class="workflow-action confirm">
+                                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                    Confirm booking
+                                </a>
+                                <a href="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='cancelled') }}" class="workflow-action cancel">
+                                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                                    Cancel booking
+                                </a>
+                            {% elif booking.status == "Confirmed" %}
+                                <a href="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='checked-in') }}" class="workflow-action checkin">
+                                    <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                                    Check guest in
+                                </a>
+                            {% elif booking.status == "Checked In" %}
+                                <a href="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='checked-out') }}" class="workflow-action checkout">
+                                    <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+                                    Check guest out
+                                </a>
+                            {% else %}
+                                <div class="booking-workflow-complete">
+                                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                                    No further status action is required.
+                                </div>
+                            {% endif %}
+
+                            <a href="{{ url_for('admin.edit_booking', booking_id=booking.id) }}" class="workflow-action neutral">
+                                <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                                Edit booking details
+                            </a>
+
+                            {% if session.get("user_role") == "admin" %}
+                                <a
+                                    href="{{ url_for('admin.delete_booking', booking_id=booking.id) }}"
+                                    class="workflow-action delete"
+                                    onclick="return confirm('Delete booking {{ booking.reference_number }}? This cannot be undone.');"
+                                >
+                                    <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                    Delete booking
+                                </a>
+                            {% endif %}
+                        </div>
+                    </section>
+                </aside>
             </div>
 
         </section>
-
     </main>
-
 </div>
 
 {% endblock %}

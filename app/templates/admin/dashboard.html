@@ -7,116 +7,307 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
 
 <div class="admin-layout">
-
     {% include 'admin/_admin_sidebar.html' %}
 
     <main class="admin-content">
-
         <section class="dashboard-page">
 
             <div class="dashboard-header">
                 <div>
-                    <p class="dashboard-tag">ADMIN PANEL</p>
-                    <h1>Noble InnSync Dashboard</h1>
+                    <p class="dashboard-tag">OPERATIONS OVERVIEW</p>
+                    <h1>Good day, {{ session.get("username") }}</h1>
+                    <p class="dashboard-subtitle">
+                        {{ today.strftime("%A, %d %B %Y") }}. Here is what needs attention today.
+                    </p>
                 </div>
 
                 <div class="admin-user-info">
-                    <span>Logged in as</span>
+                    <span>Current access</span>
                     <strong>{{ session.get("username") }}</strong>
                     <small>{{ session.get("user_role")|title }}</small>
                 </div>
-
             </div>
 
-            <div class="dashboard-cards">
-
-                <div class="dashboard-card">
-                    <h3>Total Bookings</h3>
-                    <h2>{{ total_bookings }}</h2>
-                </div>
-
-                <div class="dashboard-card">
-                    <h3>Pending Bookings</h3>
-                    <h2>{{ pending_bookings }}</h2>
-                </div>
-
-                <div class="dashboard-card">
-                    <h3>Confirmed Bookings</h3>
-                    <h2>{{ confirmed_bookings }}</h2>
-                </div>
-
-                <div class="dashboard-card">
-                    <h3>Available Rooms</h3>
-                    <h2>{{ available_rooms }}</h2>
-                </div>
-
-                <div class="dashboard-card revenue-card">
-                    <h3>Total Revenue</h3>
-                    <h2>${{ "%.2f"|format(total_revenue) }}</h2>
-                </div>
-
-                <a class="dashboard-card operations-card" href="{{ url_for('admin.inventory') }}">
-                    <h3>Low-stock Items</h3>
-                    <h2>{{ low_stock_count }}</h2>
-                    <span>Open inventory</span>
-                </a>
-
-                <a class="dashboard-card operations-card" href="{{ url_for('admin.equipment') }}">
-                    <h3>Equipment Issues</h3>
-                    <h2>{{ equipment_issue_count }}</h2>
-                    <span>Open equipment</span>
-                </a>
-
-                <a class="dashboard-card operations-card" href="{{ url_for('admin.activity_log') }}">
-                    <h3>Pending Alerts</h3>
-                    <h2>{{ pending_alert_count }}</h2>
-                    <span>Review activity</span>
-                </a>
-
+            <div class="dashboard-quick-actions">
+                {% if session.get("user_role") in ["admin", "staff"] %}
+                    <a href="{{ url_for('admin.walkin_booking') }}" class="dashboard-primary-action">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        New walk-in
+                    </a>
+                    <a href="{{ url_for('admin.bookings') }}">
+                        <i class="fa-solid fa-calendar-check" aria-hidden="true"></i>
+                        Manage bookings
+                    </a>
+                    <a href="{{ url_for('admin.rooms') }}">
+                        <i class="fa-solid fa-bed" aria-hidden="true"></i>
+                        Room inventory
+                    </a>
+                {% endif %}
+                {% if session.get("user_role") in ["admin", "manager"] %}
+                    <a href="{{ url_for('admin.reports') }}">
+                        <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
+                        View report
+                    </a>
+                {% endif %}
+                {% if session.get("user_role") in ["admin", "staff", "manager"] %}
+                    <a href="{{ url_for('admin.inventory') }}">
+                        <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
+                        Inventory
+                    </a>
+                    <a href="{{ url_for('admin.equipment') }}">
+                        <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+                        Equipment
+                    </a>
+                    <a href="{{ url_for('admin.activity_log') }}">
+                        <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                        Activity log
+                    </a>
+                {% endif %}
             </div>
 
-            <div class="recent-bookings">
+            <div class="operations-metric-grid">
+                <article class="operations-metric-card arrivals">
+                    <div class="operations-metric-icon">
+                        <i class="fa-solid fa-plane-arrival" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <span>Arrivals Today</span>
+                        <strong>{{ arrivals_today|length }}</strong>
+                        <small>{{ upcoming_arrivals_count }} upcoming arrival(s)</small>
+                    </div>
+                </article>
 
-                <div class="section-header">
-                    <h2>Recent Bookings</h2>
-                </div>
+                <article class="operations-metric-card departures">
+                    <div class="operations-metric-icon">
+                        <i class="fa-solid fa-plane-departure" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <span>Departures Today</span>
+                        <strong>{{ departures_today|length }}</strong>
+                        <small>Scheduled or completed today</small>
+                    </div>
+                </article>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Reference</th>
-                            <th>Guest</th>
-                            <th>Check In</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
+                <article class="operations-metric-card in-house">
+                    <div class="operations-metric-icon">
+                        <i class="fa-solid fa-key" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <span>Guests In House</span>
+                        <strong>{{ in_house_bookings }}</strong>
+                        <small>{{ occupancy_rate }}% room occupancy</small>
+                    </div>
+                </article>
 
-                    <tbody>
-                        {% for booking in recent_bookings %}
-                        <tr>
-                            <td>{{ booking.reference_number }}</td>
-                            <td>{{ booking.guest_name }}</td>
-                            <td>{{ booking.check_in }}</td>
-                            <td>
-                                <span class="status-badge">
-                                    {{ booking.status }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="4">No bookings yet.</td>
-                        </tr>
+                <article class="operations-metric-card available">
+                    <div class="operations-metric-icon">
+                        <i class="fa-solid fa-door-open" aria-hidden="true"></i>
+                    </div>
+                    <div>
+                        <span>Rooms Available</span>
+                        <strong>{{ available_rooms }}</strong>
+                        <small>Out of {{ total_rooms }} total rooms</small>
+                    </div>
+                </article>
+            </div>
+
+            <div class="dashboard-main-grid">
+                <section class="dashboard-panel">
+                    <div class="dashboard-panel-heading">
+                        <div>
+                            <p class="dashboard-tag">TODAY'S MOVEMENT</p>
+                            <h2>Arrivals and departures</h2>
+                        </div>
+                    </div>
+
+                    <div class="movement-columns">
+                        <div class="movement-list">
+                            <div class="movement-list-heading">
+                                <span>Arrivals</span>
+                                <strong>{{ arrivals_today|length }}</strong>
+                            </div>
+                            {% for booking in arrivals_today %}
+                                <article class="movement-item">
+                                    <div>
+                                        <strong>{{ booking.guest_name }}</strong>
+                                        <span>{{ booking.reference_number }}</span>
+                                    </div>
+                                    <span class="status-badge
+                                        {% if booking.status == 'Pending' %}status-pending
+                                        {% elif booking.status == 'Confirmed' %}status-confirmed
+                                        {% else %}status-checked-in{% endif %}">
+                                        {{ booking.status }}
+                                    </span>
+                                </article>
+                            {% else %}
+                                <div class="dashboard-empty-state">
+                                    <i class="fa-regular fa-calendar-check" aria-hidden="true"></i>
+                                    <p>No active arrivals today.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="movement-list">
+                            <div class="movement-list-heading">
+                                <span>Departures</span>
+                                <strong>{{ departures_today|length }}</strong>
+                            </div>
+                            {% for booking in departures_today %}
+                                <article class="movement-item">
+                                    <div>
+                                        <strong>{{ booking.guest_name }}</strong>
+                                        <span>{{ booking.reference_number }}</span>
+                                    </div>
+                                    <span class="status-badge
+                                        {% if booking.status == 'Checked Out' %}status-checked-out
+                                        {% else %}status-checked-in{% endif %}">
+                                        {{ booking.status }}
+                                    </span>
+                                </article>
+                            {% else %}
+                                <div class="dashboard-empty-state">
+                                    <i class="fa-solid fa-suitcase-rolling" aria-hidden="true"></i>
+                                    <p>No departures scheduled today.</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </section>
+
+                <section class="dashboard-panel">
+                    <div class="dashboard-panel-heading">
+                        <div>
+                            <p class="dashboard-tag">ATTENTION QUEUE</p>
+                            <h2>Needs follow-up</h2>
+                        </div>
+                    </div>
+
+                    <div class="attention-list">
+                        {% for item in attention_items %}
+                            {% if session.get("user_role") in item.roles %}
+                                <a href="{{ url_for(item.endpoint) }}" class="attention-item {{ item.class_name }}">
+                                    <div>
+                                        <strong>{{ item.label }}</strong>
+                                        <span>{{ item.detail }}</span>
+                                    </div>
+                                    <b>{{ item.count }}</b>
+                                </a>
+                            {% endif %}
                         {% endfor %}
-                    </tbody>
-                </table>
+                    </div>
 
+                    <div class="dashboard-finance-strip">
+                        <div>
+                            <span>Revenue collected</span>
+                            <strong>${{ "%.2f"|format(total_revenue) }}</strong>
+                        </div>
+                        <div>
+                            <span>Outstanding</span>
+                            <strong>${{ "%.2f"|format(outstanding_revenue) }}</strong>
+                        </div>
+                    </div>
+                </section>
             </div>
+
+            <section class="dashboard-panel room-inventory-panel">
+                <div class="dashboard-panel-heading">
+                    <div>
+                        <p class="dashboard-tag">ROOM INVENTORY</p>
+                        <h2>Live room availability</h2>
+                    </div>
+                    {% if session.get("user_role") in ["admin", "staff"] %}
+                        <a href="{{ url_for('admin.rooms') }}">Manage rooms</a>
+                    {% endif %}
+                </div>
+
+                <div class="dashboard-room-grid">
+                    <div class="dashboard-room-state available">
+                        <span>Available</span>
+                        <strong>{{ available_rooms }}</strong>
+                    </div>
+                    <div class="dashboard-room-state reserved">
+                        <span>Reserved</span>
+                        <strong>{{ reserved_rooms }}</strong>
+                    </div>
+                    <div class="dashboard-room-state occupied">
+                        <span>Occupied</span>
+                        <strong>{{ occupied_rooms }}</strong>
+                    </div>
+                    <div class="dashboard-room-state maintenance">
+                        <span>Maintenance</span>
+                        <strong>{{ maintenance_rooms }}</strong>
+                    </div>
+                </div>
+            </section>
+
+            <section class="dashboard-panel">
+                <div class="dashboard-panel-heading">
+                    <div>
+                        <p class="dashboard-tag">RECENT ACTIVITY</p>
+                        <h2>Latest bookings</h2>
+                    </div>
+                    {% if session.get("user_role") in ["admin", "staff"] %}
+                        <a href="{{ url_for('admin.bookings') }}">View all bookings</a>
+                    {% endif %}
+                </div>
+
+                <div class="report-table-wrap">
+                    <table class="report-table">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Guest</th>
+                                <th>Stay</th>
+                                <th>Total</th>
+                                <th>Payment</th>
+                                <th>Booking Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in recent_bookings %}
+                                {% set payment = booking.accounting[0] if booking.accounting else none %}
+                                <tr>
+                                    <td><strong>{{ booking.reference_number }}</strong></td>
+                                    <td>{{ booking.guest_name }}</td>
+                                    <td>{{ booking.check_in }} to {{ booking.check_out }}</td>
+                                    <td>${{ "%.2f"|format(booking.total_price) }}</td>
+                                    <td>
+                                        {% if payment %}
+                                            <span class="status-badge
+                                                {% if payment.payment_status == 'Paid' %}payment-paid
+                                                {% elif payment.payment_status == 'Unpaid' %}payment-unpaid
+                                                {% elif payment.payment_status == 'Refunded' %}payment-refunded
+                                                {% endif %}">
+                                                {{ payment.payment_status }}
+                                            </span>
+                                        {% else %}
+                                            <span class="muted-text">No payment</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="status-badge
+                                            {% if booking.status == 'Pending' %}status-pending
+                                            {% elif booking.status == 'Checked In' %}status-checked-in
+                                            {% elif booking.status == 'Checked Out' %}status-checked-out
+                                            {% elif booking.status == 'Confirmed' %}status-confirmed
+                                            {% elif booking.status == 'Cancelled' %}status-cancelled
+                                            {% endif %}">
+                                            {{ booking.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="6">No bookings yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
         </section>
-
     </main>
-
 </div>
 
 {% endblock %}

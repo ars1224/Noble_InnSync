@@ -7,7 +7,7 @@
     <a class="checkout-brand" href="{{ url_for('main.home') }}">The Noble Inn</a>
     <div class="checkout-nav-actions">
         <span>Secure Booking</span>
-        <a href="{{ url_for('main.available_rooms') }}">Back to Rooms</a>
+        <a href="{{ url_for('room.available_rooms') }}">Back to Rooms</a>
     </div>
 </header>
 {% endblock %}
@@ -44,7 +44,7 @@
     {% if hold_created %}
     <div class="payment-grid">
         <div class="payment-main">
-        <form class="payment-card" action="{{ url_for('main.payment_success', room_id=room.id) }}" method="post">
+        <form class="payment-card" action="{{ url_for('room.payment_success', room_id=room.id) }}" method="post">
             <p class="section-tag">PAYMENT DETAILS</p>
             <h2>Card information</h2>
             <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
@@ -81,14 +81,14 @@
             <p class="payment-reassurance">You will only be charged after selecting Pay Now.</p>
 
             <div class="payment-actions">
-                <a class="ghost-btn" href="{{ url_for('main.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit Details</a>
+                <a class="ghost-btn" href="{{ url_for('room.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit Details</a>
                 <button class="solid-btn" type="submit">Pay Now</button>
             </div>
         </form>
 
         <div class="prototype-payment-states">
             <p>Prototype payment states</p>
-            <form action="{{ url_for('main.payment_failed', room_id=room.id) }}" method="post">
+            <form action="{{ url_for('room.payment_failed', room_id=room.id) }}" method="post">
                 <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
                 <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
                 <input type="hidden" name="email" value="{{ guest_details.email }}">
@@ -100,7 +100,7 @@
                 <input type="hidden" name="temp_booking_id" value="{{ temp_booking_id }}">
                 <button type="submit">Show Failed</button>
             </form>
-            <form action="{{ url_for('main.payment_pending', room_id=room.id) }}" method="post">
+            <form action="{{ url_for('room.payment_pending', room_id=room.id) }}" method="post">
                 <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
                 <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
                 <input type="hidden" name="email" value="{{ guest_details.email }}">
@@ -112,7 +112,7 @@
                 <input type="hidden" name="temp_booking_id" value="{{ temp_booking_id }}">
                 <button type="submit">Show Pending</button>
             </form>
-            <form action="{{ url_for('main.payment_notification_failed', room_id=room.id) }}" method="post">
+            <form action="{{ url_for('room.payment_notification_failed', room_id=room.id) }}" method="post">
                 <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
                 <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
                 <input type="hidden" name="email" value="{{ guest_details.email }}">
@@ -158,8 +158,8 @@
         <h2>Please select another room</h2>
         <p>Another guest may have booked this room, or the room availability changed before payment started.</p>
         <div class="hold-actions">
-            <a class="ghost-btn" href="{{ url_for('main.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit Details</a>
-            <a class="solid-btn" href="{{ url_for('main.available_rooms', check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children) }}">Select Room</a>
+            <a class="ghost-btn" href="{{ url_for('room.booking_form', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Edit Details</a>
+            <a class="solid-btn" href="{{ url_for('room.available_rooms', check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children) }}">Select Room</a>
         </div>
     </section>
     {% endif %}
