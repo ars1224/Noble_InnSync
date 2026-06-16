@@ -131,10 +131,11 @@
 
                         <div class="room-card-actions">
 
+                            {% if room.id %}
                             <a
                                 href="{{ url_for(
                                     'room.room_details',
-                                    room_slug=room.slug,
+                                    room_id=room.id,
                                     check_in=search_summary.check_in,
                                     check_out=search_summary.check_out,
                                     adults=search_summary.adults,
@@ -144,6 +145,7 @@
                             >
                                 View Details
                             </a>
+                            {% endif %}
 
                             {% if room.available_count > 0 %}
 
@@ -151,9 +153,7 @@
                                 href="{{ url_for(
                                     'booking.book_room',
                                     adults=search_summary.adults,
-                                    children=search_summary.children,
-                                    check_in=search_summary.check_in,
-                                    check_out=search_summary.check_out
+                                    children=search_summary.children
                                 ) }}"
                                 class="solid-btn"
                             >
@@ -211,3 +211,4 @@
 </section>
 
 {% endblock %}
+

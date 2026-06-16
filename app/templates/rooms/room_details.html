@@ -27,71 +27,18 @@
 
     <div class="room-detail-grid">
         <div class="room-detail-main">
-            <div
-                class="room-gallery room-detail-image-card"
-                data-room-carousel
-                tabindex="0"
-                aria-label="{{ room.room_type }} photo gallery"
-            >
-                <div class="room-carousel-viewport">
-                    <div class="room-carousel-track" data-carousel-track>
-                        {% for image in room.images %}
-                            <figure
-                                class="room-carousel-slide{% if loop.first %} is-active{% endif %}"
-                                data-carousel-slide
-                                aria-hidden="{{ 'false' if loop.first else 'true' }}"
-                            >
-                                <img
-                                    class="room-detail-image"
-                                    src="{{ url_for('static', filename='img/' + image) }}"
-                                    alt="{{ room.room_type }} photo {{ loop.index }}"
-                                >
-                            </figure>
-                        {% endfor %}
-                    </div>
-
-                    {% if room.images|length > 1 %}
-                        <button
-                            type="button"
-                            class="room-carousel-control previous"
-                            data-carousel-previous
-                            aria-label="Show previous room photo"
-                        >
-                            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
-                        </button>
-                        <button
-                            type="button"
-                            class="room-carousel-control next"
-                            data-carousel-next
-                            aria-label="Show next room photo"
-                        >
-                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
-                        </button>
-
-                        <div class="room-carousel-indicators" aria-label="Choose room photo">
-                            {% for image in room.images %}
-                                <button
-                                    type="button"
-                                    class="{% if loop.first %}is-active{% endif %}"
-                                    data-carousel-indicator="{{ loop.index0 }}"
-                                    aria-label="Show photo {{ loop.index }}"
-                                    aria-current="{{ 'true' if loop.first else 'false' }}"
-                                ></button>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-
-                    <span class="room-carousel-counter">
-                        <span data-carousel-current>1</span> / {{ room.images|length }}
-                    </span>
+            <div class="room-gallery">
+                <div class="room-gallery-main">
+                    <img
+                        src="{{ url_for('static', filename='img/' + details.image) }}"
+                        alt="{{ room.room_type }}"
+                    >
                 </div>
-
-                <div class="room-image-caption">
-                    <div>
-                        <span>{{ room.room_type }}</span>
-                        <strong>{{ room.bed }}</strong>
-                    </div>
-                    <span>{{ room.size }}</span>
+                <div class="room-gallery-thumbs">
+                    <span>Image</span>
+                    <span>Bath</span>
+                    <span>Desk</span>
+                    <span>View</span>
                 </div>
             </div>
 
@@ -214,6 +161,33 @@
                         check_in=booking_summary.check_in,
                         check_out=booking_summary.check_out,
                         adults=booking_summary.adults,
+                        children=booking_summary.children,
+                        room_type=booking_summary.room_type,
+                        max_price=booking_summary.max_price,
+                        sort_by=booking_summary.sort_by
+                    ) }}"
+                >
+                    Back
+                </a>
+
+                {% if room.status == "Available" %}
+                    <a
+                        class="solid-btn"
+                        href="{{ url_for(
+                            'booking.book_room',
+                            adults=booking_summary.adults,
+                            children=booking_summary.children
+                        ) }}"
+                    >
+                        Book Now
+                    </a>
+                <a
+                    class="ghost-btn"
+                    href="{{ url_for(
+                        'room.available_rooms',
+                        check_in=booking_summary.check_in,
+                        check_out=booking_summary.check_out,
+                        adults=booking_summary.adults,
                         children=booking_summary.children
                     ) }}"
                 >
@@ -234,6 +208,18 @@
                         Continue Booking
                     </a>
                 {% else %}
+                    <a
+                        class="solid-btn"
+                        href="{{ url_for(
+                            'room.available_rooms',
+                            check_in=booking_summary.check_in,
+                            check_out=booking_summary.check_out,
+                            adults=booking_summary.adults,
+                            children=booking_summary.children
+                        ) }}"
+                    >
+                        Choose Another
+                    </a>
                     <a
                         class="solid-btn"
                         href="{{ url_for(
