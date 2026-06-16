@@ -136,7 +136,7 @@
                                         Fits {{ max_adults }} adult/s, {{ max_children }} child/children
                                     </small>
 
-                                    <strong>${{ "%.2f"|format(room.price) }}</strong>
+                                    <strong>${{ "%.2f"|format(room.price) }} / night</strong>
                                 </div>
                             </label>
 
@@ -163,8 +163,18 @@
                     <h2>Payment & Summary</h2>
 
                     <div class="walkin-summary-box">
-                        <span>Total</span>
-                        <strong>$<span id="walkinTotal">0.00</span></strong>
+                        <div class="walkin-price-line">
+                            <span>Rooms per night</span>
+                            <strong>$<span id="walkinNightlyTotal">0.00</span></strong>
+                        </div>
+                        <div class="walkin-price-line">
+                            <span>Length of stay</span>
+                            <strong><span id="walkinNights">0</span> night(s)</strong>
+                        </div>
+                        <div class="walkin-price-line walkin-price-total">
+                            <span>Total stay price</span>
+                            <strong>$<span id="walkinTotal">0.00</span></strong>
+                        </div>
                     </div>
 
                     <div class="form-grid">

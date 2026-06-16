@@ -1,50 +1,65 @@
 <aside class="admin-sidebar">
-
-    <div class="admin-brand">
-        <h2>Noble InnSync</h2>
-        <p>{{ session.get("user_role", "staff")|title }} Panel</p>
-    </div>
-
-    <nav class="admin-nav">
-
-        <a href="{{ url_for('admin.dashboard') }}"
-           class="{% if request.path == '/admin/dashboard' %}active{% endif %}">
-            Dashboard
+    <div>
+        <a class="admin-brand" href="{{ url_for('admin.dashboard') }}">
+            <span class="admin-brand-mark">N</span>
+            <span>
+                <strong>Noble InnSync</strong>
+                <small>{{ session.get("user_role", "staff")|title }} workspace</small>
+            </span>
         </a>
 
-        <a href="{{ url_for('admin.walkin_booking') }}"
-        class="{% if request.path == '/admin/walk-in-booking' %}active{% endif %}">
-            Walk-in Booking
-        </a>
-
-        {% if session.get("user_role") in ["admin", "staff", "manager"] %}
-            <a href="{{ url_for('admin.bookings') }}"
-               class="{% if request.path == '/admin/bookings' %}active{% endif %}">
-                Bookings
+        <nav class="admin-nav" aria-label="Admin navigation">
+            <a href="{{ url_for('admin.dashboard') }}"
+               class="{% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                <i class="fa-solid fa-chart-line" aria-hidden="true"></i>
+                <span>Dashboard</span>
             </a>
 
-            <a href="{{ url_for('admin.rooms') }}"
-               class="{% if request.path == '/admin/rooms' %}active{% endif %}">
-                Rooms
-            </a>
+            {% if session.get("user_role") in ["admin", "staff"] %}
+                <a href="{{ url_for('admin.walkin_booking') }}"
+                   class="{% if request.endpoint == 'admin.walkin_booking' %}active{% endif %}">
+                    <i class="fa-solid fa-bell-concierge" aria-hidden="true"></i>
+                    <span>Walk-in Booking</span>
+                </a>
 
-            <a href="{{ url_for('admin.payments') }}"
-               class="{% if request.path == '/admin/payments' %}active{% endif %}">
-                Payments
-            </a>
-        {% endif %}
+                <a href="{{ url_for('admin.bookings') }}"
+                   class="{% if request.endpoint in ['admin.bookings', 'admin.booking_details', 'admin.edit_booking', 'admin.booking_payment'] %}active{% endif %}">
+                    <i class="fa-solid fa-calendar-check" aria-hidden="true"></i>
+                    <span>Bookings</span>
+                </a>
 
-        {% if session.get("user_role") in ["admin", "manager"] %}
-            <a href="{{ url_for('admin.reports') }}"
-               class="{% if request.path == '/admin/reports' %}active{% endif %}">
-                Reports
-            </a>
-        {% endif %}
+                <a href="{{ url_for('admin.rooms') }}"
+                   class="{% if request.endpoint in ['admin.rooms', 'admin.add_room', 'admin.edit_room'] %}active{% endif %}">
+                    <i class="fa-solid fa-bed" aria-hidden="true"></i>
+                    <span>Rooms</span>
+                </a>
 
-    </nav>
+            {% endif %}
 
-    <div class="admin-logout">
-        <a href="{{ url_for('auth.logout') }}">Logout</a>
+            {% if session.get("user_role") in ["admin", "manager"] %}
+                <a href="{{ url_for('admin.payments') }}"
+                   class="{% if request.endpoint == 'admin.payments' %}active{% endif %}">
+                    <i class="fa-solid fa-credit-card" aria-hidden="true"></i>
+                    <span>Payments</span>
+                </a>
+
+                <a href="{{ url_for('admin.reports') }}"
+                   class="{% if request.endpoint == 'admin.reports' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie" aria-hidden="true"></i>
+                    <span>Reports</span>
+                </a>
+            {% endif %}
+        </nav>
     </div>
 
+    <div class="admin-sidebar-footer">
+        <a href="{{ url_for('main.home') }}">
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            <span>View guest site</span>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="admin-logout-link">
+            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+            <span>Log out</span>
+        </a>
+    </div>
 </aside>

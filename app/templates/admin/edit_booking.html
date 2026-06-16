@@ -7,64 +7,267 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_dashboard.css') }}">
 
 <div class="admin-layout">
-
     {% include 'admin/_admin_sidebar.html' %}
 
     <main class="admin-content">
-
         <section class="dashboard-page">
-
-            {% set page_tag = "BOOKING CRUD" %}
-            {% set page_title = "Edit Booking" %}
-            {% include 'admin/_admin_header.html' %}
-
-            <div class="form-card">
-
-                <form method="POST" class="admin-form">
-
-                    <label>Guest Name</label>
-                    <input type="text" name="guest_name" value="{{ booking.guest_name }}" required>
-
-                    <label>Email</label>
-                    <input type="email" name="email" value="{{ booking.email }}" required>
-
-                    <label>Phone</label>
-                    <input type="text" name="phone" value="{{ booking.phone }}" required>
-
-                    <label>Check-in</label>
-                    <input type="date" name="check_in" value="{{ booking.check_in }}" required>
-
-                    <label>Check-out</label>
-                    <input type="date" name="check_out" value="{{ booking.check_out }}" required>
-
-                    <label>Adults</label>
-                    <input type="number" name="adults" value="{{ booking.adults }}" min="1" required>
-
-                    <label>Children</label>
-                    <input type="number" name="children" value="{{ booking.children }}" min="0" required>
-
-                    <label>Total Price</label>
-                    <input type="number" name="total_price" value="{{ booking.total_price }}" step="0.01" required>
-
-                    <label>Status</label>
-                    <select name="status" required>
-                        <option value="Pending" {% if booking.status == "Pending" %}selected{% endif %}>Pending</option>
-                        <option value="Confirmed" {% if booking.status == "Confirmed" %}selected{% endif %}>Confirmed</option>
-                        <option value="Cancelled" {% if booking.status == "Cancelled" %}selected{% endif %}>Cancelled</option>
-                        <option value="Checked In" {% if booking.status == "Checked In" %}selected{% endif %}>Checked In</option>
-                        <option value="Checked Out" {% if booking.status == "Checked Out" %}selected{% endif %}>Checked Out</option>
-                    </select>
-
-                    <button type="submit">Update Booking</button>
-
-                </form>
-
+            <div class="booking-detail-header">
+                <div>
+                    <a href="{{ url_for('admin.booking_details', booking_id=booking.id) }}" class="booking-detail-back">
+                        <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                        Back to booking
+                    </a>
+                    <p class="dashboard-tag">EDIT BOOKING</p>
+                    <div class="booking-detail-title">
+                        <h1>{{ booking.reference_number }}</h1>
+                        <span class="status-badge
+                            {% if booking.status == 'Pending' %}status-pending
+                            {% elif booking.status == 'Checked In' %}status-checked-in
+                            {% elif booking.status == 'Checked Out' %}status-checked-out
+                            {% elif booking.status == 'Confirmed' %}status-confirmed
+                            {% elif booking.status == 'Cancelled' %}status-cancelled
+                            {% endif %}">
+                            {{ booking.status }}
+                        </span>
+                    </div>
+                    <p class="dashboard-subtitle">
+                        Update guest, stay, and workflow details. Pricing recalculates automatically.
+                    </p>
+                </div>
             </div>
 
+            {% if form_errors %}
+                <div class="booking-edit-error" role="alert">
+                    <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+                    <div>
+                        <strong>We could not save these changes.</strong>
+                        <ul>
+                            {% for error in form_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+
+            <form
+                method="POST"
+                class="booking-edit-form"
+                data-booking-edit
+                data-nightly-total="{{ nightly_total }}"
+            >
+                <div class="booking-detail-layout">
+                    <div class="booking-detail-main">
+                        <section class="booking-detail-card">
+                            <div class="booking-detail-card-heading">
+                                <div>
+                                    <p class="dashboard-tag">GUEST PROFILE</p>
+                                    <h2>Contact information</h2>
+                                </div>
+                                <span class="booking-detail-icon">
+                                    <i class="fa-solid fa-user" aria-hidden="true"></i>
+                                </span>
+                            </div>
+
+                            <div class="booking-edit-grid">
+                                <label class="booking-edit-field booking-edit-field-wide">
+                                    <span>Guest name</span>
+                                    <input
+                                        type="text"
+                                        name="guest_name"
+                                        value="{{ form_values.guest_name }}"
+                                        autocomplete="name"
+                                        required
+                                    >
+                                </label>
+                                <label class="booking-edit-field">
+                                    <span>Email address</span>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value="{{ form_values.email }}"
+                                        autocomplete="email"
+                                        required
+                                    >
+                                </label>
+                                <label class="booking-edit-field">
+                                    <span>Phone number</span>
+                                    <input
+                                        type="tel"
+                                        name="phone"
+                                        value="{{ form_values.phone }}"
+                                        autocomplete="tel"
+                                        required
+                                    >
+                                </label>
+                            </div>
+                        </section>
+
+                        <section class="booking-detail-card">
+                            <div class="booking-detail-card-heading">
+                                <div>
+                                    <p class="dashboard-tag">STAY DETAILS</p>
+                                    <h2>Dates and guest party</h2>
+                                </div>
+                                <span class="booking-detail-icon">
+                                    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                                </span>
+                            </div>
+
+                            <div class="booking-edit-grid">
+                                <label class="booking-edit-field">
+                                    <span>Check-in</span>
+                                    <input
+                                        type="date"
+                                        name="check_in"
+                                        value="{{ form_values.check_in }}"
+                                        data-edit-check-in
+                                        required
+                                    >
+                                    <small>Guest arrival date</small>
+                                </label>
+                                <label class="booking-edit-field">
+                                    <span>Check-out</span>
+                                    <input
+                                        type="date"
+                                        name="check_out"
+                                        value="{{ form_values.check_out }}"
+                                        data-edit-check-out
+                                        required
+                                    >
+                                    <small>Must be after check-in</small>
+                                </label>
+                                <label class="booking-edit-field">
+                                    <span>Adults</span>
+                                    <input
+                                        type="number"
+                                        name="adults"
+                                        value="{{ form_values.adults }}"
+                                        min="1"
+                                        step="1"
+                                        required
+                                    >
+                                </label>
+                                <label class="booking-edit-field">
+                                    <span>Children</span>
+                                    <input
+                                        type="number"
+                                        name="children"
+                                        value="{{ form_values.children }}"
+                                        min="0"
+                                        step="1"
+                                        required
+                                    >
+                                </label>
+                            </div>
+                        </section>
+
+                        <section class="booking-detail-card">
+                            <div class="booking-detail-card-heading">
+                                <div>
+                                    <p class="dashboard-tag">WORKFLOW</p>
+                                    <h2>Booking status</h2>
+                                </div>
+                                <span class="booking-detail-icon">
+                                    <i class="fa-solid fa-list-check" aria-hidden="true"></i>
+                                </span>
+                            </div>
+
+                            <p class="booking-edit-section-copy">
+                                Changing status also updates the assigned rooms to reserved, occupied, or available.
+                            </p>
+
+                            <div class="booking-status-options">
+                                {% for status in allowed_statuses %}
+                                    {% set status_key = status|lower|replace(' ', '-') %}
+                                    <label class="booking-status-option status-{{ status_key }}">
+                                        <input
+                                            type="radio"
+                                            name="status"
+                                            value="{{ status }}"
+                                            {% if form_values.status == status %}checked{% endif %}
+                                            required
+                                        >
+                                        <span class="booking-status-option-mark" aria-hidden="true"></span>
+                                        <span>
+                                            <strong>{{ status }}</strong>
+                                            <small>
+                                                {% if status == "Pending" %}Awaiting confirmation
+                                                {% elif status == "Confirmed" %}Reservation secured
+                                                {% elif status == "Checked In" %}Guest is in-house
+                                                {% elif status == "Checked Out" %}Stay is completed
+                                                {% else %}Reservation released
+                                                {% endif %}
+                                            </small>
+                                        </span>
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </section>
+                    </div>
+
+                    <aside class="booking-detail-sidebar">
+                        <section class="booking-detail-card booking-edit-summary">
+                            <div class="booking-detail-card-heading">
+                                <div>
+                                    <p class="dashboard-tag">LIVE SUMMARY</p>
+                                    <h2>Updated stay</h2>
+                                </div>
+                            </div>
+
+                            <div class="booking-edit-room-list">
+                                {% for room in booking.booking_rooms %}
+                                    <div>
+                                        <span>Room {{ room.room_number }}</span>
+                                        <strong>${{ "%.2f"|format(room.price) }}/night</strong>
+                                    </div>
+                                {% else %}
+                                    <div class="booking-detail-empty">No rooms are attached.</div>
+                                {% endfor %}
+                            </div>
+
+                            <div class="booking-price-list booking-edit-price-list">
+                                <div>
+                                    <span>Rooms per night</span>
+                                    <strong>${{ "%.2f"|format(nightly_total) }}</strong>
+                                </div>
+                                <div>
+                                    <span>Length of stay</span>
+                                    <strong><span data-edit-nights>{{ preview_nights }}</span> night(s)</strong>
+                                </div>
+                                <div class="booking-price-total">
+                                    <span>New booking total</span>
+                                    <strong>$<span data-edit-total>{{ "%.2f"|format(preview_total) }}</span></strong>
+                                </div>
+                            </div>
+
+                            <div class="booking-edit-price-note">
+                                <i class="fa-solid fa-calculator" aria-hidden="true"></i>
+                                <p>
+                                    Total = room rates per night x number of nights.
+                                    The linked payment record will be updated too.
+                                </p>
+                            </div>
+
+                            <div class="booking-edit-actions">
+                                <button type="submit" class="booking-edit-save" data-edit-submit>
+                                    <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                    Save changes
+                                </button>
+                                <a href="{{ url_for('admin.booking_details', booking_id=booking.id) }}" class="booking-edit-cancel">
+                                    Cancel
+                                </a>
+                            </div>
+                        </section>
+                    </aside>
+                </div>
+            </form>
         </section>
-
     </main>
-
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_edit_booking.js') }}"></script>
 {% endblock %}
