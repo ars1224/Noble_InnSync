@@ -134,8 +134,8 @@
                             {% if room.id %}
                             <a
                                 href="{{ url_for(
-                                    'room.room_details',
-                                    room_id=room.id,
+                                    'room.room_type_details',
+                                    room_slug=room.slug,
                                     check_in=search_summary.check_in,
                                     check_out=search_summary.check_out,
                                     adults=search_summary.adults,
@@ -152,6 +152,8 @@
                             <a
                                 href="{{ url_for(
                                     'booking.book_room',
+                                    check_in=search_summary.check_in,
+                                    check_out=search_summary.check_out,
                                     adults=search_summary.adults,
                                     children=search_summary.children
                                 ) }}"

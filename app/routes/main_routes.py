@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request
+from app.models.booking import Booking
 from app.models.room import Room
 
 main = Blueprint("main", __name__)
@@ -59,3 +60,30 @@ def home():
 @main.route("/login")
 def login_selection():
     return render_template("login_selection.html")
+
+
+@main.route("/reservation-status")
+def reservation_status():
+    reference_number = request.args.get("reference_number", "").strip()
+    guest_name = request.args.get("guest_name", "").strip()
+    searched = bool(reference_number or guest_name)
+    booking = None
+
+    if reference_number:
+        query = Booking.query.filter(Booking.reference_number.ilike(reference_number))
+
+        if guest_name:
+            query = query.filter(Booking.guest_name.ilike(f"%{guest_name}%"))
+
+        booking = query.first()
+
+    payment = booking.accounting[0] if booking and booking.accounting else None
+
+    return render_template(
+        "bookings/reservation_status.html",
+        booking=booking,
+        payment=payment,
+        reference_number=reference_number,
+        guest_name=guest_name,
+        searched=searched,
+    )

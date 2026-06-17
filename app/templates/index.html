@@ -11,7 +11,7 @@
         <p class="hero-subtitle">Choose your dates, browse our rooms, and secure a comfortable stay in just a few minutes.</p>
         <div class="hero-actions">
             <a type="button" href="{{ url_for('booking.book_room') }}" class="room-btn hero-primary-btn">Start Booking</a>
-            <a href="#track" class="hero-secondary-btn">View My Booking</a>
+            <a href="{{ url_for('main.reservation_status') }}" class="hero-secondary-btn">View My Booking</a>
         </div>
     </div>
 </section>
@@ -226,7 +226,7 @@
             <img src="{{ url_for('static', filename='img/74474c86-d2ea-4d93-a1da-82de3dcc55ad.png') }}" alt="Reception">
         </div>
 
-        <form class="track-box" action="{{ url_for('room.available_rooms') }}" method="get">
+        <form class="track-box" action="{{ url_for('main.reservation_status') }}" method="get">
 
             <div class="field">
                 <label for="track_check_in">Check In</label>
@@ -240,12 +240,12 @@
 
             <div class="field">
                 <label for="booking_number">Booking Number</label>
-                <input id="booking_number" type="text" placeholder="Enter booking number">
+                <input id="booking_number" name="reference_number" type="text" placeholder="Enter booking number">
             </div>
 
             <div class="field">
                 <label for="guest_name">Guest Name</label>
-                <input id="guest_name" type="text" placeholder="Enter your name">
+                <input id="guest_name" name="guest_name" type="text" placeholder="Enter your name">
             </div>
 
             <button type="submit">Find Reservation</button>

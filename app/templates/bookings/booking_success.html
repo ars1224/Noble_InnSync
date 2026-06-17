@@ -84,8 +84,8 @@
 
             </div>
 
-            <a href="{{ url_for('main.home') }}" class="booking-btn success-btn">
-                BACK TO HOME
+            <a href="{{ url_for('main.reservation_status', reference_number=booking.reference_number) }}" class="booking-btn success-btn">
+                VIEW STATUS
             </a>
 
         </div>

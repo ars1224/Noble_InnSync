@@ -1,0 +1,149 @@
+{% extends '_layout.html' %}
+
+{% block title %}Reservation Status | Noble InnSync{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="booking-hero reservation-status-hero">
+    <div class="booking-hero-overlay"></div>
+
+    <div class="booking-hero-content">
+        <p class="booking-tag">RESERVATION TRACKING</p>
+        <h1>View your booking status.</h1>
+        <p>Enter your booking reference to check reservation, room, and payment details.</p>
+    </div>
+</section>
+
+<section class="booking-section reservation-status-section">
+    <div class="booking-container reservation-status-container">
+
+        <div class="booking-form-card">
+            <div class="booking-card-header">
+                <div class="booking-line"></div>
+                <h2>FIND RESERVATION</h2>
+            </div>
+
+            <form class="booking-form" action="{{ url_for('main.reservation_status') }}" method="get">
+                <div class="booking-grid">
+                    <div class="form-group">
+                        <label for="reference_number">Booking Reference</label>
+                        <input
+                            id="reference_number"
+                            name="reference_number"
+                            type="text"
+                            value="{{ reference_number }}"
+                            placeholder="Example: NIS123456"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="guest_name_lookup">Guest Name</label>
+                        <input
+                            id="guest_name_lookup"
+                            name="guest_name"
+                            type="text"
+                            value="{{ guest_name }}"
+                            placeholder="Optional"
+                        >
+                    </div>
+                </div>
+
+                <button class="booking-btn" type="submit">VIEW STATUS</button>
+            </form>
+        </div>
+
+        {% if booking %}
+            <aside class="booking-summary-card reservation-status-card">
+                <div class="booking-card-header">
+                    <div class="booking-line"></div>
+                    <h2>BOOKING FOUND</h2>
+                </div>
+
+                <div class="success-reference">
+                    <span>Reference Number</span>
+                    <h3>{{ booking.reference_number }}</h3>
+                </div>
+
+                <div class="summary-details">
+                    <div>
+                        <span>Guest</span>
+                        <strong>{{ booking.guest_name }}</strong>
+                    </div>
+
+                    <div>
+                        <span>Status</span>
+                        <strong>{{ booking.status }}</strong>
+                    </div>
+
+                    <div>
+                        <span>Check-in</span>
+                        <strong>{{ booking.check_in }}</strong>
+                    </div>
+
+                    <div>
+                        <span>Check-out</span>
+                        <strong>{{ booking.check_out }}</strong>
+                    </div>
+
+                    <div>
+                        <span>Room(s)</span>
+                        <strong>
+                            {% for room in booking.booking_rooms %}
+                                Room {{ room.room_number }} - {{ room.room_type }}{% if not loop.last %}<br>{% endif %}
+                            {% else %}
+                                To be assigned
+                            {% endfor %}
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Guests</span>
+                        <strong>{{ booking.adults }} adult(s), {{ booking.children }} child(ren)</strong>
+                    </div>
+
+                    <div>
+                        <span>Total</span>
+                        <strong>${{ "%.2f"|format(booking.total_price) }}</strong>
+                    </div>
+
+                    <div>
+                        <span>Payment</span>
+                        <strong>{% if payment %}{{ payment.payment_status }}{% else %}No payment record{% endif %}</strong>
+                    </div>
+                </div>
+            </aside>
+        {% elif searched %}
+            <aside class="booking-summary-card reservation-status-card">
+                <div class="booking-card-header">
+                    <div class="booking-line"></div>
+                    <h2>NOT FOUND</h2>
+                </div>
+
+                <div class="reservation-empty-state">
+                    <h3>No matching booking found.</h3>
+                    <p>Check the reference number and guest name, then try again. If the issue continues, contact the front desk.</p>
+                </div>
+            </aside>
+        {% else %}
+            <aside class="booking-summary-card reservation-status-card">
+                <div class="booking-card-header">
+                    <div class="booking-line"></div>
+                    <h2>WHAT YOU NEED</h2>
+                </div>
+
+                <div class="reservation-empty-state">
+                    <h3>Keep your booking reference handy.</h3>
+                    <p>You can find it on the booking confirmation screen or in the confirmation details provided after booking.</p>
+                </div>
+            </aside>
+        {% endif %}
+
+    </div>
+</section>
+
+{% endblock %}
