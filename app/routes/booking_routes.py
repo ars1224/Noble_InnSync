@@ -38,7 +38,50 @@ def calculate_required_capacity(adults, children):
     return adults + (children * 0.5)
 
 
-def suggest_rooms(adults, children):
+def booking_overlaps(booking, check_in, check_out):
+    return (
+        booking.check_in < check_out
+        and booking.check_out > check_in
+        and booking.status not in ["Cancelled", "Checked Out"]
+    )
+
+
+def booked_room_numbers_for_dates(check_in, check_out):
+    if not check_in or not check_out:
+        return set()
+
+    bookings = Booking.query.all()
+
+    return {
+        booked_room.room_number
+        for booking in bookings
+        if booking_overlaps(booking, check_in, check_out)
+        for booked_room in booking.booking_rooms
+    }
+
+
+def available_rooms_for_type(room_type, check_in="", check_out=""):
+    rooms = (
+        Room.query
+        .filter(Room.room_type == room_type, Room.status != "Maintenance")
+        .order_by(Room.room_number.asc())
+        .all()
+    )
+
+    if check_in and check_out:
+        booked_room_numbers = booked_room_numbers_for_dates(check_in, check_out)
+        return [
+            room for room in rooms
+            if room.room_number not in booked_room_numbers
+        ]
+
+    return [
+        room for room in rooms
+        if room.status == "Available"
+    ]
+
+
+def suggest_rooms(adults, children, check_in="", check_out=""):
     selected_rooms = []
 
     required_capacity = calculate_required_capacity(adults, children)
@@ -54,10 +97,7 @@ def suggest_rooms(adults, children):
     for room_type in room_priority:
         rule = ROOM_RULES[room_type]
 
-        available_rooms = Room.query.filter_by(
-            room_type=room_type,
-            status="Available"
-        ).all()
+        available_rooms = available_rooms_for_type(room_type, check_in, check_out)
 
         for room in available_rooms:
             if remaining_capacity <= 0:
@@ -84,13 +124,17 @@ def suggest_rooms(adults, children):
         "can_fit": total_capacity >= required_capacity
     }
 
-def build_manual_room_plan(room_ids, adults, children):
+def build_manual_room_plan(room_ids, adults, children, check_in="", check_out=""):
     selected_rooms = []
     required_capacity = calculate_required_capacity(adults, children)
 
-    rooms = Room.query.filter(Room.id.in_(room_ids), Room.status == "Available").all()
+    rooms = Room.query.filter(Room.id.in_(room_ids), Room.status != "Maintenance").all()
+    booked_room_numbers = booked_room_numbers_for_dates(check_in, check_out)
 
     for room in rooms:
+        if check_in and check_out and room.room_number in booked_room_numbers:
+            continue
+
         rule = ROOM_RULES.get(room.room_type)
 
         if rule:
@@ -122,14 +166,21 @@ def book_room():
         children = int(request.form.get("children", 0))
         check_in = request.form.get("check_in")
         check_out = request.form.get("check_out")
+        payment_method = request.form.get("payment_method", "Pay on Arrival")
+        normalized_payment_method = (
+            "Card" if payment_method == "Card Payment" else "Pay on Arrival"
+        )
+        payment_status = (
+            "Paid" if normalized_payment_method == "Card" else "Unpaid"
+        )
 
         selected_room_ids = request.form.get("selected_room_ids", "").strip()
 
         if selected_room_ids:
             room_ids = [int(room_id) for room_id in selected_room_ids.split(",") if room_id]
-            room_plan = build_manual_room_plan(room_ids, adults, children)
+            room_plan = build_manual_room_plan(room_ids, adults, children, check_in, check_out)
         else:
-            room_plan = suggest_rooms(adults, children)
+            room_plan = suggest_rooms(adults, children, check_in, check_out)
 
         if not room_plan["can_fit"]:
             return "Not enough available room capacity for this booking."
@@ -152,6 +203,7 @@ def book_room():
             adults=adults,
             children=children,
             total_price=total_price,
+            status="Confirmed" if payment_status == "Paid" else "Pending",
             reference_number=generate_reference_number()
         )
 
@@ -180,8 +232,8 @@ def book_room():
             check_in=new_booking.check_in,
             check_out=new_booking.check_out,
             total_price=total_price,
-            payment_status="Unpaid",
-            payment_method="Pay on Arrival"
+            payment_status=payment_status,
+            payment_method=normalized_payment_method
         )
 
         db.session.add(accounting_record)
@@ -223,7 +275,7 @@ def suggest_rooms_api():
     check_in = request.args.get("check_in", "")
     check_out = request.args.get("check_out", "")
 
-    room_plan = suggest_rooms(adults, children)
+    room_plan = suggest_rooms(adults, children, check_in, check_out)
 
     response = {
         "can_fit": room_plan["can_fit"],
@@ -251,11 +303,21 @@ def suggest_rooms_api():
 
 @booking.route("/available-room-options")
 def available_room_options():
-    rooms = Room.query.filter_by(status="Available").all()
+    check_in = request.args.get("check_in", "")
+    check_out = request.args.get("check_out", "")
+    booked_room_numbers = booked_room_numbers_for_dates(check_in, check_out)
+
+    rooms = Room.query.filter(Room.status != "Maintenance").all()
 
     room_options = []
 
     for room in rooms:
+        if check_in and check_out and room.room_number in booked_room_numbers:
+            continue
+
+        if not check_in and not check_out and room.status != "Available":
+            continue
+
         rule = ROOM_RULES.get(room.room_type)
 
         if rule:

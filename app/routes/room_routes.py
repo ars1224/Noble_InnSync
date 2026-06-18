@@ -1,5 +1,8 @@
 from flask import Blueprint, abort, render_template, request
 from app import db
+from app.models.accounting import Accounting
+from app.models.booking import Booking
+from app.models.booking_room import BookingRoom
 from app.models.room import Room
 from app.utils.pricing import calculate_stay_total
 
@@ -114,20 +117,60 @@ ROOM_POLICIES = [
 
 
 def build_room_summary(room_slug, details):
-    available_rooms = (
+    return build_room_summary_for_dates(room_slug, details, "", "")
+
+
+def booking_overlaps(booking, check_in, check_out):
+    return (
+        booking.check_in < check_out
+        and booking.check_out > check_in
+        and booking.status not in ["Cancelled", "Checked Out"]
+    )
+
+
+def booked_room_numbers_for_dates(check_in, check_out):
+    if not check_in or not check_out:
+        return set()
+
+    bookings = Booking.query.all()
+
+    return {
+        booked_room.room_number
+        for booking in bookings
+        if booking_overlaps(booking, check_in, check_out)
+        for booked_room in booking.booking_rooms
+    }
+
+
+def build_room_summary_for_dates(room_slug, details, check_in, check_out):
+    candidate_rooms = (
         Room.query
-        .filter_by(
-            room_type=details["room_type"],
-            status="Available"
+        .filter(
+            Room.room_type == details["room_type"],
+            Room.status != "Maintenance"
         )
         .order_by(Room.room_number.asc())
         .all()
     )
+    booked_room_numbers = booked_room_numbers_for_dates(check_in, check_out)
+
+    if check_in and check_out:
+        available_rooms = [
+            room for room in candidate_rooms
+            if room.room_number not in booked_room_numbers
+        ]
+    else:
+        available_rooms = [
+            room for room in candidate_rooms
+            if room.status == "Available"
+        ]
+
     first_available_room = available_rooms[0] if available_rooms else None
+    display_room = first_available_room or (candidate_rooms[0] if candidate_rooms else None)
     available_count = len(available_rooms)
 
     return {
-        "id": first_available_room.id if first_available_room else None,
+        "id": display_room.id if display_room else None,
         "slug": room_slug,
         "status": first_available_room.status if first_available_room else "Unavailable",
         **details,
@@ -147,7 +190,12 @@ def build_room_detail_summary(selected_room):
     if not room_slug:
         abort(404)
 
-    room_summary = build_room_summary(room_slug, ROOM_CATALOG[room_slug])
+    room_summary = build_room_summary_for_dates(
+        room_slug,
+        ROOM_CATALOG[room_slug],
+        request.args.get("check_in", ""),
+        request.args.get("check_out", "")
+    )
     room_summary["id"] = selected_room.id
     room_summary["status"] = selected_room.status
     return room_summary
@@ -269,7 +317,62 @@ def build_temp_booking_id(selected_room):
 
 
 def build_booking_reference(selected_room):
-    return f"NIS-2026-{4000 + selected_room.id}"
+    base_reference = f"NIS-2026-{4000 + selected_room.id}"
+
+    if not Booking.query.filter_by(reference_number=base_reference).first():
+        return base_reference
+
+    counter = 2
+    while Booking.query.filter_by(reference_number=f"{base_reference}-{counter}").first():
+        counter += 1
+
+    return f"{base_reference}-{counter}"
+
+
+def save_confirmed_booking(selected_room, form_source, booking_reference):
+    guest_details = build_guest_details(form_source)
+    booking_summary = build_booking_summary(form_source)
+    price_breakdown = build_price_breakdown(selected_room)
+    guest_name = (
+        f"{guest_details['first_name']} {guest_details['last_name']}"
+    ).strip() or "Guest"
+
+    booking = Booking(
+        reference_number=booking_reference,
+        guest_name=guest_name,
+        email=guest_details["email"] or "guest@example.com",
+        phone=guest_details["phone"] or "Not provided",
+        check_in=booking_summary["check_in"],
+        check_out=booking_summary["check_out"],
+        adults=int(booking_summary["adults"]),
+        children=int(booking_summary["children"]),
+        total_price=price_breakdown["total"],
+        status="Confirmed",
+    )
+
+    db.session.add(booking)
+    db.session.flush()
+
+    db.session.add(BookingRoom(
+        booking_id=booking.id,
+        room_number=selected_room.room_number,
+        room_type=selected_room.room_type,
+        price=selected_room.price,
+        adult_capacity=booking.adults,
+        child_capacity=booking.children,
+    ))
+
+    db.session.add(Accounting(
+        transaction_no=f"TXN-{booking_reference}",
+        booking_id=booking.id,
+        check_in=booking.check_in,
+        check_out=booking.check_out,
+        total_price=booking.total_price,
+        payment_status="Paid",
+        payment_method="Card",
+    ))
+
+    return booking
 
 
 @room.route("/available-rooms")
@@ -280,7 +383,7 @@ def available_rooms():
     children = request.args.get("children", "0")
 
     room_summary = [
-        build_room_summary(room_slug, details)
+        build_room_summary_for_dates(room_slug, details, check_in, check_out)
         for room_slug, details in ROOM_CATALOG.items()
     ]
 
@@ -308,7 +411,12 @@ def room_type_details(room_slug):
     if not details:
         abort(404)
 
-    room_summary = build_room_summary(room_slug, details)
+    room_summary = build_room_summary_for_dates(
+        room_slug,
+        details,
+        request.args.get("check_in", ""),
+        request.args.get("check_out", "")
+    )
     booking_summary = build_room_booking_summary(room_summary, request.args)
 
     return render_template(
@@ -380,6 +488,8 @@ def temporary_booking_hold(room_id):
 @room.route("/rooms/<int:room_id>/payment/success", methods=["POST"])
 def payment_success(room_id):
     selected_room = Room.query.get_or_404(room_id)
+    booking_reference = build_booking_reference(selected_room)
+    save_confirmed_booking(selected_room, request.form, booking_reference)
     selected_room.status = "Booked"
     db.session.commit()
     return render_template(
@@ -389,7 +499,7 @@ def payment_success(room_id):
         booking_summary=build_booking_summary(request.form),
         guest_details=build_guest_details(request.form),
         price_breakdown=build_price_breakdown(selected_room),
-        booking_reference=build_booking_reference(selected_room),
+        booking_reference=booking_reference,
         notification_sent=True,
     )
 
@@ -397,6 +507,8 @@ def payment_success(room_id):
 @room.route("/rooms/<int:room_id>/payment/notification-failed", methods=["POST"])
 def payment_notification_failed(room_id):
     selected_room = Room.query.get_or_404(room_id)
+    booking_reference = build_booking_reference(selected_room)
+    save_confirmed_booking(selected_room, request.form, booking_reference)
     selected_room.status = "Booked"
     db.session.commit()
     return render_template(
@@ -406,7 +518,7 @@ def payment_notification_failed(room_id):
         booking_summary=build_booking_summary(request.form),
         guest_details=build_guest_details(request.form),
         price_breakdown=build_price_breakdown(selected_room),
-        booking_reference=build_booking_reference(selected_room),
+        booking_reference=booking_reference,
         notification_sent=False,
     )
 

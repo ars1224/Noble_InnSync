@@ -154,7 +154,7 @@
         </section>
 
         <div class="payment-result-actions confirmation-actions">
-            <a class="solid-btn" href="#">View Status</a>
+            <a class="solid-btn" href="{{ url_for('main.reservation_status', reference_number=booking_reference) }}">View Status</a>
             <a class="ghost-btn" href="#">Download Receipt</a>
             <a class="ghost-btn" href="{{ url_for('main.home') }}">Back Home</a>
         </div>

@@ -122,7 +122,12 @@ async function updateSuggestedRooms() {
 }
 
 async function loadManualRooms() {
-    const response = await fetch("/available-room-options");
+    const params = new URLSearchParams({
+        check_in: checkInInput.value,
+        check_out: checkOutInput.value
+    });
+
+    const response = await fetch(`/available-room-options?${params.toString()}`);
     const data = await response.json();
 
     manualRooms = data.rooms;
@@ -398,11 +403,13 @@ childrenInput.addEventListener("input", () => {
 
 checkInInput.addEventListener("change", () => {
     updateSuggestedRooms();
+    loadManualRooms();
     validateManualRooms();
 });
 
 checkOutInput.addEventListener("change", () => {
     updateSuggestedRooms();
+    loadManualRooms();
     validateManualRooms();
 });
 
@@ -429,6 +436,23 @@ const paymentRadios =
 const cardPaymentFields =
     document.getElementById("card-payment-fields");
 
+const cardPaymentInputs = cardPaymentFields
+    ? cardPaymentFields.querySelectorAll("input")
+    : [];
+
+function setCardPaymentFieldsEnabled(enabled) {
+    if (!cardPaymentFields) {
+        return;
+    }
+
+    cardPaymentFields.classList.toggle("hidden", !enabled);
+
+    cardPaymentInputs.forEach(input => {
+        input.disabled = !enabled;
+        input.required = enabled;
+    });
+}
+
 paymentRadios.forEach(radio => {
 
     radio.addEventListener("change", () => {
@@ -446,7 +470,7 @@ paymentRadios.forEach(radio => {
             && radio.checked
         ) {
 
-            cardPaymentFields.classList.remove("hidden");
+            setCardPaymentFieldsEnabled(true);
         }
 
         // HIDE CARD FIELDS
@@ -455,12 +479,16 @@ paymentRadios.forEach(radio => {
             && radio.checked
         ) {
 
-            cardPaymentFields.classList.add("hidden");
+            setCardPaymentFieldsEnabled(false);
         }
 
     });
 
 });
+
+setCardPaymentFieldsEnabled(
+    document.querySelector('[name="payment_method"]:checked')?.value === "Card Payment"
+);
 
 const bookingForm = document.querySelector(".booking-form");
 

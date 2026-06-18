@@ -27,18 +27,69 @@
 
     <div class="room-detail-grid">
         <div class="room-detail-main">
-            <div class="room-gallery">
-                <div class="room-gallery-main">
-                    <img
-                        src="{{ url_for('static', filename='img/' + room.image) }}"
-                        alt="{{ room.room_type }}"
-                    >
+            <div class="room-gallery room-detail-image-card" data-room-carousel tabindex="0">
+                <div class="room-carousel-viewport">
+                    <div class="room-carousel-track">
+                        {% for image in room.images %}
+                            <figure
+                                class="room-carousel-slide {% if loop.first %}is-active{% endif %}"
+                                data-carousel-slide
+                                aria-hidden="{{ 'false' if loop.first else 'true' }}"
+                            >
+                                <img
+                                    class="room-detail-image"
+                                    src="{{ url_for('static', filename='img/' + image) }}"
+                                    alt="{{ room.room_type }} photo {{ loop.index }}"
+                                >
+                            </figure>
+                        {% endfor %}
+                    </div>
+
+                    {% if room.images|length > 1 %}
+                        <button class="room-carousel-control previous" type="button" data-carousel-previous aria-label="Previous room photo">
+                            <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+                        </button>
+                        <button class="room-carousel-control next" type="button" data-carousel-next aria-label="Next room photo">
+                            <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+                        </button>
+
+                        <div class="room-carousel-counter">
+                            <span data-carousel-current>1</span> / {{ room.images|length }}
+                        </div>
+
+                        <div class="room-carousel-indicators" aria-label="Room photo selector">
+                            {% for image in room.images %}
+                                <button
+                                    class="{% if loop.first %}is-active{% endif %}"
+                                    type="button"
+                                    data-carousel-indicator="{{ loop.index0 }}"
+                                    aria-label="Show room photo {{ loop.index }}"
+                                ></button>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
+
+                <div class="room-image-caption">
+                    <div>
+                        <span>{{ room.room_type }}</span>
+                        <strong>{{ room.title }}</strong>
+                    </div>
+                    <span>{{ room.images|length }} photos</span>
+                </div>
+
                 <div class="room-gallery-thumbs">
-                    <span>Image</span>
-                    <span>Bath</span>
-                    <span>Desk</span>
-                    <span>View</span>
+                    {% for image in room.images %}
+                        <button
+                            class="{% if loop.first %}is-active{% endif %}"
+                            type="button"
+                            data-carousel-indicator="{{ loop.index0 }}"
+                            aria-label="Show room photo {{ loop.index }}"
+                        >
+                            <img src="{{ url_for('static', filename='img/' + image) }}" alt="">
+                            <span>Photo {{ loop.index }}</span>
+                        </button>
+                    {% endfor %}
                 </div>
             </div>
 

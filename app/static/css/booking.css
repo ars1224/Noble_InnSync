@@ -565,10 +565,47 @@
     margin-top: 24px;
 }
 
+.reservation-status-hero{
+    height: 520px;
+}
+
+.reservation-status-container{
+    grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+}
+
+.reservation-status-card{
+    position: sticky;
+    top: 96px;
+}
+
+.reservation-empty-state{
+    padding: 8px 0;
+}
+
+.reservation-empty-state h3{
+    color: #19233a;
+    font-size: 30px;
+    margin: 0 0 14px;
+}
+
+.reservation-empty-state p{
+    color: #666;
+    line-height: 1.7;
+    margin: 0;
+}
+
 
 @media (max-width: 1000px) {
     .booking-container {
         grid-template-columns: 1fr;
+    }
+
+    .reservation-status-container{
+        grid-template-columns: 1fr;
+    }
+
+    .reservation-status-card{
+        position: static;
     }
 
     .booking-hero h1 {
