@@ -25,7 +25,8 @@ def staff_login():
     return render_template("auth/staff_login.html")
 
 
-@auth.route("/logout")
+@auth.route("/logout", methods=["GET", "POST"])
 def logout():
     session.clear()
-    return redirect(url_for("main.login_selection"))
+    flash("You have been logged out.", "success")
+    return redirect(url_for("auth.staff_login"))

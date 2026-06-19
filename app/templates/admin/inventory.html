@@ -16,86 +16,260 @@
                     <h1>Inventory Monitoring</h1>
                     <p class="page-description">Track hotel consumables and notify the manager before supplies run out.</p>
                 </div>
+                {% if session.get('user_role') in ['admin', 'staff'] %}
+                    <a href="#add-inventory-item" class="booking-detail-action primary">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        Add item
+                    </a>
+                {% endif %}
             </div>
 
-            <div class="dashboard-cards operations-summary">
-                <div class="dashboard-card"><h3>Low Stock</h3><h2>{{ low_stock_count }}</h2></div>
-                <div class="dashboard-card"><h3>Supplies</h3><h2>{{ items|length }}</h2></div>
-                <div class="dashboard-card"><h3>Alerts Sent</h3><h2>{{ alerts_sent }}</h2></div>
+            <div class="operations-metric-grid">
+                <article class="operations-metric-card urgent">
+                    <span>Needs attention</span>
+                    <strong>{{ low_stock_count }}</strong>
+                    <small>{{ out_of_stock_count }} out of stock</small>
+                </article>
+                <article class="operations-metric-card">
+                    <span>Total supplies</span>
+                    <strong>{{ items|length }}</strong>
+                    <small>{{ category_counts|length }} categories tracked</small>
+                </article>
+                <article class="operations-metric-card success">
+                    <span>Stock health</span>
+                    <strong>{{ inventory_health }}%</strong>
+                    <small>{{ ok_stock_count }} item(s) above reorder level</small>
+                </article>
+                <article class="operations-metric-card">
+                    <span>Alerts sent</span>
+                    <strong>{{ alerts_sent }}</strong>
+                    <small>Manager notifications created</small>
+                </article>
             </div>
 
-            {% if session.get('user_role') in ['admin', 'staff'] %}
-            <details class="operations-form-card">
-                <summary>Add Inventory Item</summary>
-                <form method="POST" action="{{ url_for('admin.add_inventory_item') }}" class="inline-record-form">
-                    <input name="item_name" placeholder="Item name" required>
-                    <select name="category">
+            <div class="operations-command-grid">
+                {% if session.get('user_role') in ['admin', 'staff'] %}
+                    <section class="operations-form-card" id="add-inventory-item">
+                        <div class="operations-card-heading">
+                            <div>
+                                <p class="dashboard-tag">NEW SUPPLY</p>
+                                <h2>Add inventory item</h2>
+                            </div>
+                            <i class="fa-solid fa-box-open" aria-hidden="true"></i>
+                        </div>
+                        <form method="POST" action="{{ url_for('admin.add_inventory_item') }}" class="operations-grid-form">
+                            <label>
+                                <span>Item name</span>
+                                <input name="item_name" placeholder="Towels, Shampoo, Coffee pods" required>
+                            </label>
+                            <label>
+                                <span>Category</span>
+                                <select name="category">
+                                    <option>Guest Supplies</option>
+                                    <option>Housekeeping</option>
+                                    <option>Food and Beverage</option>
+                                    <option>Cleaning Supplies</option>
+                                </select>
+                            </label>
+                            <label>
+                                <span>Current stock</span>
+                                <input name="current_stock" type="number" min="0" value="0">
+                            </label>
+                            <label>
+                                <span>Reorder at</span>
+                                <input name="reorder_level" type="number" min="0" value="10">
+                            </label>
+                            <label>
+                                <span>Unit</span>
+                                <input name="unit" value="items" placeholder="items">
+                            </label>
+                            <button type="submit">Add item</button>
+                        </form>
+                    </section>
+                {% endif %}
+
+                <section class="operations-attention-card">
+                    <div class="operations-card-heading">
+                        <div>
+                            <p class="dashboard-tag">REPLENISHMENT</p>
+                            <h2>Priority restock</h2>
+                        </div>
+                        <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                    </div>
+
+                    <div class="operations-attention-list">
+                        {% for item in low_stock_items[:5] %}
+                            <article>
+                                <div>
+                                    <strong>{{ item.item_name }}</strong>
+                                    <span>{{ item.current_stock }} {{ item.unit }} left</span>
+                                </div>
+                                <span class="record-status status-{{ item.stock_status|lower|replace(' ', '-') }}">{{ item.stock_status }}</span>
+                            </article>
+                        {% else %}
+                            <div class="operations-empty-state">Everything is above reorder level.</div>
+                        {% endfor %}
+                    </div>
+                </section>
+            </div>
+
+            <section class="operations-list-card">
+                <div class="operations-card-heading">
+                    <div>
+                        <p class="dashboard-tag">SUPPLY RECORDS</p>
+                        <h2>Inventory items</h2>
+                    </div>
+                </div>
+
+                <div class="operations-chip-row" aria-label="Inventory categories">
+                    <span class="active">All {{ items|length }}</span>
+                    {% for category, count in category_counts.items() %}
+                        <span>{{ category }} {{ count }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="table-scroll inventory-table-shell">
+                    <table class="inventory-table">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Category</th>
+                                <th>Stock</th>
+                                <th>Reorder At</th>
+                                <th>Status</th>
+                                <th>Updated</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                                {% set status_key = item.stock_status|lower|replace(' ', '-') %}
+                                {% set stock_percent = ((item.current_stock / item.reorder_level) * 100) if item.reorder_level else 100 %}
+                                {% set stock_level = 100 if stock_percent > 100 else stock_percent %}
+                                <tr class="inventory-table-row inventory-{{ status_key }}">
+                                    <td>
+                                        <strong>{{ item.item_name }}</strong>
+                                        <small>{{ item.unit }}</small>
+                                    </td>
+                                    <td>{{ item.category }}</td>
+                                    <td>
+                                        <div class="inventory-table-stock">
+                                            <strong>{{ item.current_stock }} {{ item.unit }}</strong>
+                                            <div class="inventory-stock-bar" aria-hidden="true">
+                                                <span style="--stock-level: {{ stock_level }}%;"></span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ item.reorder_level }} {{ item.unit }}</td>
+                                    <td>
+                                        <span class="record-status status-{{ status_key }}">{{ item.stock_status }}</span>
+                                    </td>
+                                    <td>{{ item.updated_at.strftime('%d %b %Y') if item.updated_at else 'N/A' }}</td>
+                                    <td>
+                                        {% if session.get('user_role') in ['admin', 'staff'] %}
+                                            <button
+                                                type="button"
+                                                class="inventory-manage-btn"
+                                                data-inventory-open
+                                                data-item-name="{{ item.item_name|e }}"
+                                                data-category="{{ item.category|e }}"
+                                                data-current-stock="{{ item.current_stock }}"
+                                                data-reorder-level="{{ item.reorder_level }}"
+                                                data-unit="{{ item.unit|e }}"
+                                                data-status="{{ item.stock_status }}"
+                                                data-status-key="{{ status_key }}"
+                                                data-update-url="{{ url_for('admin.update_inventory_item', item_id=item.id) }}"
+                                                data-add-url="{{ url_for('admin.add_inventory_stock', item_id=item.id) }}"
+                                                data-alert-url="{{ url_for('admin.send_inventory_alert', item_id=item.id) }}"
+                                                data-alert-needed="{{ 'true' if item.stock_status != 'OK' else 'false' }}"
+                                            >
+                                                Manage
+                                            </button>
+                                        {% else %}
+                                            <span class="muted-text">Review only</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="7">No inventory records yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </section>
+    </main>
+</div>
+
+{% if session.get('user_role') in ['admin', 'staff'] %}
+    <div class="inventory-modal-backdrop" data-inventory-modal hidden>
+        <section class="inventory-modal" role="dialog" aria-modal="true" aria-labelledby="inventoryModalTitle">
+            <div class="inventory-modal-header">
+                <div>
+                    <p class="dashboard-tag">MANAGE INVENTORY</p>
+                    <h2 id="inventoryModalTitle" data-inventory-title>Inventory item</h2>
+                    <span data-inventory-subtitle>Update stock and item details.</span>
+                </div>
+                <button type="button" class="inventory-modal-close" data-inventory-close aria-label="Close inventory popup">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <span class="record-status" data-inventory-status>OK</span>
+
+            <form method="POST" class="inventory-modal-form" data-inventory-update-form>
+                <label>
+                    <span>Item name</span>
+                    <input name="item_name" data-inventory-name-input required>
+                </label>
+                <label>
+                    <span>Category</span>
+                    <select name="category" data-inventory-category-input>
                         <option>Guest Supplies</option>
                         <option>Housekeeping</option>
                         <option>Food and Beverage</option>
                         <option>Cleaning Supplies</option>
                     </select>
-                    <input name="current_stock" type="number" min="0" value="0" aria-label="Current stock">
-                    <input name="reorder_level" type="number" min="0" value="10" aria-label="Reorder level">
-                    <input name="unit" value="items" placeholder="Unit">
-                    <button type="submit">Add Item</button>
+                </label>
+                <label>
+                    <span>Current stock</span>
+                    <input name="current_stock" type="number" min="0" data-inventory-stock-input required>
+                </label>
+                <label>
+                    <span>Reorder level</span>
+                    <input name="reorder_level" type="number" min="0" data-inventory-reorder-input required>
+                </label>
+                <label>
+                    <span>Unit</span>
+                    <input name="unit" data-inventory-unit-input required>
+                </label>
+                <button type="submit">Save changes</button>
+            </form>
+
+            <div class="inventory-modal-actions">
+                <form method="POST" class="inventory-modal-add-form" data-inventory-add-form>
+                    <label>
+                        <span>Add stock</span>
+                        <input name="quantity" type="number" min="1" value="1">
+                    </label>
+                    <button type="submit">Add stock</button>
                 </form>
-            </details>
-            {% endif %}
 
-            <div class="recent-bookings operations-table-card">
-                <div class="section-header">
-                    <h2>Inventory Records</h2>
-                    <p>Stock at or below its reorder level is shown as low.</p>
-                </div>
-
-                <div class="table-scroll">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Item</th><th>Category</th><th>Stock</th><th>Reorder At</th><th>Status</th><th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in items %}
-                            <tr>
-                                <td><strong>{{ item.item_name }}</strong></td>
-                                <td>{{ item.category }}</td>
-                                <td>{{ item.current_stock }} {{ item.unit }}</td>
-                                <td>{{ item.reorder_level }} {{ item.unit }}</td>
-                                <td><span class="record-status status-{{ item.stock_status|lower|replace(' ', '-') }}">{{ item.stock_status }}</span></td>
-                                <td>
-                                    {% if session.get('user_role') in ['admin', 'staff'] %}
-                                    <div class="table-actions">
-                                        <form method="POST" action="{{ url_for('admin.add_inventory_stock', item_id=item.id) }}" class="compact-form">
-                                            <input name="quantity" type="number" min="1" value="1" aria-label="Quantity to add">
-                                            <button type="submit">Add Stock</button>
-                                        </form>
-                                        <form method="POST" action="{{ url_for('admin.update_inventory_item', item_id=item.id) }}" class="compact-form">
-                                            <input name="current_stock" type="number" min="0" value="{{ item.current_stock }}" aria-label="Current stock">
-                                            <input name="reorder_level" type="number" min="0" value="{{ item.reorder_level }}" aria-label="Reorder level">
-                                            <button type="submit">Update</button>
-                                        </form>
-                                        {% if item.stock_status != 'OK' %}
-                                        <form method="POST" action="{{ url_for('admin.send_inventory_alert', item_id=item.id) }}">
-                                            <button class="gold-action" type="submit">Send Alert</button>
-                                        </form>
-                                        {% endif %}
-                                    </div>
-                                    {% else %}
-                                    <span class="muted-text">Manager review</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="6">No inventory records yet.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                <form method="POST" data-inventory-alert-form>
+                    <button class="operations-secondary-action" type="submit">
+                        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                        Send manager alert
+                    </button>
+                </form>
             </div>
         </section>
-    </main>
-</div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_inventory.js') }}"></script>
 {% endblock %}
 

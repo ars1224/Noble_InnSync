@@ -183,7 +183,15 @@ def add_activity(event_type, message, delivery_status="Pending"):
 @role_required(["admin", "staff", "manager"])
 def inventory():
     items = InventoryItem.query.order_by(InventoryItem.item_name.asc()).all()
-    low_stock_count = sum(item.stock_status != "OK" for item in items)
+    low_stock_items = [
+        item for item in items
+        if item.stock_status in ["Low Stock", "Out of Stock"]
+    ]
+    out_of_stock_count = sum(item.stock_status == "Out of Stock" for item in items)
+    ok_stock_count = sum(item.stock_status == "OK" for item in items)
+    low_stock_count = len(low_stock_items)
+    inventory_health = round((ok_stock_count / len(items)) * 100) if items else 0
+    category_counts = Counter(item.category for item in items)
     alerts_sent = ActivityLog.query.filter_by(
         event_type="Inventory", delivery_status="Sent"
     ).count()
@@ -191,7 +199,12 @@ def inventory():
     return render_template(
         "admin/inventory.html",
         items=items,
+        low_stock_items=low_stock_items,
         low_stock_count=low_stock_count,
+        out_of_stock_count=out_of_stock_count,
+        ok_stock_count=ok_stock_count,
+        inventory_health=inventory_health,
+        category_counts=category_counts,
         alerts_sent=alerts_sent,
     )
 
@@ -221,6 +234,17 @@ def add_inventory_item():
 @role_required(["admin", "staff"])
 def update_inventory_item(item_id):
     item = InventoryItem.query.get_or_404(item_id)
+    item_name = request.form.get("item_name", item.item_name).strip()
+    duplicate = InventoryItem.query.filter(
+        InventoryItem.item_name == item_name,
+        InventoryItem.id != item.id
+    ).first()
+
+    if item_name and not duplicate:
+        item.item_name = item_name
+
+    item.category = request.form.get("category", item.category).strip() or item.category
+    item.unit = request.form.get("unit", item.unit).strip() or item.unit
     item.current_stock = max(
         0, request.form.get("current_stock", item.current_stock, type=int)
     )
@@ -229,7 +253,7 @@ def update_inventory_item(item_id):
     )
     add_activity(
         "Inventory",
-        f"{item.item_name} stock updated to {item.current_stock} {item.unit}.",
+        f"{item.item_name} inventory record updated to {item.current_stock} {item.unit}.",
         "Sent",
     )
     db.session.commit()
@@ -272,7 +296,21 @@ def send_inventory_alert(item_id):
 def equipment():
     issues = EquipmentIssue.query.order_by(EquipmentIssue.created_at.desc()).all()
     rooms = Room.query.order_by(Room.room_number.asc()).all()
-    return render_template("admin/equipment.html", issues=issues, rooms=rooms)
+    open_issues = [issue for issue in issues if issue.status != "Working"]
+    high_priority_count = sum(issue.priority == "High" for issue in open_issues)
+    maintenance_requested_count = sum(
+        issue.maintenance_status == "Requested" for issue in issues
+    )
+    resolved_count = sum(issue.status == "Working" for issue in issues)
+    return render_template(
+        "admin/equipment.html",
+        issues=issues,
+        rooms=rooms,
+        open_issues=len(open_issues),
+        high_priority_count=high_priority_count,
+        maintenance_requested_count=maintenance_requested_count,
+        resolved_count=resolved_count,
+    )
 
 
 @admin.route("/equipment/report", methods=["POST"])
@@ -339,7 +377,17 @@ def resolve_equipment_issue(issue_id):
 @role_required(["admin", "staff", "manager"])
 def activity_log():
     activities = ActivityLog.query.order_by(ActivityLog.created_at.desc()).all()
-    return render_template("admin/activity_log.html", activities=activities)
+    status_counts = Counter(activity.delivery_status for activity in activities)
+    type_counts = Counter(activity.event_type for activity in activities)
+    return render_template(
+        "admin/activity_log.html",
+        activities=activities,
+        sent_count=status_counts.get("Sent", 0),
+        pending_count=status_counts.get("Pending", 0),
+        failed_count=status_counts.get("Failed", 0),
+        inventory_activity_count=type_counts.get("Inventory", 0),
+        equipment_activity_count=type_counts.get("Equipment", 0),
+    )
 
 
 @admin.route("/activity-log/<int:activity_id>/resend", methods=["POST"])

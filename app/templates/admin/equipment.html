@@ -16,60 +16,132 @@
                     <h1>Equipment Monitoring</h1>
                     <p class="page-description">Report room equipment faults and follow maintenance progress.</p>
                 </div>
+                {% if session.get('user_role') in ['admin', 'staff'] %}
+                    <a href="#report-equipment" class="booking-detail-action primary">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        Report issue
+                    </a>
+                {% endif %}
+            </div>
+
+            <div class="operations-metric-grid">
+                <article class="operations-metric-card urgent">
+                    <span>Open issues</span>
+                    <strong>{{ open_issues }}</strong>
+                    <small>{{ high_priority_count }} high priority</small>
+                </article>
+                <article class="operations-metric-card">
+                    <span>Maintenance</span>
+                    <strong>{{ maintenance_requested_count }}</strong>
+                    <small>Requests currently sent</small>
+                </article>
+                <article class="operations-metric-card success">
+                    <span>Resolved</span>
+                    <strong>{{ resolved_count }}</strong>
+                    <small>Equipment marked working</small>
+                </article>
+                <article class="operations-metric-card">
+                    <span>Rooms tracked</span>
+                    <strong>{{ rooms|length }}</strong>
+                    <small>Available for reports</small>
+                </article>
             </div>
 
             {% if session.get('user_role') in ['admin', 'staff'] %}
-            <div class="operations-form-card">
-                <h2>Report Equipment Issue</h2>
-                <form method="POST" action="{{ url_for('admin.report_equipment_issue') }}" class="inline-record-form equipment-report-form">
-                    <select name="room_id" required>
-                        <option value="">Select room</option>
-                        {% for room in rooms %}<option value="{{ room.id }}">Room {{ room.room_number }}</option>{% endfor %}
-                    </select>
-                    <input name="equipment_name" placeholder="Equipment, e.g. AC unit" required>
-                    <select name="status"><option>Check Needed</option><option>Broken</option><option>Working</option></select>
-                    <select name="priority"><option>Low</option><option selected>Medium</option><option>High</option></select>
-                    <input name="notes" placeholder="Issue notes">
-                    <button type="submit">Report Issue</button>
-                </form>
-            </div>
+                <section class="operations-form-card" id="report-equipment">
+                    <div class="operations-card-heading">
+                        <div>
+                            <p class="dashboard-tag">NEW REPORT</p>
+                            <h2>Report equipment issue</h2>
+                        </div>
+                        <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+                    </div>
+                    <form method="POST" action="{{ url_for('admin.report_equipment_issue') }}" class="operations-grid-form equipment-report-form">
+                        <label>
+                            <span>Room</span>
+                            <select name="room_id" required>
+                                <option value="">Select room</option>
+                                {% for room in rooms %}<option value="{{ room.id }}">Room {{ room.room_number }}</option>{% endfor %}
+                            </select>
+                        </label>
+                        <label>
+                            <span>Equipment</span>
+                            <input name="equipment_name" placeholder="AC unit, TV, lock" required>
+                        </label>
+                        <label>
+                            <span>Status</span>
+                            <select name="status"><option>Check Needed</option><option>Broken</option><option>Working</option></select>
+                        </label>
+                        <label>
+                            <span>Priority</span>
+                            <select name="priority"><option>Low</option><option selected>Medium</option><option>High</option></select>
+                        </label>
+                        <label class="wide">
+                            <span>Notes</span>
+                            <input name="notes" placeholder="Short issue notes">
+                        </label>
+                        <button type="submit">Report issue</button>
+                    </form>
+                </section>
             {% endif %}
 
-            <div class="recent-bookings operations-table-card">
-                <div class="section-header"><h2>Equipment Issues</h2></div>
-                <div class="table-scroll">
-                    <table>
-                        <thead><tr><th>Room</th><th>Equipment</th><th>Status</th><th>Priority</th><th>Maintenance</th><th>Reported By</th><th>Action</th></tr></thead>
-                        <tbody>
-                            {% for issue in issues %}
-                            <tr>
-                                <td>RM-{{ issue.room.room_number }}</td>
-                                <td><strong>{{ issue.equipment_name }}</strong>{% if issue.notes %}<small class="table-note">{{ issue.notes }}</small>{% endif %}</td>
-                                <td><span class="record-status status-{{ issue.status|lower|replace(' ', '-') }}">{{ issue.status }}</span></td>
-                                <td><span class="record-status priority-{{ issue.priority|lower }}">{{ issue.priority }}</span></td>
-                                <td>{{ issue.maintenance_status }}</td>
-                                <td>{{ issue.reported_by }}</td>
-                                <td>
-                                    {% if session.get('user_role') in ['admin', 'staff'] and issue.maintenance_status == 'Not Requested' and issue.status != 'Working' %}
-                                    <form method="POST" action="{{ url_for('admin.request_equipment_maintenance', issue_id=issue.id) }}">
-                                        <button class="gold-action" type="submit">Request Maintenance</button>
-                                    </form>
-                                    {% elif session.get('user_role') in ['admin', 'manager'] and issue.status != 'Working' %}
-                                    <form method="POST" action="{{ url_for('admin.resolve_equipment_issue', issue_id=issue.id) }}">
-                                        <button type="submit">Mark Resolved</button>
-                                    </form>
-                                    {% else %}
-                                    <span class="muted-text">{{ issue.maintenance_status }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="7">No equipment issues reported.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            <section class="operations-list-card">
+                <div class="operations-card-heading">
+                    <div>
+                        <p class="dashboard-tag">ISSUE BOARD</p>
+                        <h2>Equipment issues</h2>
+                    </div>
                 </div>
-            </div>
+
+                <div class="equipment-issue-grid">
+                    {% for issue in issues %}
+                        <article class="equipment-issue-card priority-{{ issue.priority|lower }}">
+                            <div class="equipment-issue-top">
+                                <div>
+                                    <span>Room {{ issue.room.room_number }}</span>
+                                    <h3>{{ issue.equipment_name }}</h3>
+                                </div>
+                                <span class="record-status priority-{{ issue.priority|lower }}">{{ issue.priority }}</span>
+                            </div>
+
+                            <div class="equipment-status-row">
+                                <span class="record-status status-{{ issue.status|lower|replace(' ', '-') }}">{{ issue.status }}</span>
+                                <span class="equipment-maintenance-pill">{{ issue.maintenance_status }}</span>
+                            </div>
+
+                            {% if issue.notes %}
+                                <p>{{ issue.notes }}</p>
+                            {% else %}
+                                <p>No extra notes were added.</p>
+                            {% endif %}
+
+                            <div class="equipment-issue-meta">
+                                <span>Reported by {{ issue.reported_by }}</span>
+                                <span>{{ issue.created_at.strftime('%d %b %Y') if issue.created_at else 'Date unavailable' }}</span>
+                            </div>
+
+                            <div class="equipment-issue-actions">
+                                {% if session.get('user_role') in ['admin', 'staff'] and issue.maintenance_status == 'Not Requested' and issue.status != 'Working' %}
+                                    <form method="POST" action="{{ url_for('admin.request_equipment_maintenance', issue_id=issue.id) }}">
+                                        <button class="operations-secondary-action" type="submit">
+                                            <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                                            Request maintenance
+                                        </button>
+                                    </form>
+                                {% elif session.get('user_role') in ['admin', 'manager'] and issue.status != 'Working' %}
+                                    <form method="POST" action="{{ url_for('admin.resolve_equipment_issue', issue_id=issue.id) }}">
+                                        <button type="submit">Mark resolved</button>
+                                    </form>
+                                {% else %}
+                                    <span class="operations-empty-state">{{ issue.maintenance_status }}</span>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% else %}
+                        <div class="operations-empty-state">No equipment issues reported.</div>
+                    {% endfor %}
+                </div>
+            </section>
         </section>
     </main>
 </div>

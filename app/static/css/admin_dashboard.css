@@ -87,18 +87,25 @@
 }
 
 .admin-nav a,
-.admin-sidebar-footer a {
+.admin-sidebar-footer a,
+.admin-sidebar-footer button {
     min-height: 46px;
+    width: 100%;
     padding: 0 13px;
     display: flex;
     align-items: center;
     gap: 12px;
+    border: 0;
     border-radius: 12px;
     color: #d1d5db;
+    background: transparent;
     text-decoration: none;
+    font: inherit;
     font-size: 14px;
     font-weight: 700;
+    text-align: left;
     transition: 0.2s ease;
+    cursor: pointer;
 }
 
 .admin-nav i,
@@ -110,7 +117,8 @@
 
 .admin-nav a:hover,
 .admin-nav a.active,
-.admin-sidebar-footer a:hover {
+.admin-sidebar-footer a:hover,
+.admin-sidebar-footer button:hover {
     color: #fff;
     background: rgba(255, 255, 255, 0.09);
 }
@@ -126,6 +134,10 @@
 .admin-sidebar-footer {
     padding-top: 16px;
     border-top: 1px solid rgba(255, 255, 255, 0.09);
+}
+
+.admin-logout-form {
+    margin: 0;
 }
 
 .admin-sidebar-footer .admin-logout-link:hover {
@@ -2924,5 +2936,1133 @@
 
     .dashboard-page {
         padding: 24px 16px;
+    }
+}
+
+/* Operations workspace: inventory, rooms, equipment, and activity log */
+.operations-metric-card:not(:has(.operations-metric-icon)) {
+    display: block;
+    border-top: 4px solid #d4a762;
+}
+
+.operations-metric-card.urgent {
+    border-top-color: #ef4444;
+}
+
+.operations-metric-card.warning {
+    border-top-color: #f59e0b;
+}
+
+.operations-metric-card.success {
+    border-top-color: #22c55e;
+}
+
+.operations-command-grid {
+    margin-bottom: 22px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+    gap: 18px;
+    align-items: stretch;
+}
+
+.operations-list-card,
+.operations-attention-card {
+    padding: clamp(20px, 3vw, 28px);
+    border: 1px solid var(--admin-border);
+    border-radius: 20px;
+    background: #fff;
+    box-shadow: var(--admin-shadow);
+}
+
+.operations-card-heading {
+    margin-bottom: 18px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.operations-card-heading h2 {
+    margin: 0;
+    color: var(--admin-text);
+    font-size: clamp(20px, 2.4vw, 28px);
+    letter-spacing: -0.03em;
+}
+
+.operations-card-heading > i {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    color: #a9782f;
+    background: #fef3c7;
+}
+
+.operations-form-card {
+    margin-bottom: 0;
+    border: 1px solid var(--admin-border);
+    box-shadow: var(--admin-shadow);
+}
+
+.operations-grid-form {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(120px, 1fr)) auto;
+    gap: 12px;
+    align-items: end;
+}
+
+.operations-grid-form.equipment-report-form {
+    grid-template-columns: repeat(4, minmax(135px, 1fr)) auto;
+}
+
+.operations-grid-form label,
+.mini-action-form label,
+.room-status-card-form label {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.operations-grid-form label.wide {
+    grid-column: span 2;
+}
+
+.operations-grid-form span,
+.mini-action-form span,
+.room-status-card-form span {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.operations-grid-form input,
+.operations-grid-form select,
+.mini-action-form input,
+.room-status-card-form select {
+    min-width: 0;
+    min-height: 43px;
+    padding: 0 12px;
+    border: 1px solid #d8dde4;
+    border-radius: 11px;
+    color: var(--admin-text);
+    background: #fff;
+    font: inherit;
+    outline: none;
+}
+
+.operations-grid-form input:focus,
+.operations-grid-form select:focus,
+.mini-action-form input:focus,
+.room-status-card-form select:focus {
+    border-color: var(--admin-gold);
+    box-shadow: 0 0 0 3px rgba(212, 167, 98, 0.15);
+}
+
+.operations-grid-form button,
+.mini-action-form button,
+.room-status-card-form button,
+.equipment-issue-actions button,
+.activity-timeline-card button {
+    min-height: 43px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 11px;
+    color: #fff;
+    background: var(--admin-navy);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.operations-secondary-action {
+    width: 100%;
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 11px;
+    color: #111827 !important;
+    background: #fef3c7 !important;
+    font-weight: 800;
+}
+
+.operations-attention-list,
+.inventory-action-stack,
+.equipment-issue-actions {
+    display: grid;
+    gap: 9px;
+}
+
+.operations-attention-list article {
+    padding: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.operations-attention-list strong,
+.operations-attention-list span {
+    display: block;
+}
+
+.operations-attention-list strong {
+    color: var(--admin-text);
+    font-size: 13px;
+}
+
+.operations-attention-list div span {
+    margin-top: 4px;
+    color: var(--admin-muted);
+    font-size: 11px;
+}
+
+.operations-chip-row {
+    margin: -2px 0 18px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.operations-card-heading .operations-chip-row {
+    margin: 0;
+    justify-content: flex-end;
+}
+
+.operations-chip-row span {
+    min-height: 32px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    color: #64748b;
+    background: #fff;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.operations-chip-row .active {
+    border-color: var(--admin-navy);
+    color: #fff;
+    background: var(--admin-navy);
+}
+
+.inventory-card-grid,
+.room-management-grid,
+.equipment-issue-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.inventory-item-card,
+.room-management-card,
+.equipment-issue-card {
+    min-width: 0;
+    padding: 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.05);
+}
+
+.inventory-item-card.inventory-low-stock,
+.equipment-issue-card.priority-medium {
+    border-color: #facc15;
+}
+
+.inventory-item-card.inventory-out-of-stock,
+.equipment-issue-card.priority-high {
+    border-color: #fca5a5;
+}
+
+.inventory-item-top,
+.room-management-top,
+.equipment-issue-top,
+.activity-timeline-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+}
+
+.inventory-item-top span:first-child,
+.equipment-issue-top span:first-child,
+.activity-timeline-top span:first-child {
+    color: var(--admin-muted);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.inventory-item-top h3,
+.room-management-copy h3,
+.equipment-issue-top h3 {
+    margin: 5px 0 0;
+    color: var(--admin-text);
+    font-size: 18px;
+    letter-spacing: -0.02em;
+}
+
+.inventory-stock-readout {
+    margin: 18px 0 11px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.inventory-stock-readout strong {
+    color: var(--admin-text);
+    font-size: 42px;
+    line-height: 1;
+    letter-spacing: -0.05em;
+}
+
+.inventory-stock-readout span {
+    color: var(--admin-muted);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.inventory-stock-bar {
+    height: 9px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: #edf2f7;
+}
+
+.inventory-stock-bar span {
+    width: var(--stock-level);
+    max-width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #d4a762, #22c55e);
+}
+
+.inventory-out-of-stock .inventory-stock-bar span {
+    background: #ef4444;
+}
+
+.inventory-low-stock .inventory-stock-bar span {
+    background: #f59e0b;
+}
+
+.inventory-item-meta,
+.equipment-issue-meta,
+.activity-timeline-meta {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    color: var(--admin-muted);
+    font-size: 11px;
+}
+
+.mini-action-form {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 8px;
+    align-items: end;
+}
+
+.mini-action-form.two-field {
+    grid-template-columns: 80px 80px 1fr;
+}
+
+.room-management-card {
+    display: grid;
+    gap: 16px;
+}
+
+.room-number-block {
+    width: 74px;
+    height: 68px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    border-radius: 15px;
+    color: #fff;
+    background: var(--admin-navy);
+}
+
+.room-number-block span,
+.room-number-block strong {
+    display: block;
+}
+
+.room-number-block span {
+    color: #cbd5e1;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.room-number-block strong {
+    font-size: 24px;
+}
+
+.room-management-copy p,
+.equipment-issue-card p {
+    margin: 8px 0 0;
+    color: var(--admin-muted);
+    font-size: 12px;
+    line-height: 1.55;
+}
+
+.room-management-meta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 9px;
+}
+
+.room-management-meta > div {
+    padding: 12px;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+
+.room-management-meta span,
+.room-management-meta strong {
+    display: block;
+}
+
+.room-management-meta span {
+    color: var(--admin-muted);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.room-management-meta strong {
+    margin-top: 5px;
+    color: var(--admin-text);
+    font-size: 14px;
+}
+
+.room-status-card-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px;
+    align-items: end;
+}
+
+.room-management-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.room-management-actions a {
+    min-height: 38px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 10px;
+    color: #475569;
+    background: #f1f5f9;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.room-management-actions .danger {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.equipment-status-row {
+    margin-top: 13px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.equipment-maintenance-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: #475569;
+    background: #f1f5f9;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.activity-timeline {
+    position: relative;
+    display: grid;
+    gap: 14px;
+}
+
+.activity-timeline::before {
+    content: "";
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 20px;
+    width: 2px;
+    background: #e2e8f0;
+}
+
+.activity-timeline-item {
+    position: relative;
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 14px;
+}
+
+.activity-timeline-marker {
+    z-index: 1;
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    color: #1e40af;
+    background: #dbeafe;
+    box-shadow: 0 0 0 1px #dbeafe;
+}
+
+.activity-timeline-item.status-failed .activity-timeline-marker {
+    color: #991b1b;
+    background: #fee2e2;
+    box-shadow: 0 0 0 1px #fee2e2;
+}
+
+.activity-timeline-item.status-sent .activity-timeline-marker {
+    color: #166534;
+    background: #dcfce7;
+    box-shadow: 0 0 0 1px #dcfce7;
+}
+
+.activity-timeline-card {
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.activity-timeline-card strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--admin-text);
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.activity-timeline-card form {
+    margin-top: 12px;
+}
+
+.operations-empty-state {
+    padding: 14px;
+    border-radius: 12px;
+    color: #64748b;
+    background: #f8fafc;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+@media (max-width: 1020px) {
+    .admin-sidebar-footer button {
+        width: 42px;
+        padding: 0;
+        justify-content: center;
+    }
+
+    .admin-logout-form {
+        width: 42px;
+    }
+
+    .operations-command-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .operations-grid-form,
+    .operations-grid-form.equipment-report-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .operations-card-heading,
+    .inventory-item-top,
+    .room-management-top,
+    .equipment-issue-top,
+    .activity-timeline-top,
+    .inventory-item-meta,
+    .equipment-issue-meta,
+    .activity-timeline-meta {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .operations-grid-form,
+    .operations-grid-form.equipment-report-form,
+    .operations-grid-form label.wide,
+    .mini-action-form,
+    .mini-action-form.two-field,
+    .room-status-card-form,
+    .room-management-meta {
+        grid-template-columns: 1fr;
+    }
+
+    .activity-timeline::before {
+        left: 15px;
+    }
+
+    .activity-timeline-item {
+        grid-template-columns: 32px minmax(0, 1fr);
+    }
+
+    .activity-timeline-marker {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+}
+
+/* Cleaner rooms and inventory arrangement */
+.room-board-columns {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(220px, 1fr));
+    gap: 14px;
+    align-items: start;
+}
+
+.room-board-column {
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+    background: #f8fafc;
+}
+
+.room-board-column-heading {
+    margin-bottom: 12px;
+    padding: 4px 4px 11px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.room-board-column-heading span {
+    color: #475569;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.room-board-column-heading strong {
+    min-width: 30px;
+    height: 30px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    color: #fff;
+    background: var(--admin-navy);
+    font-size: 13px;
+}
+
+.room-board-available .room-board-column-heading strong {
+    color: #92400e;
+    background: #fef3c7;
+}
+
+.room-board-occupied .room-board-column-heading strong {
+    color: #166534;
+    background: #dcfce7;
+}
+
+.room-board-list {
+    display: grid;
+    gap: 10px;
+}
+
+.room-board-card {
+    padding: 13px;
+    display: grid;
+    gap: 12px;
+    border: 1px solid #e5e7eb;
+    border-left-width: 5px;
+    border-radius: 15px;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(17, 24, 39, 0.04);
+}
+
+.room-board-card.room-card-available {
+    border-left-color: #d4a762;
+    background: linear-gradient(180deg, #fffdf5, #fff);
+}
+
+.room-board-card.room-card-occupied {
+    border-left-color: #22c55e;
+    background: linear-gradient(180deg, #f0fdf4, #fff);
+}
+
+.room-board-card.room-card-reserved {
+    border-left-color: #3b82f6;
+    background: linear-gradient(180deg, #eff6ff, #fff);
+}
+
+.room-board-card.room-card-maintenance {
+    border-left-color: #ef4444;
+    background: linear-gradient(180deg, #fff1f2, #fff);
+}
+
+.room-board-card-main {
+    display: grid;
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 11px;
+    align-items: start;
+}
+
+.room-board-card .room-number-block {
+    width: 62px;
+    height: 60px;
+    border-radius: 13px;
+}
+
+.room-board-card h3 {
+    margin: 0;
+    color: var(--admin-text);
+    font-size: 15px;
+}
+
+.room-board-card p {
+    margin: 5px 0;
+    color: var(--admin-muted);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.room-rate {
+    display: block;
+    color: #a9782f;
+    font-size: 12px;
+}
+
+.room-inline-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px;
+}
+
+.room-inline-form select,
+.room-inline-form button {
+    min-height: 38px;
+    border-radius: 10px;
+    font: inherit;
+    font-size: 12px;
+}
+
+.room-inline-form select {
+    min-width: 0;
+    padding: 0 9px;
+    border: 1px solid #d8dde4;
+    color: var(--admin-text);
+    background: #fff;
+}
+
+.room-inline-form button {
+    padding: 0 10px;
+    border: 0;
+    color: #fff;
+    background: var(--admin-navy);
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.room-board-actions {
+    display: flex;
+    gap: 7px;
+}
+
+.room-board-actions a {
+    min-height: 34px;
+    padding: 0 10px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9px;
+    color: #475569;
+    background: #f1f5f9;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.room-board-actions .danger {
+    color: #991b1b;
+    background: #fee2e2;
+}
+
+.inventory-clean-list {
+    display: grid;
+    gap: 11px;
+}
+
+.inventory-clean-row {
+    min-width: 0;
+    padding: 15px;
+    display: grid;
+    grid-template-columns: minmax(220px, 1.15fr) minmax(160px, 0.65fr) minmax(130px, 0.55fr) minmax(360px, 1.35fr);
+    gap: 15px;
+    align-items: center;
+    border: 1px solid #e5e7eb;
+    border-left: 5px solid #22c55e;
+    border-radius: 15px;
+    background: #fff;
+}
+
+.inventory-clean-row.inventory-low-stock {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.inventory-clean-row.inventory-out-of-stock {
+    border-left-color: #ef4444;
+    background: #fff1f2;
+}
+
+.inventory-clean-main {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.inventory-clean-main h3 {
+    margin: 0;
+    color: var(--admin-text);
+    font-size: 15px;
+}
+
+.inventory-clean-main div span,
+.inventory-clean-stock small {
+    display: block;
+    margin-top: 4px;
+    color: var(--admin-muted);
+    font-size: 11px;
+}
+
+.inventory-clean-stock {
+    display: grid;
+    gap: 3px;
+}
+
+.inventory-clean-stock div {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
+}
+
+.inventory-clean-stock strong {
+    color: var(--admin-text);
+    font-size: 27px;
+    line-height: 1;
+}
+
+.inventory-clean-stock div span {
+    color: var(--admin-muted);
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.inventory-clean-actions {
+    display: grid;
+    gap: 7px;
+}
+
+.inventory-clean-actions .mini-action-form {
+    grid-template-columns: 72px minmax(90px, 1fr);
+}
+
+.inventory-clean-actions .mini-action-form.two-field {
+    grid-template-columns: 72px 72px minmax(90px, 1fr);
+}
+
+.inventory-table-shell {
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    background: #fff;
+    overflow: auto;
+}
+
+.inventory-table {
+    width: 100%;
+    min-width: 920px;
+    border-collapse: collapse;
+}
+
+.inventory-table th,
+.inventory-table td {
+    padding: 15px 16px;
+    border-bottom: 1px solid #edf0f3;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.inventory-table th {
+    color: #64748b;
+    background: #f8fafc;
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.inventory-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.inventory-table-row td:first-child {
+    border-left: 5px solid #22c55e;
+}
+
+.inventory-table-row.inventory-low-stock td:first-child {
+    border-left-color: #f59e0b;
+}
+
+.inventory-table-row.inventory-low-stock {
+    background: #fffbeb;
+}
+
+.inventory-table-row.inventory-out-of-stock td:first-child {
+    border-left-color: #ef4444;
+}
+
+.inventory-table-row.inventory-out-of-stock {
+    background: #fff1f2;
+}
+
+.inventory-table td strong,
+.inventory-table td small {
+    display: block;
+}
+
+.inventory-table td strong {
+    color: var(--admin-text);
+    font-size: 14px;
+}
+
+.inventory-table td small {
+    margin-top: 4px;
+    color: var(--admin-muted);
+    font-size: 11px;
+}
+
+.inventory-table-stock {
+    min-width: 150px;
+    display: grid;
+    gap: 8px;
+}
+
+.inventory-table-stock .inventory-stock-bar {
+    max-width: 180px;
+}
+
+.inventory-manage-btn {
+    min-height: 38px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 10px;
+    color: #fff;
+    background: var(--admin-navy);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.modal-open {
+    overflow: hidden;
+}
+
+.inventory-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    padding: 24px;
+    display: grid;
+    place-items: center;
+    background: rgba(15, 23, 42, 0.58);
+}
+
+.inventory-modal-backdrop[hidden] {
+    display: none;
+}
+
+.inventory-modal {
+    width: min(100%, 760px);
+    max-height: min(760px, calc(100vh - 48px));
+    padding: clamp(20px, 3vw, 28px);
+    border-radius: 22px;
+    background: #fff;
+    box-shadow: 0 30px 90px rgba(15, 23, 42, 0.28);
+    overflow-y: auto;
+}
+
+.inventory-modal-header {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px;
+}
+
+.inventory-modal-header h2 {
+    margin: 0;
+    color: var(--admin-text);
+    font-size: clamp(24px, 3vw, 34px);
+    letter-spacing: -0.035em;
+}
+
+.inventory-modal-header span {
+    display: block;
+    margin-top: 6px;
+    color: var(--admin-muted);
+}
+
+.inventory-modal-close {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border: 0;
+    border-radius: 12px;
+    color: #475569;
+    background: #f1f5f9;
+    cursor: pointer;
+}
+
+.inventory-modal > .record-status {
+    margin-bottom: 16px;
+}
+
+.inventory-modal-form {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px;
+}
+
+.inventory-modal-form label,
+.inventory-modal-add-form label {
+    display: grid;
+    gap: 7px;
+}
+
+.inventory-modal-form label span,
+.inventory-modal-add-form label span {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.inventory-modal-form input,
+.inventory-modal-form select,
+.inventory-modal-add-form input {
+    min-height: 46px;
+    padding: 0 13px;
+    border: 1px solid #d8dde4;
+    border-radius: 11px;
+    color: var(--admin-text);
+    background: #fff;
+    font: inherit;
+    outline: none;
+}
+
+.inventory-modal-form input:focus,
+.inventory-modal-form select:focus,
+.inventory-modal-add-form input:focus {
+    border-color: var(--admin-gold);
+    box-shadow: 0 0 0 3px rgba(212, 167, 98, 0.15);
+}
+
+.inventory-modal-form button,
+.inventory-modal-add-form button {
+    min-height: 46px;
+    border: 0;
+    border-radius: 11px;
+    color: #fff;
+    background: var(--admin-navy);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.inventory-modal-form > button {
+    grid-column: 1 / -1;
+}
+
+.inventory-modal-actions {
+    margin-top: 18px;
+    padding-top: 18px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 12px;
+    border-top: 1px solid #edf0f3;
+}
+
+.inventory-modal-add-form {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: end;
+}
+
+@media (max-width: 1180px) {
+    .room-board-columns {
+        grid-template-columns: repeat(2, minmax(240px, 1fr));
+    }
+
+    .inventory-clean-row {
+        grid-template-columns: minmax(0, 1fr) minmax(180px, 0.6fr);
+    }
+
+    .inventory-clean-actions {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 700px) {
+    .room-board-columns,
+    .inventory-clean-row,
+    .inventory-clean-actions .mini-action-form,
+    .inventory-clean-actions .mini-action-form.two-field {
+        grid-template-columns: 1fr;
+    }
+
+    .inventory-clean-main {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .room-inline-form {
+        grid-template-columns: 1fr;
+    }
+
+    .inventory-modal-form,
+    .inventory-modal-actions,
+    .inventory-modal-add-form {
+        grid-template-columns: 1fr;
     }
 }

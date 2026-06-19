@@ -18,35 +18,78 @@
                 </div>
             </div>
 
-            <div class="recent-bookings operations-table-card">
-                <div class="table-scroll">
-                    <table>
-                        <thead><tr><th>Time</th><th>Type</th><th>Activity</th><th>Created By</th><th>Status</th><th>Action</th></tr></thead>
-                        <tbody>
-                            {% for activity in activities %}
-                            <tr>
-                                <td>{{ activity.created_at.strftime('%d %b %Y, %H:%M') }}</td>
-                                <td>{{ activity.event_type }}</td>
-                                <td>{{ activity.message }}</td>
-                                <td>{{ activity.created_by }}</td>
-                                <td><span class="record-status status-{{ activity.delivery_status|lower }}">{{ activity.delivery_status }}</span></td>
-                                <td>
-                                    {% if session.get('user_role') in ['admin', 'manager'] and activity.delivery_status in ['Pending', 'Failed'] %}
-                                    <form method="POST" action="{{ url_for('admin.resend_activity', activity_id=activity.id) }}">
-                                        <button type="submit">Resend / Mark Sent</button>
-                                    </form>
-                                    {% else %}
-                                    <span class="muted-text">No action needed</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% else %}
-                            <tr><td colspan="6">No activity recorded yet.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            <div class="operations-metric-grid">
+                <article class="operations-metric-card success">
+                    <span>Sent</span>
+                    <strong>{{ sent_count }}</strong>
+                    <small>Delivered manager updates</small>
+                </article>
+                <article class="operations-metric-card warning">
+                    <span>Pending</span>
+                    <strong>{{ pending_count }}</strong>
+                    <small>Waiting to be marked sent</small>
+                </article>
+                <article class="operations-metric-card urgent">
+                    <span>Failed</span>
+                    <strong>{{ failed_count }}</strong>
+                    <small>Needs retry</small>
+                </article>
+                <article class="operations-metric-card">
+                    <span>Activity mix</span>
+                    <strong>{{ activities|length }}</strong>
+                    <small>{{ inventory_activity_count }} inventory, {{ equipment_activity_count }} equipment</small>
+                </article>
             </div>
+
+            <section class="operations-list-card">
+                <div class="operations-card-heading">
+                    <div>
+                        <p class="dashboard-tag">TIMELINE</p>
+                        <h2>Latest activity</h2>
+                    </div>
+                </div>
+
+                <div class="activity-timeline">
+                    {% for activity in activities %}
+                        <article class="activity-timeline-item status-{{ activity.delivery_status|lower }}">
+                            <div class="activity-timeline-marker">
+                                {% if activity.event_type == "Inventory" %}
+                                    <i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i>
+                                {% elif activity.event_type == "Equipment" %}
+                                    <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
+                                {% else %}
+                                    <i class="fa-solid fa-bell" aria-hidden="true"></i>
+                                {% endif %}
+                            </div>
+                            <div class="activity-timeline-card">
+                                <div class="activity-timeline-top">
+                                    <div>
+                                        <span>{{ activity.event_type }}</span>
+                                        <strong>{{ activity.message }}</strong>
+                                    </div>
+                                    <span class="record-status status-{{ activity.delivery_status|lower }}">{{ activity.delivery_status }}</span>
+                                </div>
+
+                                <div class="activity-timeline-meta">
+                                    <span>{{ activity.created_at.strftime('%d %b %Y, %H:%M') }}</span>
+                                    <span>Created by {{ activity.created_by }}</span>
+                                </div>
+
+                                {% if session.get('user_role') in ['admin', 'manager'] and activity.delivery_status in ['Pending', 'Failed'] %}
+                                    <form method="POST" action="{{ url_for('admin.resend_activity', activity_id=activity.id) }}">
+                                        <button type="submit" class="operations-secondary-action">
+                                            <i class="fa-solid fa-rotate" aria-hidden="true"></i>
+                                            Resend / mark sent
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </article>
+                    {% else %}
+                        <div class="operations-empty-state">No activity recorded yet.</div>
+                    {% endfor %}
+                </div>
+            </section>
         </section>
     </main>
 </div>

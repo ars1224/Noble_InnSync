@@ -15,8 +15,17 @@
         <section class="dashboard-page">
 
             <div class="dashboard-header">
-                <p class="dashboard-tag">ROOM MANAGEMENT</p>
-                <h1>Rooms</h1>
+                <div>
+                    <p class="dashboard-tag">ROOM MANAGEMENT</p>
+                    <h1>Rooms</h1>
+                    <p class="page-description">Scan room availability, update status, and manage room records.</p>
+                </div>
+                {% if session.get("user_role") == "admin" %}
+                    <a href="{{ url_for('admin.add_room') }}" class="booking-detail-action primary">
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+                        Add room
+                    </a>
+                {% endif %}
             </div>
 
             <div class="room-stats-grid">
@@ -47,97 +56,82 @@
                 </article>
             </div>
 
-            {% if session.get("user_role") == "admin" %}
-                <a href="{{ url_for('admin.add_room') }}" class="add-btn">Add Room</a>
-            {% endif %}
+            <section class="operations-list-card">
+                <div class="operations-card-heading">
+                    <div>
+                        <p class="dashboard-tag">ROOM BOARD</p>
+                        <h2>All rooms</h2>
+                    </div>
+                    <div class="operations-chip-row">
+                        <span class="active">All {{ total_rooms }}</span>
+                        <span>Available {{ available_rooms }}</span>
+                        <span>Reserved {{ reserved_rooms }}</span>
+                        <span>Occupied {{ occupied_rooms }}</span>
+                        <span>Maintenance {{ maintenance_rooms }}</span>
+                    </div>
+                </div>
 
-            <div class="recent-bookings">
+                <div class="room-board-columns">
+                    {% for status_label in ["Available", "Reserved", "Occupied", "Maintenance"] %}
+                        <section class="room-board-column room-board-{{ status_label|lower }}">
+                            <div class="room-board-column-heading">
+                                <span>{{ status_label }}</span>
+                                <strong>
+                                    {% if status_label == "Available" %}{{ available_rooms }}
+                                    {% elif status_label == "Reserved" %}{{ reserved_rooms }}
+                                    {% elif status_label == "Occupied" %}{{ occupied_rooms }}
+                                    {% else %}{{ maintenance_rooms }}
+                                    {% endif %}
+                                </strong>
+                            </div>
 
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Room No.</th>
-                            <th>Room Type</th>
-                            <th>Description</th>
-                            <th>Nightly Rate</th>
-                            <th>Status</th>
-                            <th>Update Status</th>
-                            <th>Manage</th>
-                        </tr>
-                    </thead>
+                            <div class="room-board-list">
+                                {% for room in rooms %}
+                                    {% set room_status = 'Reserved' if room.status == 'Booked' else room.status %}
+                                    {% if room_status == status_label %}
+                                        <article class="room-board-card room-card-{{ room_status|lower }}">
+                                            <div class="room-board-card-main">
+                                                <div class="room-number-block">
+                                                    <span>Room</span>
+                                                    <strong>{{ room.room_number }}</strong>
+                                                </div>
+                                                <div>
+                                                    <h3>{{ room.room_type }}</h3>
+                                                    <p>{{ room.description }}</p>
+                                                    <strong class="room-rate">${{ "%.2f"|format(room.price) }} / night</strong>
+                                                </div>
+                                            </div>
 
-                    <tbody>
-                        {% for room in rooms %}
-                        <tr>
-                            <td>{{ room.room_number }}</td>
-                            <td>{{ room.room_type }}</td>
-                            <td>{{ room.description }}</td>
-                            <td>${{ "%.2f"|format(room.price) }} / night</td>
-                            <td>
-                                <span class="status-badge
-                                    {% if room.status == 'Occupied' %}room-occupied
-                                    {% elif room.status == 'Available' %}room-available
-                                    {% elif room.status in ['Reserved', 'Booked'] %}room-reserved
-                                    {% elif room.status == 'Maintenance' %}room-maintenance
-                                    {% endif %}">
-                                    {{ 'Reserved' if room.status == 'Booked' else room.status }}
-                                </span>
-                            </td>
-                            <td>
-                                <form method="POST"
-                                    action="{{ url_for('admin.update_room_status', room_id=room.id) }}"
-                                    class="status-form">
+                                            <form method="POST"
+                                                action="{{ url_for('admin.update_room_status', room_id=room.id) }}"
+                                                class="room-inline-form">
+                                                <select name="status" aria-label="Room status">
+                                                    <option value="Available" {% if room.status == "Available" %}selected{% endif %}>Available</option>
+                                                    <option value="Reserved" {% if room.status in ["Reserved", "Booked"] %}selected{% endif %}>Reserved</option>
+                                                    <option value="Occupied" {% if room.status == "Occupied" %}selected{% endif %}>Occupied</option>
+                                                    <option value="Maintenance" {% if room.status == "Maintenance" %}selected{% endif %}>Maintenance</option>
+                                                </select>
+                                                <button type="submit">Update</button>
+                                            </form>
 
-                                    <select name="status">
-                                        <option value="Available" {% if room.status == "Available" %}selected{% endif %}>
-                                            Available
-                                        </option>
-
-                                        <option value="Reserved" {% if room.status in ["Reserved", "Booked"] %}selected{% endif %}>
-                                            Reserved
-                                        </option>
-
-                                        <option value="Occupied" {% if room.status == "Occupied" %}selected{% endif %}>
-                                            Occupied
-                                        </option>
-
-                                        <option value="Maintenance" {% if room.status == "Maintenance" %}selected{% endif %}>
-                                            Maintenance
-                                        </option>
-                                    </select>
-
-                                    <button type="submit">Update</button>
-
-                                </form>
-                            </td>
-
-                            <td>
-                                {% if session.get("user_role") == "admin" %}
-                                    <a href="{{ url_for('admin.edit_room', room_id=room.id) }}"
-                                    class="action-btn approve-btn">
-                                        Edit
-                                    </a>
-
-                                    <a href="{{ url_for('admin.delete_room', room_id=room.id) }}"
-                                    class="action-btn cancel-btn"
-                                    onclick="return confirm('Are you sure you want to delete this room?');">
-                                        Delete
-                                    </a>
-                                {% else %}
-                                    <span class="muted-text">Admin only</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="7">No rooms found.</td>
-                        </tr>
-                        
-                        {% endfor %}
-                    </tbody>
-                </table>
-
-            </div>
+                                            {% if session.get("user_role") == "admin" %}
+                                                <div class="room-board-actions">
+                                                    <a href="{{ url_for('admin.edit_room', room_id=room.id) }}">Edit</a>
+                                                    <a href="{{ url_for('admin.delete_room', room_id=room.id) }}"
+                                                       class="danger"
+                                                       onclick="return confirm('Are you sure you want to delete this room?');">
+                                                        Delete
+                                                    </a>
+                                                </div>
+                                            {% endif %}
+                                        </article>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </section>
+                    {% endfor %}
+                </div>
+            </section>
 
         </section>
 
