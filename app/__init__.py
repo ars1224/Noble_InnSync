@@ -19,6 +19,7 @@ def create_app():
     from app.models.inventory import InventoryItem
     from app.models.equipment import EquipmentIssue
     from app.models.activity_log import ActivityLog
+    from app.models.user import User
 
     from app.routes.main_routes import main
     from app.routes.room_routes import room

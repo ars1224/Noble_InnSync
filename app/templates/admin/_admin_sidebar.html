@@ -1,5 +1,15 @@
-<aside class="admin-sidebar">
-    <div>
+<button class="admin-sidebar-toggle"
+        type="button"
+        aria-controls="admin-sidebar"
+        aria-expanded="true"
+        aria-label="Hide dashboard navigation"
+        title="Hide navigation"
+        data-admin-sidebar-toggle>
+    <i class="fa-solid fa-bars" aria-hidden="true"></i>
+</button>
+
+<aside class="admin-sidebar" id="admin-sidebar">
+    <div class="admin-sidebar-main">
         <a class="admin-brand" href="{{ url_for('admin.dashboard') }}">
             <span class="admin-brand-mark">N</span>
             <span>
