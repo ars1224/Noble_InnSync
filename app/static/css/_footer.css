@@ -50,8 +50,31 @@
 
 .footer-socials{
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-direction: row;
+    gap: 12px;
+}
+
+.footer-socials a{
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0;
+    border: 1px solid rgba(200,169,107,0.34);
+    background: rgba(255,255,255,0.04);
+}
+
+.footer-socials a i{
+    font-size: 18px;
+}
+
+.footer-socials a:hover{
+    transform: translateY(-3px);
+    background: #c8a96b;
+    border-color: #c8a96b;
+    color: #111827;
 }
 
 .footer-bottom{

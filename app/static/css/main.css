@@ -695,19 +695,42 @@ section{
 .amenity-card{
     padding: 40px 35px;
     text-align: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(25,35,58,0.06);
     transition: 0.35s ease;
 }
 
+.amenity-card::before{
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    background: linear-gradient(90deg, #c8a96b, #e8bd63);
+    opacity: 0.85;
+}
+
 .amenity-icon{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     font-size: 20px;
     font-weight: 700;
     color: #19233a;
     margin-bottom: 20px;
 }
 
+.amenity-icon svg{
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
 .amenity-card h3{
     font-size: 24px;
     margin-bottom: 15px;
+    color: #111;
 }
 
 /* HOW */
@@ -849,19 +872,33 @@ section{
 
 .social-links{
     display: flex;
-    gap: 16px;
+    gap: 12px;
     flex-wrap: wrap;
 }
 
 .social-links a{
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(200,169,107,0.35);
+    background: rgba(200,169,107,0.14);
     text-decoration: none;
     color: #19233a;
-    font-weight: 600;
     transition: 0.3s ease;
 }
 
+.social-links a i{
+    font-size: 18px;
+}
+
 .social-links a:hover{
-    color: #c8a96b;
+    transform: translateY(-3px);
+    background: #19233a;
+    border-color: #19233a;
+    color: #e8bd63;
 }
 
 .map-box{
@@ -1116,6 +1153,11 @@ section{
     color: white;
 }
 
+.amenity-card:hover{
+    border-color: rgba(200,169,107,0.45);
+    box-shadow: 0 22px 55px rgba(25,35,58,0.12);
+}
+
 .amenity-card{
     text-align: left;
 }
@@ -1124,12 +1166,29 @@ section{
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
     min-width: 92px;
-    height: 34px;
-    padding: 0 14px;
+    height: 40px;
+    padding: 0 16px;
     border-radius: 999px;
-    background: rgba(25,35,58,0.06);
+    border: 1px solid rgba(200,169,107,0.35);
+    background: rgba(200,169,107,0.16);
+    color: #19233a;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
     margin-bottom: 18px;
+    transition: 0.3s ease;
+}
+
+.amenity-card:hover .amenity-icon{
+    border-color: #19233a;
+    background: #19233a;
+    color: #e8bd63;
+}
+
+.amenity-card p{
+    margin-bottom: 0;
 }
 
 @media (max-width: 1180px){
