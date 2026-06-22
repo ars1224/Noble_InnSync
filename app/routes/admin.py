@@ -785,11 +785,12 @@ def edit_booking(booking_id):
             }
 
         try:
-            preview_nights, preview_total = calculate_stay_total(
+            preview_nights, preview_room_total = calculate_stay_total(
                 nightly_total,
                 form_values["check_in"],
                 form_values["check_out"]
             )
+            preview_total = round(preview_room_total * 1.15, 2)
         except ValueError:
             preview_nights = 0
             preview_total = 0
@@ -848,11 +849,12 @@ def edit_booking(booking_id):
             form_errors.append("Choose a valid booking status.")
 
         try:
-            nights, total_price = calculate_stay_total(
+            nights, room_total = calculate_stay_total(
                 nightly_total,
                 form_values["check_in"],
                 form_values["check_out"]
             )
+            total_price = round(room_total * 1.15, 2)
         except ValueError as error:
             nights = None
             total_price = None
@@ -1049,11 +1051,12 @@ def walkin_booking():
         nightly_total = sum(room.price for room in valid_rooms)
 
         try:
-            nights, total_price = calculate_stay_total(
+            nights, room_total = calculate_stay_total(
                 nightly_total,
                 check_in,
                 check_out
             )
+            total_price = round(room_total * 1.15, 2)
         except ValueError as error:
             return str(error), 400
 

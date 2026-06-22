@@ -94,7 +94,15 @@ async function updateSuggestedRooms() {
             <strong>${stayText}</strong>
         </div>
         <div class="suggested-room-total">
-            <span>Total stay price</span>
+            <span>Room subtotal</span>
+            <strong>${data.nights ? `$${data.room_total.toFixed(2)}` : "Pending dates"}</strong>
+        </div>
+        <div class="suggested-room-total">
+            <span>Tax and fees</span>
+            <strong>${data.nights ? `$${data.tax_total.toFixed(2)}` : "Pending dates"}</strong>
+        </div>
+        <div class="suggested-room-total">
+            <span>Total stay price incl. 15% tax/fees</span>
             <strong>${data.nights ? `$${data.total_price.toFixed(2)}` : "Pending dates"}</strong>
         </div>
         <p class="suggested-capacity">
@@ -308,7 +316,9 @@ function validateManualRooms() {
 
     if (selectedCapacity >= requiredCapacity) {
         const nights = getStayNights();
-        const stayTotal = selectedNightlyTotal * nights;
+        const roomTotal = selectedNightlyTotal * nights;
+        const taxTotal = roomTotal * 0.15;
+        const stayTotal = roomTotal + taxTotal;
 
         manualRoomMessage.textContent =
             nights
@@ -367,6 +377,10 @@ function updateCustomerChoiceSummary() {
         return;
     }
 
+    const roomTotal = nightlyTotal * nights;
+    const taxTotal = roomTotal * 0.15;
+    const stayTotal = roomTotal + taxTotal;
+
     html += `
         <div class="suggested-room-total">
             <span>Rooms per night</span>
@@ -377,8 +391,16 @@ function updateCustomerChoiceSummary() {
             <strong>${nights ? `${nights} night(s)` : "Select valid dates"}</strong>
         </div>
         <div class="suggested-room-total">
-            <span>Total stay price</span>
-            <strong>${nights ? `$${(nightlyTotal * nights).toFixed(2)}` : "Pending dates"}</strong>
+            <span>Room subtotal</span>
+            <strong>${nights ? `$${roomTotal.toFixed(2)}` : "Pending dates"}</strong>
+        </div>
+        <div class="suggested-room-total">
+            <span>Tax and fees</span>
+            <strong>${nights ? `$${taxTotal.toFixed(2)}` : "Pending dates"}</strong>
+        </div>
+        <div class="suggested-room-total">
+            <span>Total stay price incl. 15% tax/fees</span>
+            <strong>${nights ? `$${stayTotal.toFixed(2)}` : "Pending dates"}</strong>
         </div>
 
         <p class="suggested-capacity">

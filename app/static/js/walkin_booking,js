@@ -45,9 +45,12 @@ function updateWalkinTotal() {
         nights = Math.max(0, Math.round((checkOut - checkIn) / 86400000));
     }
 
+    const roomTotal = nightlyTotal * nights;
+    const taxTotal = roomTotal * 0.15;
+
     walkinNightlyTotal.textContent = nightlyTotal.toFixed(2);
     walkinNights.textContent = nights;
-    walkinTotal.textContent = (nightlyTotal * nights).toFixed(2);
+    walkinTotal.textContent = (roomTotal + taxTotal).toFixed(2);
 
     updateCapacitySummary();
 }

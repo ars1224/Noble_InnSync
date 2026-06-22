@@ -221,7 +221,7 @@
                     Back
                 </a>
 
-                {% if room.available_count > 0 %}
+                {% if room.available_count > 0 and booking_summary.fits_guests %}
                     <a
                         class="solid-btn"
                         href="{{ url_for(
@@ -245,7 +245,7 @@
                             children=booking_summary.children
                         ) }}"
                     >
-                        Choose Another Room
+                        {% if not booking_summary.fits_guests %}Choose Larger Room{% else %}Choose Another Room{% endif %}
                     </a>
                 {% endif %}
             </div>

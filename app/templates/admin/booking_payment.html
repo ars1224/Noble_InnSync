@@ -155,6 +155,7 @@
                                 <div>
                                     <p class="dashboard-tag">ACCOUNT SUMMARY</p>
                                     <h2>${{ "%.2f"|format(booking.total_price) }}</h2>
+                                    <small>incl. 15% tax/fees</small>
                                 </div>
                             </div>
 
@@ -186,7 +187,7 @@
                                     <strong>{{ booking.status }}</strong>
                                 </div>
                                 <div class="booking-price-total">
-                                    <span>Amount due</span>
+                                    <span>Amount due (incl. 15% tax/fees)</span>
                                     <strong>${{ "%.2f"|format(booking.total_price) }}</strong>
                                 </div>
                             </div>

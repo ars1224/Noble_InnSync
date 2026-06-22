@@ -9,6 +9,8 @@ import random
 
 booking = Blueprint("booking", __name__)
 
+TAX_RATE = 0.15
+
 
 def generate_reference_number():
     return "NIS" + str(random.randint(100000, 999999))
@@ -16,6 +18,11 @@ def generate_reference_number():
 
 def generate_transaction_number():
     return "TXN" + str(random.randint(100000, 999999))
+
+
+def add_tax_and_fees(room_total):
+    tax_total = round(float(room_total) * TAX_RATE, 2)
+    return tax_total, round(float(room_total) + tax_total, 2)
 
 
 ROOM_RULES = {
@@ -186,11 +193,12 @@ def book_room():
             return "Not enough available room capacity for this booking."
 
         try:
-            nights, total_price = calculate_stay_total(
+            nights, room_total = calculate_stay_total(
                 room_plan["nightly_total"],
                 check_in,
                 check_out
             )
+            tax_total, total_price = add_tax_and_fees(room_total)
         except ValueError as error:
             return str(error), 400
 
@@ -283,18 +291,22 @@ def suggest_rooms_api():
         "required_capacity": room_plan["required_capacity"],
         "total_capacity": room_plan["total_capacity"],
         "nightly_total": room_plan["nightly_total"],
+        "tax_total": 0,
         "nights": None,
         "total_price": room_plan["nightly_total"]
     }
 
     if check_in and check_out:
         try:
-            nights, total_price = calculate_stay_total(
+            nights, room_total = calculate_stay_total(
                 room_plan["nightly_total"],
                 check_in,
                 check_out
             )
+            tax_total, total_price = add_tax_and_fees(room_total)
             response["nights"] = nights
+            response["room_total"] = room_total
+            response["tax_total"] = tax_total
             response["total_price"] = total_price
         except ValueError as error:
             response["date_error"] = str(error)

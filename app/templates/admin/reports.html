@@ -34,17 +34,17 @@
 
                 <div class="report-metric-grid">
                     <article class="report-metric-card report-metric-primary">
-                        <span>Collected Revenue</span>
+                        <span>Collected Revenue incl. 15% tax/fees</span>
                         <strong>${{ "%.2f"|format(total_revenue) }}</strong>
                         <small>{{ paid_payments }} paid transaction(s)</small>
                     </article>
                     <article class="report-metric-card">
-                        <span>Outstanding Balance</span>
+                        <span>Outstanding Balance incl. 15% tax/fees</span>
                         <strong>${{ "%.2f"|format(outstanding_revenue) }}</strong>
                         <small>{{ unpaid_payments }} unpaid transaction(s)</small>
                     </article>
                     <article class="report-metric-card">
-                        <span>Gross Booking Value</span>
+                        <span>Gross Booking Value incl. 15% tax/fees</span>
                         <strong>${{ "%.2f"|format(gross_booking_value) }}</strong>
                         <small>Excludes cancelled bookings</small>
                     </article>
@@ -186,7 +186,7 @@
                                 <th>Transaction</th>
                                 <th>Booking</th>
                                 <th>Stay</th>
-                                <th>Amount</th>
+                                <th>Amount incl. tax</th>
                                 <th>Method</th>
                                 <th>Status</th>
                             </tr>

@@ -22,6 +22,10 @@
 </section>
 
 <section class="room-detail-shell">
+    {% if capacity_error %}
+        <div class="hold-alert error">{{ capacity_error }}</div>
+    {% endif %}
+
     <div class="booking-form-grid">
         <form class="booking-form-card" action="{{ url_for('room.booking_review', room_id=room.id) }}" method="post">
             <p class="section-tag">GUEST DETAILS</p>
@@ -63,12 +67,12 @@
 
                 <div class="form-field">
                     <label for="adults">Adults</label>
-                    <input id="adults" name="adults" type="number" min="1" value="{{ booking_summary.adults }}" required>
+                    <input id="adults" name="adults" type="number" min="1" max="{{ details.max_adults }}" value="{{ booking_summary.adults }}" required>
                 </div>
 
                 <div class="form-field">
                     <label for="children">Children</label>
-                    <input id="children" name="children" type="number" min="0" value="{{ booking_summary.children }}">
+                    <input id="children" name="children" type="number" min="0" max="{{ details.max_children }}" value="{{ booking_summary.children }}">
                 </div>
             </div>
 
@@ -79,7 +83,7 @@
 
             <div class="booking-form-actions">
                 <a class="ghost-btn" href="{{ url_for('room.room_details', room_id=room.id, check_in=booking_summary.check_in, check_out=booking_summary.check_out, adults=booking_summary.adults, children=booking_summary.children, room_type=booking_summary.room_type, max_price=booking_summary.max_price, sort_by=booking_summary.sort_by) }}">Back</a>
-                <button class="solid-btn" type="submit">Review Booking</button>
+                <button class="solid-btn" type="submit" {% if capacity_error %}disabled{% endif %}>Review Booking</button>
             </div>
         </form>
 

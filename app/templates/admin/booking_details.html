@@ -70,7 +70,7 @@
                     <small>{{ booking.booking_rooms|length }} room(s) allocated</small>
                 </article>
                 <article class="booking-total-overview">
-                    <span>Total stay</span>
+                    <span>Total stay (incl. 15% tax/fees)</span>
                     <strong>${{ "%.2f"|format(booking.total_price) }}</strong>
                     <small>
                         {% if payment %}{{ payment.payment_status }} via {{ payment.payment_method }}{% else %}No payment record{% endif %}
@@ -220,7 +220,7 @@
                                 <strong>{{ payment.payment_method if payment else "Not set" }}</strong>
                             </div>
                             <div class="booking-price-total">
-                                <span>Total booking</span>
+                                <span>Total booking (incl. 15% tax/fees)</span>
                                 <strong>${{ "%.2f"|format(booking.total_price) }}</strong>
                             </div>
                         </div>

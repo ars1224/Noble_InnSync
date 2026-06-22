@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         nightsOutput.textContent = hasValidStay ? String(nights) : "0";
         totalOutput.textContent = hasValidStay
-            ? (nightlyTotal * nights).toFixed(2)
+            ? (nightlyTotal * nights * 1.15).toFixed(2)
             : "0.00";
     };
 

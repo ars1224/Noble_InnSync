@@ -23,10 +23,10 @@
         <p>Your reservation has been confirmed.</p>
         {% elif payment_status == 'failed' %}
         <h1>Payment failed</h1>
-        <p>Your payment could not be processed. Please try again or choose another method.</p>
+        <p>Your payment could not be processed. Please start a new booking when you are ready.</p>
         {% else %}
         <h1>Payment pending</h1>
-        <p>We are waiting for the payment gateway to return a final result.</p>
+        <p>The payment gateway has not returned a completed payment.</p>
         {% endif %}
     </div>
 </section>
@@ -35,9 +35,15 @@
     {% if payment_status == 'success' %}
     <div class="hold-alert success">Payment received. Booking confirmed for {{ temp_booking_id }}.</div>
     {% elif payment_status == 'failed' %}
-    <div class="hold-alert error">Payment was not completed. Your temporary hold may expire if payment is not completed.</div>
+    <div class="hold-alert error">
+        Payment was not completed.
+        {% if hold_released %}Your temporary room hold has been released.{% else %}No active room hold was found.{% endif %}
+    </div>
     {% else %}
-    <div class="hold-alert warning">Payment is being verified by the gateway.</div>
+    <div class="hold-alert warning">
+        Payment is still pending.
+        {% if hold_released %}Your temporary room hold has been released until payment is completed.{% else %}No active room hold was found.{% endif %}
+    </div>
     {% endif %}
 
     <div class="mobile-step-label">
@@ -70,41 +76,19 @@
         {% elif payment_status == 'failed' %}
         <div class="payment-result-icon failed">!</div>
         <h2>Payment could not be processed</h2>
-        <p>No payment was recorded. You can try again, change method, or return to review your booking.</p>
+        <p>No payment was recorded. Please select the room again to restart with a fresh temporary hold.</p>
         <div class="payment-result-actions">
-            <form action="{{ url_for('room.payment_pending', room_id=room.id) }}" method="post">
-                <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
-                <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
-                <input type="hidden" name="email" value="{{ guest_details.email }}">
-                <input type="hidden" name="phone" value="{{ guest_details.phone }}">
-                <input type="hidden" name="check_in" value="{{ booking_summary.check_in }}">
-                <input type="hidden" name="check_out" value="{{ booking_summary.check_out }}">
-                <input type="hidden" name="adults" value="{{ booking_summary.adults }}">
-                <input type="hidden" name="children" value="{{ booking_summary.children }}">
-                <input type="hidden" name="temp_booking_id" value="{{ temp_booking_id }}">
-                <button class="ghost-btn" type="submit">Change Method</button>
-            </form>
-            <form action="{{ url_for('room.payment_success', room_id=room.id) }}" method="post">
-                <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
-                <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
-                <input type="hidden" name="email" value="{{ guest_details.email }}">
-                <input type="hidden" name="phone" value="{{ guest_details.phone }}">
-                <input type="hidden" name="check_in" value="{{ booking_summary.check_in }}">
-                <input type="hidden" name="check_out" value="{{ booking_summary.check_out }}">
-                <input type="hidden" name="adults" value="{{ booking_summary.adults }}">
-                <input type="hidden" name="children" value="{{ booking_summary.children }}">
-                <input type="hidden" name="temp_booking_id" value="{{ temp_booking_id }}">
-                <button class="solid-btn" type="submit">Try Again</button>
-            </form>
+            <a class="ghost-btn" href="{{ url_for('room.room_details', room_id=room.id) }}">View Room</a>
+            <a class="solid-btn" href="{{ url_for('room.available_rooms') }}">Choose Room Again</a>
         </div>
         {% else %}
         <div class="payment-result-icon pending">...</div>
         <h2>Waiting for payment confirmation</h2>
-        <p>The payment provider has not returned a final result yet. Please do not close this page while we check the status.</p>
+        <p>The payment provider has not returned a completed payment. Please restart the booking once payment is ready.</p>
         <div class="pending-progress"><span></span></div>
         <div class="payment-result-actions">
-            <a class="ghost-btn" href="#">Check Status</a>
-            <a class="solid-btn" href="#">Refresh</a>
+            <a class="ghost-btn" href="{{ url_for('room.room_details', room_id=room.id) }}">View Room</a>
+            <a class="solid-btn" href="{{ url_for('room.available_rooms') }}">Choose Room Again</a>
         </div>
         {% endif %}
     </div>

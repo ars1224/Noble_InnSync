@@ -201,6 +201,54 @@ def build_room_detail_summary(selected_room):
     return room_summary
 
 
+def get_catalog_details_for_room_type(room_type):
+    return next(
+        (
+            details for details in ROOM_CATALOG.values()
+            if details["room_type"] == room_type
+        ),
+        None
+    )
+
+
+def get_room_capacity(selected_room):
+    catalog_details = get_catalog_details_for_room_type(selected_room.room_type)
+    if not catalog_details:
+        abort(404)
+
+    return (
+        catalog_details["capacity_adults"],
+        catalog_details["capacity_children"],
+    )
+
+
+def parse_guest_counts(source):
+    try:
+        adults_count = max(1, int(source.get("adults", "1")))
+    except (TypeError, ValueError):
+        adults_count = 1
+
+    try:
+        children_count = max(0, int(source.get("children", "0")))
+    except (TypeError, ValueError):
+        children_count = 0
+
+    return adults_count, children_count
+
+
+def room_capacity_error(selected_room, source):
+    adults_count, children_count = parse_guest_counts(source)
+    max_adults, max_children = get_room_capacity(selected_room)
+
+    if adults_count <= max_adults and children_count <= max_children:
+        return None
+
+    return (
+        f"{selected_room.room_type} fits up to {max_adults} adult(s) "
+        f"and {max_children} child(ren). Please choose a larger room "
+        "or reduce the guest count."
+    )
+
 
 def get_room_details(selected_room):
     room_images = {
@@ -208,10 +256,13 @@ def get_room_details(selected_room):
         "Double Room": "ChatGPT Image Jun 2, 2026, 08_37_54 PM.png",
         "Family Room": "ChatGPT Image Jun 2, 2026, 08_38_19 PM.png",
     }
+    max_adults, max_children = get_room_capacity(selected_room)
     return {
         "title": selected_room.room_type,
         "description": selected_room.description,
-        "capacity": "See room capacity",
+        "capacity": f"{max_adults} adult(s), {max_children} child(ren)",
+        "max_adults": max_adults,
+        "max_children": max_children,
         "bed": "Bed included",
         "image": room_images.get(selected_room.room_type, "BCO.4a342cff-d6f3-4296-b81d-efc5c1fab770.png"),
         "amenities": ["Wi-Fi", "Air conditioning", "Private bathroom"],
@@ -300,15 +351,26 @@ def build_guest_details(source):
     }
 
 
-def build_price_breakdown(selected_room):
-    nights = 2
-    room_total = selected_room.price * nights
+def build_price_breakdown(selected_room, source):
+    try:
+        nights, room_total = calculate_stay_total(
+            selected_room.price,
+            source.get("check_in", ""),
+            source.get("check_out", "")
+        )
+        date_error = None
+    except ValueError as error:
+        nights = 0
+        room_total = 0
+        date_error = str(error)
+
     tax_total = room_total * 0.15
     return {
         "nights": nights,
         "room_total": room_total,
         "tax_total": tax_total,
         "total": room_total + tax_total,
+        "date_error": date_error,
     }
 
 
@@ -330,9 +392,16 @@ def build_booking_reference(selected_room):
 
 
 def save_confirmed_booking(selected_room, form_source, booking_reference):
+    capacity_error = room_capacity_error(selected_room, form_source)
+    if capacity_error:
+        abort(400, description=capacity_error)
+
     guest_details = build_guest_details(form_source)
     booking_summary = build_booking_summary(form_source)
-    price_breakdown = build_price_breakdown(selected_room)
+    price_breakdown = build_price_breakdown(selected_room, form_source)
+    if price_breakdown["date_error"]:
+        abort(400, description=price_breakdown["date_error"])
+
     guest_name = (
         f"{guest_details['first_name']} {guest_details['last_name']}"
     ).strip() or "Guest"
@@ -443,31 +512,47 @@ def room_details(room_id):
 @room.route("/rooms/<int:room_id>/book")
 def booking_form(room_id):
     selected_room = Room.query.get_or_404(room_id)
+    capacity_error = room_capacity_error(selected_room, request.args)
 
     return render_template(
         "rooms/booking_form.html",
         room=selected_room,
         details=get_room_details(selected_room),
         booking_summary=build_booking_summary(request.args),
+        capacity_error=capacity_error,
     )
 
 
 @room.route("/rooms/<int:room_id>/review", methods=["POST"])
 def booking_review(room_id):
     selected_room = Room.query.get_or_404(room_id)
+    capacity_error = room_capacity_error(selected_room, request.form)
+    if capacity_error:
+        return render_template(
+            "rooms/booking_form.html",
+            room=selected_room,
+            details=get_room_details(selected_room),
+            booking_summary=build_booking_summary(request.form),
+            capacity_error=capacity_error,
+        ), 400
+
     return render_template(
         "rooms/booking_review.html",
         room=selected_room,
         details=get_room_details(selected_room),
         booking_summary=build_booking_summary(request.form),
         guest_details=build_guest_details(request.form),
-        price_breakdown=build_price_breakdown(selected_room),
+        price_breakdown=build_price_breakdown(selected_room, request.form),
     )
 
 
 @room.route("/rooms/<int:room_id>/hold", methods=["POST"])
 def temporary_booking_hold(room_id):
     selected_room = Room.query.get_or_404(room_id)
+    capacity_error = room_capacity_error(selected_room, request.form)
+    if capacity_error:
+        abort(400, description=capacity_error)
+
     hold_created = selected_room.status == "Available"
     if hold_created:
         selected_room.status = "On Hold"
@@ -479,7 +564,7 @@ def temporary_booking_hold(room_id):
         details=get_room_details(selected_room),
         booking_summary=build_booking_summary(request.form),
         guest_details=build_guest_details(request.form),
-        price_breakdown=build_price_breakdown(selected_room),
+        price_breakdown=build_price_breakdown(selected_room, request.form),
         temp_booking_id=build_temp_booking_id(selected_room),
         hold_created=hold_created,
     )
@@ -498,7 +583,7 @@ def payment_success(room_id):
         details=get_room_details(selected_room),
         booking_summary=build_booking_summary(request.form),
         guest_details=build_guest_details(request.form),
-        price_breakdown=build_price_breakdown(selected_room),
+        price_breakdown=build_price_breakdown(selected_room, request.form),
         booking_reference=booking_reference,
         notification_sent=True,
     )
@@ -517,25 +602,39 @@ def payment_notification_failed(room_id):
         details=get_room_details(selected_room),
         booking_summary=build_booking_summary(request.form),
         guest_details=build_guest_details(request.form),
-        price_breakdown=build_price_breakdown(selected_room),
+        price_breakdown=build_price_breakdown(selected_room, request.form),
         booking_reference=booking_reference,
         notification_sent=False,
     )
 
 
+def release_temporary_hold(selected_room):
+    if selected_room.status != "On Hold":
+        return False
+
+    selected_room.status = "Available"
+    db.session.commit()
+    return True
+
+
 def render_payment_result(room_id, payment_status):
     selected_room = Room.query.get_or_404(room_id)
+    hold_released = False
+    if payment_status in {"failed", "pending"}:
+        hold_released = release_temporary_hold(selected_room)
+
     return render_template(
         "rooms/payment_result.html",
         room=selected_room,
         details=get_room_details(selected_room),
         booking_summary=build_booking_summary(request.form or request.args),
         guest_details=build_guest_details(request.form or request.args),
-        price_breakdown=build_price_breakdown(selected_room),
+        price_breakdown=build_price_breakdown(selected_room, request.form or request.args),
         temp_booking_id=request.values.get(
             "temp_booking_id", build_temp_booking_id(selected_room)
         ),
         payment_status=payment_status,
+        hold_released=hold_released,
     )
 
 
