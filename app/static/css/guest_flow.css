@@ -792,6 +792,17 @@
     justify-content: center;
 }
 
+.print-reservation-header {
+    display: none;
+}
+
+.print-reservation-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
 .pending-progress {
     height: 8px;
     margin: 24px 0;
@@ -983,5 +994,98 @@
     .booking-form-actions > *,
     .payment-actions > * {
         width: 100%;
+    }
+}
+
+@media print {
+    @page {
+        margin: 18mm;
+    }
+
+    body {
+        background: #fff !important;
+        color: #111827 !important;
+    }
+
+    .checkout-topbar,
+    .site-footer,
+    .sidebar,
+    .public-sidebar,
+    .checkout-page-header,
+    .booking-stepper,
+    .mobile-step-label,
+    .hold-alert,
+    .confirmation-actions,
+    .payment-result-icon,
+    .no-print {
+        display: none !important;
+    }
+
+    .main-content,
+    .room-detail-shell {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff !important;
+    }
+
+    .printable-reservation {
+        display: block !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        color: #111827 !important;
+        text-align: left !important;
+    }
+
+    .print-reservation-header {
+        display: block !important;
+        margin-bottom: 22px;
+        padding-bottom: 14px;
+        border-bottom: 2px solid #19233a;
+    }
+
+    .print-reservation-header h2 {
+        margin: 0;
+        color: #19233a !important;
+        font-size: 26px;
+    }
+
+    .print-reservation-header p,
+    .print-reservation-header span {
+        display: block;
+        margin: 4px 0 0;
+        color: #4b5563 !important;
+    }
+
+    .confirmation-reference,
+    .confirmation-trip-strip {
+        color: #111827 !important;
+        background: #fff !important;
+        border: 1px solid #d1d5db !important;
+    }
+
+    .confirmation-reference strong,
+    .confirmation-trip-strip span {
+        color: #111827 !important;
+    }
+
+    .confirmation-grid,
+    .next-step-list {
+        display: block !important;
+    }
+
+    .confirmation-card,
+    .confirmation-next-steps {
+        margin-top: 16px !important;
+        padding: 0 !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        break-inside: avoid;
     }
 }

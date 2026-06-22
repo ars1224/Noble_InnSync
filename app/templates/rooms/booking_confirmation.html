@@ -42,7 +42,13 @@
         <span class="active">Confirmation</span>
     </div>
 
-    <div class="confirmation-panel">
+    <div class="confirmation-panel printable-reservation">
+        <div class="print-reservation-header">
+            <h2>The Noble Inn</h2>
+            <p>Reservation confirmation</p>
+            <span>Auckland, New Zealand | +64 21 123 4567 | reservations@nobleinnsync.com</span>
+        </div>
+
         <div class="payment-result-icon success">OK</div>
         <h2>You're all set</h2>
         <p>Your reservation is paid and confirmed. Keep this booking reference handy for check-in.</p>
@@ -86,7 +92,7 @@
                     </div>
                     <div>
                         <strong>Room</strong>
-                        <p>{{ room.room_type }}</p>
+                        <p>Room {{ room.room_number }} - {{ room.room_type }}</p>
                     </div>
                     <div>
                         <strong>Total Paid (incl. 15% tax/fees)</strong>
@@ -155,7 +161,10 @@
 
         <div class="payment-result-actions confirmation-actions">
             <a class="solid-btn" href="{{ url_for('main.reservation_status', reference_number=booking_reference) }}">View Status</a>
-            <a class="ghost-btn" href="#">Download Receipt</a>
+            <button class="ghost-btn print-reservation-btn" type="button" onclick="window.print()">
+                <i class="fa-solid fa-print" aria-hidden="true"></i>
+                Print Reservation
+            </button>
             <a class="ghost-btn" href="{{ url_for('main.home') }}">Back Home</a>
         </div>
     </div>

@@ -34,14 +34,33 @@
                 </h2>
             </div>
 
-            <a
-                class="results-back-link"
-                href="{{ url_for('main.home') }}#availability"
-            >
-                Edit Search
-            </a>
-
         </div>
+
+        <form id="room-search-form" class="room-search-form" action="{{ url_for('room.available_rooms') }}" method="get">
+            <div class="field">
+                <label for="room_check_in">Check-in</label>
+                <input id="room_check_in" name="check_in" type="date" value="{{ search_summary.check_in }}" required>
+            </div>
+
+            <div class="field">
+                <label for="room_check_out">Check-out</label>
+                <input id="room_check_out" name="check_out" type="date" value="{{ search_summary.check_out }}" required>
+            </div>
+
+            <div class="field">
+                <label for="room_adults">Adults</label>
+                <input id="room_adults" name="adults" type="number" min="1" value="{{ search_summary.adults }}" required>
+            </div>
+
+            <div class="field">
+                <label for="room_children">Children</label>
+                <input id="room_children" name="children" type="number" min="0" value="{{ search_summary.children }}">
+            </div>
+
+            <div class="room-search-action">
+                <button type="submit">Update Search</button>
+            </div>
+        </form>
 
         <div class="summary-pills">
 
@@ -198,7 +217,7 @@
             </p>
 
             <a
-                href="{{ url_for('main.home') }}#availability"
+                href="#room-search-form"
                 class="solid-btn"
             >
                 Change Search

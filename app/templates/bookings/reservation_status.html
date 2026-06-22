@@ -58,7 +58,13 @@
         </div>
 
         {% if booking %}
-            <aside class="booking-summary-card reservation-status-card">
+            <aside class="booking-summary-card reservation-status-card printable-reservation">
+                <div class="print-reservation-header">
+                    <h2>The Noble Inn</h2>
+                    <p>Reservation details</p>
+                    <span>Auckland, New Zealand | +64 21 123 4567 | reservations@nobleinnsync.com</span>
+                </div>
+
                 <div class="booking-card-header">
                     <div class="booking-line"></div>
                     <h2>BOOKING FOUND</h2>
@@ -116,6 +122,11 @@
                         <strong>{% if payment %}{{ payment.payment_status }}{% else %}No payment record{% endif %}</strong>
                     </div>
                 </div>
+
+                <button class="booking-btn secondary-print-btn" type="button" onclick="window.print()">
+                    <i class="fa-solid fa-print" aria-hidden="true"></i>
+                    PRINT RESERVATION
+                </button>
             </aside>
         {% elif searched %}
             <aside class="booking-summary-card reservation-status-card">

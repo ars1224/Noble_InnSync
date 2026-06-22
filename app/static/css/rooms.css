@@ -60,13 +60,63 @@
     margin: 0;
 }
 
-.results-back-link{
+.room-search-form{
+    margin-bottom: 24px;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+    gap: 18px;
+    align-items: end;
+    background: #fcfbf8;
+    border: 1px solid rgba(25,35,58,0.06);
+    border-radius: 24px;
+    box-shadow: 0 16px 45px rgba(0,0,0,0.05);
+}
+
+.room-search-form .field{
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.room-search-form label{
+    color: #19233a;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.room-search-form input{
+    width: 100%;
+    min-height: 54px;
+    padding: 0 16px;
+    border: 1px solid rgba(25,35,58,0.12);
+    border-radius: 14px;
+    color: #19233a;
+    background: #fff;
+    font-weight: 700;
+    outline: none;
+}
+
+.room-search-form input:focus{
+    border-color: #d4a762;
+    box-shadow: 0 0 0 3px rgba(212,167,98,0.16);
+}
+
+.room-search-action button{
     min-width: 170px;
     height: 54px;
-    background: #19233a;
-    color: white;
+    border: 0;
     border-radius: 14px;
-    padding: 0 24px;
+    color: #fff;
+    background: #19233a;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.room-search-action button:hover{
+    background: #d4a762;
+    color: #08111f;
 }
 
 .summary-pills{
@@ -263,9 +313,22 @@
 
     .available-room-top,
     .room-card-footer,
-    .results-header-card{
+    .results-header-card,
+    .room-search-form{
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .room-search-form{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .room-search-action{
+        grid-column: 1 / -1;
+    }
+
+    .room-search-action button{
+        width: 100%;
     }
 }
 
@@ -286,8 +349,7 @@
     }
 
     .ghost-btn,
-    .solid-btn,
-    .results-back-link{
+    .solid-btn{
         width: 100%;
     }
 
@@ -300,6 +362,11 @@
 @media (max-width: 600px){
     .results-header-card{
         padding: 26px 22px;
+    }
+
+    .room-search-form{
+        grid-template-columns: 1fr;
+        padding: 22px;
     }
 
     .available-room-card{

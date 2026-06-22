@@ -25,7 +25,12 @@
 <section class="booking-section">
     <div class="booking-container success-container">
 
-        <div class="booking-form-card success-card">
+        <div class="booking-form-card success-card printable-reservation">
+            <div class="print-reservation-header">
+                <h2>The Noble Inn</h2>
+                <p>Reservation confirmation</p>
+                <span>Auckland, New Zealand | +64 21 123 4567 | reservations@nobleinnsync.com</span>
+            </div>
 
             <div class="booking-card-header">
                 <div class="booking-line"></div>
@@ -84,9 +89,16 @@
 
             </div>
 
-            <a href="{{ url_for('main.reservation_status', reference_number=booking.reference_number) }}" class="booking-btn success-btn">
-                VIEW STATUS
-            </a>
+            <div class="reservation-actions">
+                <a href="{{ url_for('main.reservation_status', reference_number=booking.reference_number) }}" class="booking-btn success-btn">
+                    VIEW STATUS
+                </a>
+
+                <button class="booking-btn secondary-print-btn" type="button" onclick="window.print()">
+                    <i class="fa-solid fa-print" aria-hidden="true"></i>
+                    PRINT RESERVATION
+                </button>
+            </div>
 
         </div>
 
