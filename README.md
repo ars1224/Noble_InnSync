@@ -2,16 +2,16 @@
 
 Noble InnSync is a hotel booking and operations management system built for the SD203 final prototype. It supports guest room booking, reservation tracking, staff workflows, inventory monitoring, equipment reporting, payments, and management reporting in one Flask application.
 
-## Final Prototype Status
+## 📖 Final Prototype Status
 
 This version is the completed final prototype for assessment submission. The main guest, staff, admin, and manager workflows are implemented and have been tested through the application UI and Flask test client smoke checks.
 
-## Team Members
+## 👥 Team Members
 
 - Dhona Obina
 - Aries Tayao
 
-## Technology Stack
+## 💻 Technology Stack
 
 - Python
 - Flask
@@ -23,7 +23,7 @@ This version is the completed final prototype for assessment submission. The mai
 - JavaScript
 - Font Awesome icons
 
-## Project Structure
+## 🏗️ Project Structure
 
 ```text
 Noble_InnSync/
@@ -39,7 +39,7 @@ Noble_InnSync/
 `-- README.md
 ```
 
-## Features
+## ✨ Features
 
 ### Guest Features
 
@@ -66,7 +66,7 @@ Noble_InnSync/
 - Manager reports for revenue, bookings, rooms, and payments
 - Responsive admin dashboards for desktop, tablet, and medium screens
 
-## Installation
+## ⚙️ Installation
 
 1. Clone the repository:
 
@@ -118,7 +118,7 @@ pip install -r requirements.txt
 python create_db.py
 ```
 
-## Running the Application
+## ▶️ Running the Application
 
 Start the Flask application:
 
@@ -132,7 +132,7 @@ Open the app in a browser:
 http://localhost:5000
 ```
 
-## Test Credentials
+## 🔐 Test Credentials
 
 Use these accounts to test the staff workspace:
 
@@ -148,7 +148,7 @@ Staff login page:
 http://localhost:5000/auth/staff-login
 ```
 
-## Tested Features
+## ✅ Tested Features
 
 The following workflows have been checked for the final prototype:
 
@@ -167,7 +167,7 @@ The following workflows have been checked for the final prototype:
 - Equipment, activity log, room, booking, payment, report, and walk-in pages load after login
 - Admin dashboard controls stay inside their cards on medium screen sizes
 
-## Smoke Test Commands
+## 🧪 Smoke Test Commands
 
 Run a basic application smoke test with:
 
@@ -182,11 +182,11 @@ Expected output:
 200
 ```
 
-## GitHub Repository
+## 📂 GitHub Repository
 
 https://github.com/ars1224/Noble_InnSync.git
 
-## Assessment Deliverables
+## 📹 Assessment Deliverables
 
 - Complete working prototype
 - GitHub repository with regular commits
