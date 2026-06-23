@@ -106,15 +106,26 @@ Open your browser and visit:
 http://localhost:5000
 ```
 
-## 🔐 Test Credentials
+## 🔐 Staff Accounts
 
-### Admin Account
+Staff accounts are stored in SQLite with hashed passwords. Create the first account
+with the Flask CLI; the password is requested through a hidden prompt and is never
+stored in source code:
 
-admin / admin123
+```bash
+flask --app run create-user --username admin --role admin --full-name "System Admin"
+```
 
-staff / staff123
+List the configured accounts without showing password hashes:
 
-manager / manager123
+```bash
+flask --app run list-users
+```
+
+To change an existing account, repeat `create-user` with the `--update` flag.
+
+For production, set a long random `SECRET_KEY` environment variable. Local
+development automatically creates a private ignored key in `instance/.secret_key`.
 
 ## 🗄️ Database
 

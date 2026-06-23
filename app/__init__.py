@@ -1,12 +1,35 @@
+import os
+import secrets
+
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
+
+def _load_secret_key(app):
+    """Load a deployment secret or create a private key for local development."""
+    configured_secret = os.environ.get("SECRET_KEY")
+    if configured_secret:
+        return configured_secret
+
+    os.makedirs(app.instance_path, exist_ok=True)
+    secret_file = os.path.join(app.instance_path, ".secret_key")
+
+    try:
+        with open(secret_file, encoding="utf-8") as file:
+            return file.read().strip()
+    except FileNotFoundError:
+        generated_secret = secrets.token_urlsafe(64)
+        with open(secret_file, "x", encoding="utf-8") as file:
+            file.write(generated_secret)
+        return generated_secret
+
+
 def create_app():
     app = Flask(__name__)
 
-    app.config["SECRET_KEY"] = "dev-secret-key"
+    app.config["SECRET_KEY"] = _load_secret_key(app)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///noble_innsync.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -33,5 +56,10 @@ def create_app():
     app.register_blueprint(booking)
     app.register_blueprint(admin)
     app.register_blueprint(auth)
+
+    from app.commands import create_user_command, list_users_command
+
+    app.cli.add_command(create_user_command)
+    app.cli.add_command(list_users_command)
 
     return app

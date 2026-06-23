@@ -8,7 +8,6 @@ from app.models.booking_room import BookingRoom
 from app.models.equipment import EquipmentIssue
 from app.models.inventory import InventoryItem
 from app.models.room import Room
-from app.models.user import User
 from app.utils.pricing import calculate_stay_total
 
 app = create_app()
@@ -114,14 +113,6 @@ INVENTORY_SEED = [
     ("Printer Paper", "Front Office", 7, 10, "reams"),
 ]
 
-USERS_SEED = [
-    ("admin", "admin123", "admin", "Avery Morgan"),
-    ("staff", "staff123", "staff", "Mia Clarke"),
-    ("manager", "manager123", "manager", "Jordan Lee"),
-    ("housekeeping", "house123", "staff", "Samira Khan"),
-]
-
-
 def iso(day):
     return day.strftime("%Y-%m-%d")
 
@@ -137,19 +128,6 @@ def upsert_inventory():
         item.current_stock = stock
         item.reorder_level = reorder_level
         item.unit = unit
-
-
-def upsert_users():
-    for username, password, role, full_name in USERS_SEED:
-        user = User.query.filter_by(username=username).first()
-        if not user:
-            user = User(username=username)
-            user.set_password(password)
-            db.session.add(user)
-
-        user.role = role
-        user.full_name = full_name
-        user.status = "Active"
 
 
 def upsert_rooms():
@@ -506,7 +484,6 @@ with app.app_context():
 
     today = date.today()
 
-    upsert_users()
     upsert_inventory()
     upsert_rooms()
     db.session.commit()
