@@ -178,6 +178,8 @@ The following workflows have been checked for the final prototype:
 - Equipment, activity log, room, booking, payment, report, and walk-in pages load after login
 - Admin dashboard controls stay inside their cards on medium screen sizes
 
+See [TESTING.md](TESTING.md) for the guest, staff, admin, manager, and responsive testing checklist.
+
 ## 🧪 Smoke Test Commands
 
 Run a basic application smoke test with:
