@@ -104,14 +104,17 @@
 
                                             <form method="POST"
                                                 action="{{ url_for('admin.update_room_status', room_id=room.id) }}"
-                                                class="room-inline-form">
-                                                <select name="status" aria-label="Room status">
+                                                class="room-inline-form"
+                                                data-room-status-form
+                                                data-room-number="{{ room.room_number }}"
+                                                data-current-status="{{ room.status }}">
+                                                <select name="status" aria-label="Room status" data-room-status-select>
                                                     <option value="Available" {% if room.status == "Available" %}selected{% endif %}>Available</option>
                                                     <option value="Reserved" {% if room.status in ["Reserved", "Booked"] %}selected{% endif %}>Reserved</option>
                                                     <option value="Occupied" {% if room.status == "Occupied" %}selected{% endif %}>Occupied</option>
                                                     <option value="Maintenance" {% if room.status == "Maintenance" %}selected{% endif %}>Maintenance</option>
                                                 </select>
-                                                <button type="submit">Update</button>
+                                                <button type="submit" data-room-status-submit>Update</button>
                                             </form>
 
                                             {% if session.get("user_role") == "admin" %}
@@ -139,4 +142,65 @@
 
 </div>
 
+<div class="inventory-modal-backdrop" data-maintenance-modal hidden>
+    <section class="inventory-modal maintenance-modal" role="dialog" aria-modal="true" aria-labelledby="maintenanceModalTitle">
+        <div class="inventory-modal-header">
+            <div>
+                <p class="dashboard-tag">NEW REPORT</p>
+                <h2 id="maintenanceModalTitle">Report equipment issue</h2>
+                <span data-maintenance-subtitle>Room maintenance report</span>
+            </div>
+            <div class="maintenance-modal-header-actions">
+                <span class="maintenance-modal-icon" aria-hidden="true">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </span>
+                <button type="button" class="inventory-modal-close" data-maintenance-close aria-label="Close maintenance popup">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+
+        <form method="POST" class="maintenance-modal-form" data-maintenance-form>
+            <input type="hidden" name="status" value="Maintenance">
+            <div class="maintenance-report-grid">
+                <label>
+                    <span>Room</span>
+                    <select data-maintenance-room-select disabled aria-label="Room">
+                        <option data-maintenance-room-option>Selected room</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Equipment</span>
+                    <input name="equipment_name" placeholder="AC unit, TV, lock" maxlength="100" required data-maintenance-equipment>
+                </label>
+                <label>
+                    <span>Status</span>
+                    <select name="issue_status">
+                        <option>Check Needed</option>
+                        <option>Broken</option>
+                        <option>Working</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Priority</span>
+                    <select name="priority">
+                        <option>Low</option>
+                        <option selected>Medium</option>
+                        <option>High</option>
+                    </select>
+                </label>
+                <label class="maintenance-notes-field">
+                    <span>Notes</span>
+                    <input name="notes" placeholder="Short issue notes" maxlength="500" required>
+                </label>
+                <button type="submit" class="maintenance-report-submit">Report issue &amp; set maintenance</button>
+            </div>
+        </form>
+    </section>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_rooms.js', v='2') }}"></script>
 {% endblock %}

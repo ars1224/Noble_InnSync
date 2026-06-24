@@ -1,6 +1,43 @@
 # Testing Evidence
 
-This document records the main workflows tested for the Noble InnSync final prototype. Testing was completed through manual browser checks and Flask test client smoke checks.
+This document records the automated and manual checks for the Noble InnSync final prototype. Automated tests run against a temporary in-memory SQLite database, so they do not read from or change `instance/noble_innsync.db`.
+
+## Automated Test Suite
+
+Run all automated tests from the project root:
+
+```powershell
+.\venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+The command must finish with `OK`. The suite currently checks:
+
+- Public homepage, reservation lookup, availability search, and legacy login routes.
+- Search values remaining visible on the available rooms page.
+- Missing, malformed, same-day, and reversed stay dates.
+- Correct multi-night pricing and the 15% tax/fees calculation.
+- Single Room capacity enforcement.
+- Maintenance rooms being excluded from available room options.
+- Temporary room holds being released after failed payment.
+- Successful payment creating one booking and one accounting record.
+- Duplicate payment submission being rejected without creating another booking.
+- Lapsed active bookings being cancelled and paid card records being refunded.
+- Maintenance reports requiring details, creating equipment issues, and supporting repeat reports.
+- Inventory item creation, editing, restocking, category filter markup, and manager alerts.
+- Equipment issue reporting, maintenance requests, and manager resolution.
+- Booking approval, check-in, check-out, editing, payment updates, and cancellation.
+- Walk-in bookings creating accounting records and marking rooms occupied.
+- Admin room creation, editing, and deletion.
+- Confirmation actions returning home and print rules excluding navigation and the footer.
+- Successful login, incorrect passwords, inactive accounts, and logout.
+- Unauthenticated users being redirected to staff login.
+- Staff and manager role restrictions.
+- Authenticated admin pages reaching the requested page instead of a redirected login page.
+- Key pages not referencing missing local CSS, JavaScript, or image files.
+
+The suite currently contains 22 isolated tests.
+
+The automated users and passwords exist only inside the temporary test database. They are not application credentials.
 
 ## Guest Workflows
 
@@ -63,9 +100,11 @@ Responsive behavior checked:
 - Guest booking text and buttons remain readable.
 - Navigation remains usable on smaller screens.
 
-## Smoke Test Commands
+Record the browser name, viewport width, date, result, and any screenshot for each manual responsive run. Suggested exact widths are `1440px`, `1024px`, `768px`, and `390px`.
 
-Public page smoke test:
+## Quick Smoke Checks
+
+The full automated suite above is the preferred check. For a quick public-page check only, run:
 
 ```bash
 python -c "from app import create_app; app=create_app(); c=app.test_client(); print(c.get('/').status_code); print(c.get('/reservation-status').status_code)"
@@ -78,13 +117,19 @@ Expected output:
 200
 ```
 
-Admin page smoke test:
+Do not use `follow_redirects=True` plus status codes alone to verify protected pages. A failed login can redirect back to the login page and still finish with `200`. The automated suite verifies both authentication and the final requested path.
 
-```bash
-python -c "from app import create_app; app=create_app(); c=app.test_client(); login=c.post('/auth/staff-login', data={'username':'admin','password':'admin123'}, follow_redirects=True); pages=['/admin/dashboard','/admin/inventory','/admin/equipment','/admin/activity-log','/admin/rooms','/admin/bookings','/admin/payments','/admin/reports','/admin/walk-in-booking']; print(login.status_code); [print(page, c.get(page).status_code) for page in pages]"
-```
+## Manual Evidence Record
 
-Expected result:
+For each manual session, record:
 
-- Login response returns `200`.
-- Each listed admin page returns `200`.
+- Date and tester.
+- Browser and viewport size.
+- Test data used, without real payment or personal information.
+- Expected result and actual result.
+- Pass or fail.
+- Screenshot or defect reference when relevant.
+
+## Remaining Security Checks
+
+Before production deployment, add CSRF protection and convert state-changing admin links such as approve, cancel, delete, and status changes to POST requests. Then add automated tests confirming GET requests cannot change application data.

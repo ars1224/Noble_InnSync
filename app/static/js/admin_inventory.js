@@ -1,4 +1,34 @@
 document.addEventListener("DOMContentLoaded", () => {
+    const filterButtons = document.querySelectorAll("[data-inventory-filter]");
+    const inventoryRows = document.querySelectorAll("[data-inventory-category]");
+    const emptyFilterRow = document.querySelector("[data-inventory-filter-empty]");
+
+    filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+            const selectedCategory = button.dataset.inventoryFilter;
+            let visibleCount = 0;
+
+            filterButtons.forEach((filterButton) => {
+                const isActive = filterButton === button;
+                filterButton.classList.toggle("active", isActive);
+                filterButton.setAttribute("aria-pressed", String(isActive));
+            });
+
+            inventoryRows.forEach((row) => {
+                const isVisible = (
+                    selectedCategory === "all"
+                    || row.dataset.inventoryCategory === selectedCategory
+                );
+                row.hidden = !isVisible;
+                visibleCount += isVisible ? 1 : 0;
+            });
+
+            if (emptyFilterRow) {
+                emptyFilterRow.hidden = visibleCount !== 0;
+            }
+        });
+    });
+
     const modal = document.querySelector("[data-inventory-modal]");
 
     if (!modal) {

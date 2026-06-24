@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, redirect, render_template, request, url_for
 from app.models.booking import Booking
 from app.models.room import Room
 
@@ -59,7 +59,7 @@ def home():
 
 @main.route("/login")
 def login_selection():
-    return render_template("login_selection.html")
+    return redirect(url_for("auth.staff_login"))
 
 
 @main.route("/reservation-status")

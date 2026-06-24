@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, session
+from flask import Blueprint, abort, render_template, redirect, url_for, request, session
 
 from app import db
 from app.models.booking import Booking
@@ -651,6 +651,39 @@ def update_room_status(room_id):
     new_status = request.form.get("status")
 
     if new_status in ["Available", "Reserved", "Occupied", "Maintenance"]:
+        if new_status == "Maintenance":
+            equipment_name = request.form.get("equipment_name", "").strip()
+            notes = request.form.get("notes", "").strip()
+            issue_status = request.form.get("issue_status", "Check Needed")
+            priority = request.form.get("priority", "Medium")
+
+            if not equipment_name or not notes:
+                abort(400, description="Equipment and issue notes are required.")
+
+            allowed_issue_statuses = ["Check Needed", "Broken", "Working"]
+            allowed_priorities = ["Low", "Medium", "High"]
+            if issue_status not in allowed_issue_statuses:
+                issue_status = "Check Needed"
+            if priority not in allowed_priorities:
+                priority = "Medium"
+
+            issue = EquipmentIssue(
+                room_id=room.id,
+                equipment_name=equipment_name,
+                status=issue_status,
+                priority=priority,
+                notes=notes,
+                reported_by=session.get("username", "staff"),
+                maintenance_status="Requested",
+            )
+            db.session.add(issue)
+
+            add_activity(
+                "Equipment",
+                f"{equipment_name} issue reported for room {room.room_number}: {notes[:150]}",
+                "Sent",
+            )
+
         room.status = new_status
         db.session.commit()
 

@@ -160,12 +160,11 @@
         </section>
 
         <div class="payment-result-actions confirmation-actions">
-            <a class="solid-btn" href="{{ url_for('main.reservation_status', reference_number=booking_reference) }}">View Status</a>
+            <a class="solid-btn" href="{{ url_for('main.home') }}">Go Back Home</a>
             <button class="ghost-btn print-reservation-btn" type="button" onclick="window.print()">
                 <i class="fa-solid fa-print" aria-hidden="true"></i>
                 Print Reservation
             </button>
-            <a class="ghost-btn" href="{{ url_for('main.home') }}">Back Home</a>
         </div>
     </div>
 </section>

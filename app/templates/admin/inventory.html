@@ -122,9 +122,9 @@
                 </div>
 
                 <div class="operations-chip-row" aria-label="Inventory categories">
-                    <span class="active">All {{ items|length }}</span>
+                    <button type="button" class="active" data-inventory-filter="all" aria-pressed="true">All {{ items|length }}</button>
                     {% for category, count in category_counts.items() %}
-                        <span>{{ category }} {{ count }}</span>
+                        <button type="button" data-inventory-filter="{{ category|e }}" aria-pressed="false">{{ category }} {{ count }}</button>
                     {% endfor %}
                 </div>
 
@@ -146,7 +146,7 @@
                                 {% set status_key = item.stock_status|lower|replace(' ', '-') %}
                                 {% set stock_percent = ((item.current_stock / item.reorder_level) * 100) if item.reorder_level else 100 %}
                                 {% set stock_level = 100 if stock_percent > 100 else stock_percent %}
-                                <tr class="inventory-table-row inventory-{{ status_key }}">
+                                <tr class="inventory-table-row inventory-{{ status_key }}" data-inventory-category="{{ item.category|e }}">
                                     <td>
                                         <strong>{{ item.item_name }}</strong>
                                         <small>{{ item.unit }}</small>
@@ -195,6 +195,9 @@
                                     <td colspan="7">No inventory records yet.</td>
                                 </tr>
                             {% endfor %}
+                            <tr data-inventory-filter-empty hidden>
+                                <td colspan="7">No inventory items match this filter.</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>

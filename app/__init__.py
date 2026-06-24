@@ -1,7 +1,7 @@
 import os
 import secrets
 
-from flask import Flask
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -26,12 +26,15 @@ def _load_secret_key(app):
         return generated_secret
 
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = _load_secret_key(app)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///noble_innsync.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+    if test_config:
+        app.config.update(test_config)
 
     db.init_app(app)
 
@@ -61,5 +64,12 @@ def create_app():
 
     app.cli.add_command(create_user_command)
     app.cli.add_command(list_users_command)
+
+    from app.utils.booking_lifecycle import reconcile_lapsed_bookings
+
+    @app.before_request
+    def update_lapsed_bookings():
+        if request.endpoint != "static":
+            reconcile_lapsed_bookings()
 
     return app

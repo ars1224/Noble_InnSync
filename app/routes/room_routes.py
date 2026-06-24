@@ -573,6 +573,9 @@ def temporary_booking_hold(room_id):
 @room.route("/rooms/<int:room_id>/payment/success", methods=["POST"])
 def payment_success(room_id):
     selected_room = Room.query.get_or_404(room_id)
+    if selected_room.status != "On Hold":
+        abort(409, description="This room is no longer held for payment.")
+
     booking_reference = build_booking_reference(selected_room)
     save_confirmed_booking(selected_room, request.form, booking_reference)
     selected_room.status = "Booked"
@@ -592,6 +595,9 @@ def payment_success(room_id):
 @room.route("/rooms/<int:room_id>/payment/notification-failed", methods=["POST"])
 def payment_notification_failed(room_id):
     selected_room = Room.query.get_or_404(room_id)
+    if selected_room.status != "On Hold":
+        abort(409, description="This room is no longer held for payment.")
+
     booking_reference = build_booking_reference(selected_room)
     save_confirmed_booking(selected_room, request.form, booking_reference)
     selected_room.status = "Booked"

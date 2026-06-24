@@ -3382,7 +3382,8 @@
     justify-content: flex-end;
 }
 
-.operations-chip-row span {
+.operations-chip-row span,
+.operations-chip-row button {
     min-height: 32px;
     padding: 0 12px;
     display: inline-flex;
@@ -3393,6 +3394,23 @@
     background: #fff;
     font-size: 11px;
     font-weight: 800;
+}
+
+.operations-chip-row button {
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.operations-chip-row button:hover,
+.operations-chip-row button:focus-visible {
+    border-color: var(--admin-navy);
+    color: var(--admin-navy);
+    outline: none;
+}
+
+.operations-chip-row button.active:hover,
+.operations-chip-row button.active:focus-visible {
+    color: #fff;
 }
 
 .operations-chip-row .active {
@@ -4273,6 +4291,90 @@
     align-items: end;
 }
 
+.inventory-modal.maintenance-modal {
+    width: min(100%, 800px);
+}
+
+.maintenance-modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.maintenance-modal-icon {
+    width: 40px;
+    height: 40px;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: #9a6700 !important;
+    background: #fef3c7;
+}
+
+.maintenance-report-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.maintenance-report-grid label {
+    min-width: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.maintenance-report-grid label span {
+    color: #64748b;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.maintenance-report-grid input,
+.maintenance-report-grid select {
+    width: 100%;
+    min-width: 0;
+    min-height: 43px;
+    padding: 0 12px;
+    border: 1px solid #d8dde4;
+    border-radius: 11px;
+    color: var(--admin-text);
+    background: #fff;
+    font: inherit;
+    outline: none;
+}
+
+.maintenance-report-grid select:disabled {
+    color: var(--admin-text);
+    background: #f8fafc;
+    opacity: 1;
+}
+
+.maintenance-report-grid input:focus,
+.maintenance-report-grid select:focus {
+    border-color: var(--admin-gold);
+    box-shadow: 0 0 0 3px rgba(212, 167, 98, 0.15);
+}
+
+.maintenance-notes-field {
+    grid-column: span 2;
+}
+
+.maintenance-report-submit {
+    min-height: 43px;
+    grid-column: 1 / -1;
+    border: 0;
+    border-radius: 11px;
+    color: #fff;
+    background: var(--admin-navy);
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
 @media (max-width: 1180px) {
     .room-board-columns {
         grid-template-columns: repeat(2, minmax(240px, 1fr));
@@ -4302,6 +4404,14 @@
 
     .room-inline-form {
         grid-template-columns: 1fr;
+    }
+
+    .maintenance-report-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .maintenance-notes-field {
+        grid-column: auto;
     }
 
     .inventory-modal-form,
