@@ -19,7 +19,7 @@ def _checkout_date(booking):
 
 
 def reconcile_lapsed_bookings(today=None):
-    """Cancel active bookings that have passed checkout and refund paid cards."""
+    """Cancel lapsed unpaid/pay-on-arrival bookings and release rooms. Paid card bookings are kept."""
     today = today or date.today()
     bookings = Booking.query.all()
     bookings_with_checkout = [
@@ -38,33 +38,44 @@ def reconcile_lapsed_bookings(today=None):
     if not lapsed_bookings:
         return 0
 
-    lapsed_ids = {booking.id for booking in lapsed_bookings}
+    bookings_to_cancel = []
+
+    for booking in lapsed_bookings:
+        has_paid_card_payment = any(
+            payment.payment_status == "Paid"
+            and (payment.payment_method or "").strip().lower() in CARD_PAYMENT_METHODS
+            for payment in booking.accounting
+        )
+
+        if has_paid_card_payment:
+            booking.status = "Confirmed"
+            continue
+
+        bookings_to_cancel.append(booking)
+
+    if not bookings_to_cancel:
+        db.session.commit()
+        return 0
+
+    cancelled_ids = {booking.id for booking in bookings_to_cancel}
+
     active_room_numbers = {
         booked_room.room_number
         for booking, checkout in bookings_with_checkout
-        if booking.id not in lapsed_ids
+        if booking.id not in cancelled_ids
         and booking.status not in INACTIVE_BOOKING_STATUSES
         and (checkout is None or checkout >= today)
         for booked_room in booking.booking_rooms
     }
+
     rooms_to_release = {
         booked_room.room_number
-        for booking in lapsed_bookings
+        for booking in bookings_to_cancel
         for booked_room in booking.booking_rooms
     } - active_room_numbers
 
-    for booking in lapsed_bookings:
+    for booking in bookings_to_cancel:
         booking.status = "Cancelled"
-
-        for payment in booking.accounting:
-            if (
-                payment.payment_status == "Paid"
-                and (
-                    (payment.payment_method or "").strip().lower()
-                    in CARD_PAYMENT_METHODS
-                )
-            ):
-                payment.payment_status = "Refunded"
 
     if rooms_to_release:
         rooms = Room.query.filter(Room.room_number.in_(rooms_to_release)).all()
@@ -73,4 +84,4 @@ def reconcile_lapsed_bookings(today=None):
                 room.status = "Available"
 
     db.session.commit()
-    return len(lapsed_bookings)
+    return len(bookings_to_cancel)
