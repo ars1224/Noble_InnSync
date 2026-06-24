@@ -21,13 +21,102 @@ This version is the completed final prototype for assessment submission. The mai
 
 - Python
 - Flask
-- Jinja2 templates
+- Flask-SQLAlchemy
+- Flask-WTF
+- Flask-Login
 - SQLite
-- Flask-SQLAlchemy / SQLAlchemy
+- SQLAlchemy
+- Jinja2 Templates
 - HTML
 - CSS
 - JavaScript
 - Font Awesome icons
+
+## 🚀 Quick Start
+
+### Requirements
+
+* Python 3.12 or later
+* Git
+
+### Setup
+
+```bash
+git clone https://github.com/ars1224/Noble_InnSync.git
+cd Noble_InnSync
+
+python -m venv venv
+```
+
+Activate the virtual environment:
+
+**Windows PowerShell**
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+**Windows Command Prompt**
+
+```cmd
+venv\Scripts\activate
+```
+
+**macOS/Linux**
+
+```bash
+source venv/bin/activate
+```
+
+Install project dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Create and seed the database:
+
+```bash
+python create_db.py
+```
+
+Run the application:
+
+```bash
+python run.py
+```
+
+Open in your browser:
+
+```text
+http://localhost:5000
+```
+
+### Troubleshooting
+
+If you encounter an error such as:
+
+```text
+ModuleNotFoundError: No module named 'flask_wtf'
+```
+
+Run:
+
+```bash
+pip install -r requirements.txt
+```
+
+or
+
+```bash
+py -m pip install -r requirements.txt
+```
+
+This installs all required dependencies including Flask-WTF, Flask-Login, SQLAlchemy, and WTForms.
+
+```
+```
+
 
 ## 🏗️ Project Structure
 
@@ -262,6 +351,22 @@ confirmation navigation, printing rules, authentication, and role permissions. S
 ## 📂 GitHub Repository
 
 https://github.com/ars1224/Noble_InnSync.git
+
+## 📦 Project Dependencies
+
+All required Python packages are listed in `requirements.txt`.
+
+To install all project dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+This ensures the application runs correctly on a new machine without manually installing individual packages.
+
+```
+```
+
 
 ## 📹 Assessment Deliverables
 
