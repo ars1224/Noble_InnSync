@@ -1,4 +1,5 @@
 from app import db
+from app.models.types import Money
 
 
 class BookingRoom(db.Model):
@@ -13,7 +14,7 @@ class BookingRoom(db.Model):
     room_number = db.Column(db.String(20), nullable=False)
     room_type = db.Column(db.String(100), nullable=False)
 
-    price = db.Column(db.Float, nullable=False, default=0)
+    price = db.Column(Money(), nullable=False, default=0)
 
     adult_capacity = db.Column(db.Integer, nullable=False, default=0)
     child_capacity = db.Column(db.Integer, nullable=False, default=0)

@@ -75,12 +75,20 @@ Noble_InnSync/
 - Manager reports for revenue, bookings, rooms, and payments
 - Responsive admin dashboards for desktop, tablet, and medium screens
 
-### Automated Booking Lifecycle
+### Scheduled Booking Lifecycle
 
-- Active bookings are automatically cancelled after their checkout date has passed
+- Active bookings are cancelled after their checkout date has passed
 - Paid card transactions attached to lapsed bookings are marked as Refunded
 - Rooms from lapsed bookings are released when they are not needed by another active booking
 - Cancelled and already checked-out bookings are left unchanged
+
+Run the reconciliation command from Task Scheduler, cron, or a deployment scheduler:
+
+```bash
+flask --app run reconcile-bookings
+```
+
+This keeps lifecycle writes out of ordinary page requests.
 
 ### Room Maintenance Workflow
 
@@ -149,6 +157,14 @@ pip install -r requirements.txt
 python create_db.py
 ```
 
+For a database created before DATE/NUMERIC storage was introduced, run the
+preservation-first migration utility. It validates a newly rebuilt database before
+replacing the original and leaves a timestamped backup beside it:
+
+```bash
+python migrate_storage.py
+```
+
 ## ▶️ Running the Application
 
 Start the Flask application:
@@ -202,7 +218,7 @@ The following workflows have been checked for the final prototype:
 - Single rooms are blocked when the guest count exceeds room capacity
 - Booking total includes 15% tax/fees across guest and admin workflows
 - Failed and pending payment flows release temporary room holds
-- Lapsed active bookings are cancelled automatically and paid card records are refunded
+- Scheduled reconciliation cancels lapsed bookings and refunds paid card records
 - Reservation status lookup displays booking details
 - Reservation confirmation actions return guests to the booking homepage
 - Reservation print/PDF output excludes the site header and footer
@@ -236,7 +252,7 @@ On macOS/Linux with the virtual environment activated, run:
 python -m unittest discover -s tests -v
 ```
 
-The 22-test suite uses an in-memory SQLite database and does not modify the
+The 25-test suite uses an in-memory SQLite database and does not modify the
 development database. It covers guest booking, payment holds, lapse/refund
 handling, room maintenance reporting, inventory filtering and stock operations,
 equipment resolution, walk-in bookings, booking and payment updates, room CRUD,

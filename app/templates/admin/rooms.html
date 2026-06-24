@@ -108,6 +108,7 @@
                                                 data-room-status-form
                                                 data-room-number="{{ room.room_number }}"
                                                 data-current-status="{{ room.status }}">
+                                                {% include '_csrf.html' %}
                                                 <select name="status" aria-label="Room status" data-room-status-select>
                                                     <option value="Available" {% if room.status == "Available" %}selected{% endif %}>Available</option>
                                                     <option value="Reserved" {% if room.status in ["Reserved", "Booked"] %}selected{% endif %}>Reserved</option>
@@ -120,11 +121,10 @@
                                             {% if session.get("user_role") == "admin" %}
                                                 <div class="room-board-actions">
                                                     <a href="{{ url_for('admin.edit_room', room_id=room.id) }}">Edit</a>
-                                                    <a href="{{ url_for('admin.delete_room', room_id=room.id) }}"
-                                                       class="danger"
-                                                       onclick="return confirm('Are you sure you want to delete this room?');">
-                                                        Delete
-                                                    </a>
+                                                    <form method="POST" action="{{ url_for('admin.delete_room', room_id=room.id) }}" onsubmit="return confirm('Are you sure you want to delete this room?');">
+                                                        {% include '_csrf.html' %}
+                                                        <button type="submit" class="danger">Delete</button>
+                                                    </form>
                                                 </div>
                                             {% endif %}
                                         </article>
@@ -161,6 +161,7 @@
         </div>
 
         <form method="POST" class="maintenance-modal-form" data-maintenance-form>
+            {% include '_csrf.html' %}
             <input type="hidden" name="status" value="Maintenance">
             <div class="maintenance-report-grid">
                 <label>

@@ -10,6 +10,8 @@ CARD_PAYMENT_METHODS = {"card", "card payment"}
 
 
 def _checkout_date(booking):
+    if isinstance(booking.check_out, date):
+        return booking.check_out
     try:
         return date.fromisoformat(booking.check_out)
     except (TypeError, ValueError):

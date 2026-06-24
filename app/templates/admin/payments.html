@@ -57,6 +57,7 @@
                                 <form method="POST"
                                     action="{{ url_for('admin.update_payment_status', payment_id=payment.id) }}"
                                     class="status-form">
+                                    {% include '_csrf.html' %}
 
                                     <select name="payment_status">
                                         <option value="Unpaid" {% if payment.payment_status == "Unpaid" %}selected{% endif %}>Unpaid</option>

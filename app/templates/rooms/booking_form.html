@@ -28,6 +28,7 @@
 
     <div class="booking-form-grid">
         <form class="booking-form-card" action="{{ url_for('room.booking_review', room_id=room.id) }}" method="post">
+            {% include '_csrf.html' %}
             <p class="section-tag">GUEST DETAILS</p>
             <h2>Guest information</h2>
             <input type="hidden" name="room_type" value="{{ booking_summary.room_type }}">

@@ -45,6 +45,7 @@
     <div class="payment-grid">
         <div class="payment-main">
         <form class="payment-card" action="{{ url_for('room.payment_success', room_id=room.id) }}" method="post">
+            {% include '_csrf.html' %}
             <p class="section-tag">PAYMENT DETAILS</p>
             <h2>Card information</h2>
             <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
@@ -89,6 +90,7 @@
         <div class="prototype-payment-states">
             <p>Prototype payment states</p>
             <form action="{{ url_for('room.payment_failed', room_id=room.id) }}" method="post">
+                {% include '_csrf.html' %}
                 <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
                 <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
                 <input type="hidden" name="email" value="{{ guest_details.email }}">
@@ -101,6 +103,7 @@
                 <button type="submit">Show Failed</button>
             </form>
             <form action="{{ url_for('room.payment_pending', room_id=room.id) }}" method="post">
+                {% include '_csrf.html' %}
                 <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
                 <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
                 <input type="hidden" name="email" value="{{ guest_details.email }}">
@@ -113,6 +116,7 @@
                 <button type="submit">Show Pending</button>
             </form>
             <form action="{{ url_for('room.payment_notification_failed', room_id=room.id) }}" method="post">
+                {% include '_csrf.html' %}
                 <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
                 <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
                 <input type="hidden" name="email" value="{{ guest_details.email }}">

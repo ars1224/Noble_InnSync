@@ -17,6 +17,7 @@
             {% include 'admin/_admin_header.html' %}
 
             <form method="POST" class="form-card walkin-step-form">
+                {% include '_csrf.html' %}
 
                 <div class="walkin-steps">
                     <div class="walkin-step active" data-step-indicator="1">1. Guest Details</div>

@@ -53,6 +53,7 @@
             {% endif %}
 
             <form method="POST" class="booking-payment-edit-form">
+                {% include '_csrf.html' %}
                 <div class="booking-detail-layout">
                     <div class="booking-detail-main">
                         <section class="booking-detail-card">

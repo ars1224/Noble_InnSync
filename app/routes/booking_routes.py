@@ -1,28 +1,30 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from decimal import Decimal
+
+from flask import Blueprint, abort, render_template, request, redirect, url_for
 from app import db
 from app.models.booking import Booking
 from app.models.booking_room import BookingRoom
 from app.models.accounting import Accounting
 from app.models.room import Room
 from app.utils.pricing import calculate_stay_total
-import random
+from app.utils.reservations import (
+    authorize_reservation,
+    begin_booking_transaction,
+    booked_room_numbers_for_dates,
+    generate_reference_number,
+    generate_transaction_number,
+    reservation_is_authorized,
+)
 
 booking = Blueprint("booking", __name__)
 
 TAX_RATE = 0.15
 
 
-def generate_reference_number():
-    return "NIS" + str(random.randint(100000, 999999))
-
-
-def generate_transaction_number():
-    return "TXN" + str(random.randint(100000, 999999))
-
-
 def add_tax_and_fees(room_total):
-    tax_total = round(float(room_total) * TAX_RATE, 2)
-    return tax_total, round(float(room_total) + tax_total, 2)
+    room_total = Decimal(str(room_total))
+    tax_total = (room_total * Decimal(str(TAX_RATE))).quantize(Decimal("0.01"))
+    return tax_total, (room_total + tax_total).quantize(Decimal("0.01"))
 
 
 ROOM_RULES = {
@@ -43,28 +45,6 @@ ROOM_RULES = {
 
 def calculate_required_capacity(adults, children):
     return adults + (children * 0.5)
-
-
-def booking_overlaps(booking, check_in, check_out):
-    return (
-        booking.check_in < check_out
-        and booking.check_out > check_in
-        and booking.status not in ["Cancelled", "Checked Out"]
-    )
-
-
-def booked_room_numbers_for_dates(check_in, check_out):
-    if not check_in or not check_out:
-        return set()
-
-    bookings = Booking.query.all()
-
-    return {
-        booked_room.room_number
-        for booking in bookings
-        if booking_overlaps(booking, check_in, check_out)
-        for booked_room in booking.booking_rooms
-    }
 
 
 def available_rooms_for_type(room_type, check_in="", check_out=""):
@@ -168,9 +148,12 @@ def build_manual_room_plan(room_ids, adults, children, check_in="", check_out=""
 def book_room():
 
     if request.method == "POST":
+        try:
+            adults = max(1, int(request.form.get("adults", 1)))
+            children = max(0, int(request.form.get("children", 0)))
+        except (TypeError, ValueError):
+            return "Guest counts must be valid numbers.", 400
 
-        adults = int(request.form.get("adults", 1))
-        children = int(request.form.get("children", 0))
         check_in = request.form.get("check_in")
         check_out = request.form.get("check_out")
         payment_method = request.form.get("payment_method", "Pay on Arrival")
@@ -182,6 +165,8 @@ def book_room():
         )
 
         selected_room_ids = request.form.get("selected_room_ids", "").strip()
+
+        begin_booking_transaction()
 
         if selected_room_ids:
             room_ids = [int(room_id) for room_id in selected_room_ids.split(",") if room_id]
@@ -231,8 +216,8 @@ def book_room():
 
             db.session.add(booking_room)
 
-            room_record = Room.query.get(selected["room_id"])
-            room_record.status = "Reserved"
+            room_record = db.session.get(Room, selected["room_id"])
+            room_record.status = "Reserved" 
 
         accounting_record = Accounting(
             transaction_no=generate_transaction_number(),
@@ -246,6 +231,7 @@ def book_room():
 
         db.session.add(accounting_record)
         db.session.commit()
+        authorize_reservation(new_booking.reference_number)
 
         return redirect(
             url_for(
@@ -265,6 +251,9 @@ def book_room():
 
 @booking.route("/booking-success/<reference_number>")
 def booking_success(reference_number):
+
+    if not reservation_is_authorized(reference_number):
+        abort(404)
 
     booking_record = Booking.query.filter_by(
         reference_number=reference_number
@@ -305,9 +294,9 @@ def suggest_rooms_api():
             )
             tax_total, total_price = add_tax_and_fees(room_total)
             response["nights"] = nights
-            response["room_total"] = room_total
-            response["tax_total"] = tax_total
-            response["total_price"] = total_price
+            response["room_total"] = float(room_total)
+            response["tax_total"] = float(tax_total)
+            response["total_price"] = float(total_price)
         except ValueError as error:
             response["date_error"] = str(error)
 

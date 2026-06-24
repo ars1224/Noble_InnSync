@@ -5,6 +5,7 @@ if (bookingToolbar && bookingRows.length) {
     const referenceLabel = bookingToolbar.querySelector("[data-selected-reference]");
     const guestLabel = bookingToolbar.querySelector("[data-selected-guest]");
     const actionGroup = bookingToolbar.querySelector("[data-selection-actions]");
+    const mutationForm = bookingToolbar.querySelector("[data-booking-mutation-form]");
     const toolbarActions = {
         view: bookingToolbar.querySelector('[data-booking-action="view"]'),
         edit: bookingToolbar.querySelector('[data-booking-action="edit"]'),
@@ -63,11 +64,21 @@ if (bookingToolbar && bookingRows.length) {
         });
     });
 
-    if (toolbarActions.delete) {
-        toolbarActions.delete.addEventListener("click", (event) => {
-            if (!window.confirm(`Delete booking ${referenceLabel.textContent}? This cannot be undone.`)) {
-                event.preventDefault();
+    ["confirm", "cancel", "checkin", "checkout", "delete"].forEach((name) => {
+        const action = toolbarActions[name];
+        if (!action || !mutationForm) return;
+
+        action.addEventListener("click", (event) => {
+            event.preventDefault();
+            if (
+                name === "delete"
+                && !window.confirm(`Delete booking ${referenceLabel.textContent}? This cannot be undone.`)
+            ) {
+                return;
             }
+
+            mutationForm.action = action.href;
+            mutationForm.submit();
         });
-    }
+    });
 }

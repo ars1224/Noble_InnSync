@@ -35,7 +35,7 @@ The command must finish with `OK`. The suite currently checks:
 - Authenticated admin pages reaching the requested page instead of a redirected login page.
 - Key pages not referencing missing local CSS, JavaScript, or image files.
 
-The suite currently contains 22 isolated tests.
+The suite currently contains 25 isolated tests.
 
 The automated users and passwords exist only inside the temporary test database. They are not application credentials.
 
@@ -130,6 +130,12 @@ For each manual session, record:
 - Pass or fail.
 - Screenshot or defect reference when relevant.
 
-## Remaining Security Checks
+## Security Regression Checks
 
-Before production deployment, add CSRF protection and convert state-changing admin links such as approve, cancel, delete, and status changes to POST requests. Then add automated tests confirming GET requests cannot change application data.
+- All POST forms carry a CSRF token and tokenless submissions are rejected.
+- Approve, cancel, delete, logout, room repair, and booking-status mutations reject GET requests.
+- Reservation lookup requires both the exact opaque reference and exact guest name.
+- Booking confirmation details require authorization in the guest's current session.
+- Room allocation is rechecked while holding a database write lock.
+- New schemas store dates as DATE and currency as fixed-precision NUMERIC values.
+- Lapsed-booking reconciliation runs through `flask --app run reconcile-bookings`, not during page requests.

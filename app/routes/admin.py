@@ -7,11 +7,17 @@ from app.models.accounting import Accounting
 from app.utils.auth import login_required, role_required
 from datetime import datetime
 from collections import Counter, defaultdict
+from decimal import Decimal
 from app.models.booking_room import BookingRoom
 from app.models.inventory import InventoryItem
 from app.models.equipment import EquipmentIssue
 from app.models.activity_log import ActivityLog
 from app.utils.pricing import calculate_nights, calculate_stay_total
+from app.utils.reservations import (
+    begin_booking_transaction,
+    generate_reference_number,
+    generate_transaction_number,
+)
 
 
 admin = Blueprint("admin", __name__, url_prefix="/admin")
@@ -20,7 +26,7 @@ admin = Blueprint("admin", __name__, url_prefix="/admin")
 @admin.route("/dashboard")
 @login_required
 def dashboard():
-    today = datetime.today().strftime("%Y-%m-%d")
+    today = datetime.today().date()
     all_bookings = Booking.query.order_by(Booking.created_at.desc()).all()
     all_payments = Accounting.query.order_by(Accounting.created_at.desc()).all()
     all_rooms = Room.query.order_by(Room.room_number.asc()).all()
@@ -609,7 +615,7 @@ def reports():
     )
 
 
-@admin.route("/bookings/<int:booking_id>/approve")
+@admin.route("/bookings/<int:booking_id>/approve", methods=["POST"])
 @login_required
 @role_required(["admin", "staff"])
 def approve_booking(booking_id):
@@ -626,7 +632,7 @@ def approve_booking(booking_id):
     return redirect(url_for("admin.bookings"))
 
 
-@admin.route("/bookings/<int:booking_id>/cancel")
+@admin.route("/bookings/<int:booking_id>/cancel", methods=["POST"])
 @login_required
 @role_required(["admin", "staff"])
 def cancel_booking(booking_id):
@@ -758,7 +764,7 @@ def edit_room(room_id):
     return render_template("admin/edit_room.html", room=room)
 
 
-@admin.route("/rooms/<int:room_id>/delete")
+@admin.route("/rooms/<int:room_id>/delete", methods=["POST"])
 @login_required
 @role_required(["admin"])
 def delete_room(room_id):
@@ -823,7 +829,9 @@ def edit_booking(booking_id):
                 form_values["check_in"],
                 form_values["check_out"]
             )
-            preview_total = round(preview_room_total * 1.15, 2)
+            preview_total = (
+                preview_room_total * Decimal("1.15")
+            ).quantize(Decimal("0.01"))
         except ValueError:
             preview_nights = 0
             preview_total = 0
@@ -887,7 +895,7 @@ def edit_booking(booking_id):
                 form_values["check_in"],
                 form_values["check_out"]
             )
-            total_price = round(room_total * 1.15, 2)
+            total_price = (room_total * Decimal("1.15")).quantize(Decimal("0.01"))
         except ValueError as error:
             nights = None
             total_price = None
@@ -1014,7 +1022,10 @@ def booking_payment(booking_id):
 
     return render_payment_form()
 
-@admin.route("/bookings/<int:booking_id>/update-status/<status>")
+@admin.route(
+    "/bookings/<int:booking_id>/update-status/<status>",
+    methods=["POST"],
+)
 @login_required
 @role_required(["admin", "staff"])
 def update_booking_status(booking_id, status):
@@ -1052,9 +1063,8 @@ def update_booking_status(booking_id, status):
 @login_required
 @role_required(["admin", "staff"])
 def walkin_booking():
-    available_rooms = Room.query.order_by(Room.room_number.asc()).all()
-
     if request.method == "POST":
+        begin_booking_transaction()
         selected_room_ids = request.form.getlist("room_ids")
 
         if not selected_room_ids:
@@ -1089,12 +1099,12 @@ def walkin_booking():
                 check_in,
                 check_out
             )
-            total_price = round(room_total * 1.15, 2)
+            total_price = (room_total * Decimal("1.15")).quantize(Decimal("0.01"))
         except ValueError as error:
             return str(error), 400
 
-        reference_number = "WALK-" + datetime.now().strftime("%Y%m%d%H%M%S")
-        transaction_no = "TXN-" + reference_number
+        reference_number = generate_reference_number("WALK")
+        transaction_no = generate_transaction_number()
 
         booking = Booking(
             reference_number=reference_number,
@@ -1141,13 +1151,15 @@ def walkin_booking():
 
         return redirect(url_for("admin.bookings"))
 
+    available_rooms = Room.query.order_by(Room.room_number.asc()).all()
+
     return render_template(
         "admin/walkin_booking.html",
         available_rooms=available_rooms,
         today=datetime.today().strftime("%Y-%m-%d")
     )
 
-@admin.route("/bookings/<int:booking_id>/delete")
+@admin.route("/bookings/<int:booking_id>/delete", methods=["POST"])
 @login_required
 @role_required(["admin"])
 def delete_booking(booking_id):
@@ -1166,7 +1178,7 @@ def delete_booking(booking_id):
 
     return redirect(url_for("admin.bookings"))
 
-@admin.route("/fix-room-status")
+@admin.route("/fix-room-status", methods=["POST"])
 @login_required
 @role_required(["admin"])
 def fix_room_status():

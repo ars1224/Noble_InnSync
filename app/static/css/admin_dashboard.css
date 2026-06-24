@@ -3396,6 +3396,14 @@
     font-weight: 800;
 }
 
+button.workflow-action {
+    width: 100%;
+    border: 0;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
 .operations-chip-row button {
     font-family: inherit;
     cursor: pointer;
@@ -3956,7 +3964,8 @@
     gap: 7px;
 }
 
-.room-board-actions a {
+.room-board-actions a,
+.room-board-actions button {
     min-height: 34px;
     padding: 0 10px;
     display: inline-flex;
@@ -3967,6 +3976,9 @@
     text-decoration: none;
     font-size: 12px;
     font-weight: 800;
+    border: 0;
+    font-family: inherit;
+    cursor: pointer;
 }
 
 .room-board-actions .danger {

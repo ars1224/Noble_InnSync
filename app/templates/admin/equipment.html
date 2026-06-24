@@ -57,6 +57,7 @@
                         <i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i>
                     </div>
                     <form method="POST" action="{{ url_for('admin.report_equipment_issue') }}" class="operations-grid-form equipment-report-form">
+                        {% include '_csrf.html' %}
                         <label>
                             <span>Room</span>
                             <select name="room_id" required>
@@ -123,6 +124,7 @@
                             <div class="equipment-issue-actions">
                                 {% if session.get('user_role') in ['admin', 'staff'] and issue.maintenance_status == 'Not Requested' and issue.status != 'Working' %}
                                     <form method="POST" action="{{ url_for('admin.request_equipment_maintenance', issue_id=issue.id) }}">
+                                        {% include '_csrf.html' %}
                                         <button class="operations-secondary-action" type="submit">
                                             <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
                                             Request maintenance
@@ -130,6 +132,7 @@
                                     </form>
                                 {% elif session.get('user_role') in ['admin', 'manager'] and issue.status != 'Working' %}
                                     <form method="POST" action="{{ url_for('admin.resolve_equipment_issue', issue_id=issue.id) }}">
+                                        {% include '_csrf.html' %}
                                         <button type="submit">Mark resolved</button>
                                     </form>
                                 {% else %}

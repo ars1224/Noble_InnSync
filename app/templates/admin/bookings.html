@@ -79,6 +79,9 @@
                         </a>
                     {% endif %}
                 </div>
+                <form method="POST" data-booking-mutation-form hidden>
+                    {% include '_csrf.html' %}
+                </form>
             </div>
 
             <div class="recent-bookings">

@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from app import db
+from app.models.types import utc_now
 
 
 class EquipmentIssue(db.Model):
@@ -14,12 +13,12 @@ class EquipmentIssue(db.Model):
     maintenance_status = db.Column(
         db.String(40), nullable=False, default="Not Requested"
     )
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=utc_now)
     updated_at = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=utc_now,
+        onupdate=utc_now,
     )
 
     room = db.relationship("Room", backref="equipment_issues")

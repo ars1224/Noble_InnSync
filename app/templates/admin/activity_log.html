@@ -77,6 +77,7 @@
 
                                 {% if session.get('user_role') in ['admin', 'manager'] and activity.delivery_status in ['Pending', 'Failed'] %}
                                     <form method="POST" action="{{ url_for('admin.resend_activity', activity_id=activity.id) }}">
+                                        {% include '_csrf.html' %}
                                         <button type="submit" class="operations-secondary-action">
                                             <i class="fa-solid fa-rotate" aria-hidden="true"></i>
                                             Resend / mark sent

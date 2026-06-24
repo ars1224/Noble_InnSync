@@ -18,6 +18,7 @@
 
             <div class="form-card">
                 <form method="POST" class="admin-form">
+                    {% include '_csrf.html' %}
 
                     <label>Room Number</label>
                     <input type="text" name="room_number" required>

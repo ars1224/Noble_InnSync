@@ -14,7 +14,7 @@
     <div class="booking-hero-content">
         <p class="booking-tag">RESERVATION TRACKING</p>
         <h1>View your booking status.</h1>
-        <p>Enter your booking reference to check reservation, room, and payment details.</p>
+        <p>Enter your booking reference and guest name to check reservation, room, and payment details.</p>
     </div>
 </section>
 
@@ -36,7 +36,7 @@
                             name="reference_number"
                             type="text"
                             value="{{ reference_number }}"
-                            placeholder="Example: NIS123456"
+                            placeholder="Example: NIS-a1B2c3..."
                             required
                         >
                     </div>
@@ -48,7 +48,8 @@
                             name="guest_name"
                             type="text"
                             value="{{ guest_name }}"
-                            placeholder="Optional"
+                            placeholder="Name used for the booking"
+                            required
                         >
                     </div>
                 </div>
@@ -79,6 +80,11 @@
                     <div>
                         <span>Guest</span>
                         <strong>{{ booking.guest_name }}</strong>
+                    </div>
+
+                    <div>
+                        <span>Email</span>
+                        <strong>{{ booking.email }}</strong>
                     </div>
 
                     <div>
@@ -148,8 +154,8 @@
                 </div>
 
                 <div class="reservation-empty-state">
-                    <h3>Keep your booking reference handy.</h3>
-                    <p>You can find it on the booking confirmation screen or in the confirmation details provided after booking.</p>
+                    <h3>Keep your booking details handy.</h3>
+                    <p>You need the booking reference and the exact guest name used for the reservation.</p>
                 </div>
             </aside>
         {% endif %}

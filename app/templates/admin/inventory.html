@@ -58,6 +58,7 @@
                             <i class="fa-solid fa-box-open" aria-hidden="true"></i>
                         </div>
                         <form method="POST" action="{{ url_for('admin.add_inventory_item') }}" class="operations-grid-form">
+                            {% include '_csrf.html' %}
                             <label>
                                 <span>Item name</span>
                                 <input name="item_name" placeholder="Towels, Shampoo, Coffee pods" required>
@@ -223,6 +224,7 @@
             <span class="record-status" data-inventory-status>OK</span>
 
             <form method="POST" class="inventory-modal-form" data-inventory-update-form>
+                {% include '_csrf.html' %}
                 <label>
                     <span>Item name</span>
                     <input name="item_name" data-inventory-name-input required>
@@ -253,6 +255,7 @@
 
             <div class="inventory-modal-actions">
                 <form method="POST" class="inventory-modal-add-form" data-inventory-add-form>
+                    {% include '_csrf.html' %}
                     <label>
                         <span>Add stock</span>
                         <input name="quantity" type="number" min="1" value="1">
@@ -261,6 +264,7 @@
                 </form>
 
                 <form method="POST" data-inventory-alert-form>
+                    {% include '_csrf.html' %}
                     <button class="operations-secondary-action" type="submit">
                         <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
                         Send manager alert

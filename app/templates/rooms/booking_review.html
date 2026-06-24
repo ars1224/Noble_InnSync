@@ -118,6 +118,7 @@
     </div>
 
     <form class="review-actions" action="{{ url_for('room.temporary_booking_hold', room_id=room.id) }}" method="post">
+        {% include '_csrf.html' %}
         <input type="hidden" name="first_name" value="{{ guest_details.first_name }}">
         <input type="hidden" name="last_name" value="{{ guest_details.last_name }}">
         <input type="hidden" name="email" value="{{ guest_details.email }}">

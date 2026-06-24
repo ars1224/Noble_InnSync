@@ -1,11 +1,12 @@
 from app import db
+from app.models.types import Money
 
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     room_number = db.Column(db.String(20), nullable=False, unique=True)
     room_type = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(255), nullable=False)
-    price = db.Column(db.Float, nullable=False)
+    price = db.Column(Money(), nullable=False)
     status = db.Column(db.String(50), nullable=False, default="Available")
 
     def __repr__(self):

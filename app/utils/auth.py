@@ -1,14 +1,26 @@
 from functools import wraps
 
 from flask import session, redirect, url_for
+from app import db
 
 
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
 
-        if "user_id" not in session:
+        user_id = session.get("user_id")
+        if not user_id:
             return redirect(url_for("auth.staff_login"))
+
+        from app.models.user import User
+
+        user = db.session.get(User, user_id)
+        if not user or user.status != "Active":
+            session.clear()
+            return redirect(url_for("auth.staff_login"))
+
+        session["username"] = user.username
+        session["user_role"] = user.role
 
         return f(*args, **kwargs)
 

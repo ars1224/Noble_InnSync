@@ -1,5 +1,5 @@
 from app import db
-from datetime import datetime
+from app.models.types import ISODate, Money, utc_now
 
 
 class Booking(db.Model):
@@ -11,16 +11,16 @@ class Booking(db.Model):
     email = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(30), nullable=False)
 
-    check_in = db.Column(db.String(20), nullable=False)
-    check_out = db.Column(db.String(20), nullable=False)
+    check_in = db.Column(ISODate(), nullable=False)
+    check_out = db.Column(ISODate(), nullable=False)
 
     adults = db.Column(db.Integer, nullable=False, default=1)
     children = db.Column(db.Integer, nullable=False, default=0)
 
-    total_price = db.Column(db.Float, nullable=False, default=0)
+    total_price = db.Column(Money(), nullable=False, default=0)
 
     status = db.Column(db.String(50), nullable=False, default="Pending")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=utc_now)
 
     booking_rooms = db.relationship(
         "BookingRoom",

@@ -1,10 +1,12 @@
 import os
 import secrets
 
-from flask import Flask, request
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from flask_wtf.csrf import CSRFProtect
 
 db = SQLAlchemy()
+csrf = CSRFProtect()
 
 
 def _load_secret_key(app):
@@ -32,11 +34,17 @@ def create_app(test_config=None):
     app.config["SECRET_KEY"] = _load_secret_key(app)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///noble_innsync.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["SESSION_COOKIE_HTTPONLY"] = True
+    app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+    app.config["SESSION_COOKIE_SECURE"] = os.environ.get(
+        "SESSION_COOKIE_SECURE", ""
+    ).lower() in {"1", "true", "yes"}
 
     if test_config:
         app.config.update(test_config)
 
     db.init_app(app)
+    csrf.init_app(app)
 
     from app.models.room import Room
     from app.models.booking import Booking
@@ -60,16 +68,14 @@ def create_app(test_config=None):
     app.register_blueprint(admin)
     app.register_blueprint(auth)
 
-    from app.commands import create_user_command, list_users_command
+    from app.commands import (
+        create_user_command,
+        list_users_command,
+        reconcile_bookings_command,
+    )
 
     app.cli.add_command(create_user_command)
     app.cli.add_command(list_users_command)
-
-    from app.utils.booking_lifecycle import reconcile_lapsed_bookings
-
-    @app.before_request
-    def update_lapsed_bookings():
-        if request.endpoint != "static":
-            reconcile_lapsed_bookings()
+    app.cli.add_command(reconcile_bookings_command)
 
     return app

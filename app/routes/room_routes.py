@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from flask import Blueprint, abort, render_template, request
 from app import db
 from app.models.accounting import Accounting
@@ -5,6 +7,13 @@ from app.models.booking import Booking
 from app.models.booking_room import BookingRoom
 from app.models.room import Room
 from app.utils.pricing import calculate_stay_total
+from app.utils.reservations import (
+    authorize_reservation,
+    begin_booking_transaction,
+    booked_room_numbers_for_dates,
+    generate_reference_number,
+    generate_transaction_number,
+)
 
 
 room = Blueprint("room", __name__)
@@ -118,28 +127,6 @@ ROOM_POLICIES = [
 
 def build_room_summary(room_slug, details):
     return build_room_summary_for_dates(room_slug, details, "", "")
-
-
-def booking_overlaps(booking, check_in, check_out):
-    return (
-        booking.check_in < check_out
-        and booking.check_out > check_in
-        and booking.status not in ["Cancelled", "Checked Out"]
-    )
-
-
-def booked_room_numbers_for_dates(check_in, check_out):
-    if not check_in or not check_out:
-        return set()
-
-    bookings = Booking.query.all()
-
-    return {
-        booked_room.room_number
-        for booking in bookings
-        if booking_overlaps(booking, check_in, check_out)
-        for booked_room in booking.booking_rooms
-    }
 
 
 def build_room_summary_for_dates(room_slug, details, check_in, check_out):
@@ -364,7 +351,7 @@ def build_price_breakdown(selected_room, source):
         room_total = 0
         date_error = str(error)
 
-    tax_total = room_total * 0.15
+    tax_total = room_total * Decimal("0.15")
     return {
         "nights": nights,
         "room_total": room_total,
@@ -379,16 +366,7 @@ def build_temp_booking_id(selected_room):
 
 
 def build_booking_reference(selected_room):
-    base_reference = f"NIS-2026-{4000 + selected_room.id}"
-
-    if not Booking.query.filter_by(reference_number=base_reference).first():
-        return base_reference
-
-    counter = 2
-    while Booking.query.filter_by(reference_number=f"{base_reference}-{counter}").first():
-        counter += 1
-
-    return f"{base_reference}-{counter}"
+    return generate_reference_number()
 
 
 def save_confirmed_booking(selected_room, form_source, booking_reference):
@@ -432,7 +410,7 @@ def save_confirmed_booking(selected_room, form_source, booking_reference):
     ))
 
     db.session.add(Accounting(
-        transaction_no=f"TXN-{booking_reference}",
+        transaction_no=generate_transaction_number(),
         booking_id=booking.id,
         check_in=booking.check_in,
         check_out=booking.check_out,
@@ -548,6 +526,7 @@ def booking_review(room_id):
 
 @room.route("/rooms/<int:room_id>/hold", methods=["POST"])
 def temporary_booking_hold(room_id):
+    begin_booking_transaction()
     selected_room = Room.query.get_or_404(room_id)
     capacity_error = room_capacity_error(selected_room, request.form)
     if capacity_error:
@@ -572,6 +551,7 @@ def temporary_booking_hold(room_id):
 
 @room.route("/rooms/<int:room_id>/payment/success", methods=["POST"])
 def payment_success(room_id):
+    begin_booking_transaction()
     selected_room = Room.query.get_or_404(room_id)
     if selected_room.status != "On Hold":
         abort(409, description="This room is no longer held for payment.")
@@ -580,6 +560,7 @@ def payment_success(room_id):
     save_confirmed_booking(selected_room, request.form, booking_reference)
     selected_room.status = "Booked"
     db.session.commit()
+    authorize_reservation(booking_reference)
     return render_template(
         "rooms/booking_confirmation.html",
         room=selected_room,
@@ -594,6 +575,7 @@ def payment_success(room_id):
 
 @room.route("/rooms/<int:room_id>/payment/notification-failed", methods=["POST"])
 def payment_notification_failed(room_id):
+    begin_booking_transaction()
     selected_room = Room.query.get_or_404(room_id)
     if selected_room.status != "On Hold":
         abort(409, description="This room is no longer held for payment.")
@@ -602,6 +584,7 @@ def payment_notification_failed(room_id):
     save_confirmed_booking(selected_room, request.form, booking_reference)
     selected_room.status = "Booked"
     db.session.commit()
+    authorize_reservation(booking_reference)
     return render_template(
         "rooms/booking_confirmation.html",
         room=selected_room,
@@ -624,6 +607,7 @@ def release_temporary_hold(selected_room):
 
 
 def render_payment_result(room_id, payment_status):
+    begin_booking_transaction()
     selected_room = Room.query.get_or_404(room_id)
     hold_released = False
     if payment_status in {"failed", "pending"}:

@@ -19,6 +19,7 @@ from app.models.inventory import InventoryItem
 from app.models.room import Room
 from app.models.user import User
 from app.utils.pricing import calculate_nights, calculate_stay_total
+from app.utils.booking_lifecycle import reconcile_lapsed_bookings
 
 
 class NobleInnSyncTestCase(unittest.TestCase):
@@ -27,6 +28,7 @@ class NobleInnSyncTestCase(unittest.TestCase):
             "TESTING": True,
             "SECRET_KEY": "test-secret-key",
             "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "WTF_CSRF_ENABLED": False,
         })
         self.context = self.app.app_context()
         self.context.push()
@@ -217,7 +219,7 @@ class NobleInnSyncTestCase(unittest.TestCase):
         self.assertEqual(db.session.get(Room, room.id).status, "Booked")
         self.assertEqual(Booking.query.count(), 1)
         self.assertEqual(Accounting.query.count(), 1)
-        self.assertEqual(Booking.query.one().total_price, 342.7)
+        self.assertEqual(float(Booking.query.one().total_price), 342.7)
         self.assertEqual(Accounting.query.one().payment_status, "Paid")
         self.assertIn(b"Go Back Home", response.data)
         self.assertNotIn(b"View Status", response.data)
@@ -273,6 +275,9 @@ class NobleInnSyncTestCase(unittest.TestCase):
         db.session.commit()
 
         self.client.get("/")
+        self.assertEqual(db.session.get(Booking, booking.id).status, "Confirmed")
+
+        reconcile_lapsed_bookings()
 
         self.assertEqual(db.session.get(Booking, booking.id).status, "Cancelled")
         self.assertEqual(Accounting.query.one().payment_status, "Refunded")
@@ -416,15 +421,15 @@ class NobleInnSyncTestCase(unittest.TestCase):
         payment = booking.accounting[0]
         self._login("staff", "staff-pass")
 
-        self.client.get(f"/admin/bookings/{booking.id}/approve")
+        self.client.post(f"/admin/bookings/{booking.id}/approve")
         self.assertEqual(booking.status, "Confirmed")
         self.assertEqual(room.status, "Reserved")
 
-        self.client.get(f"/admin/bookings/{booking.id}/update-status/checked-in")
+        self.client.post(f"/admin/bookings/{booking.id}/update-status/checked-in")
         self.assertEqual(booking.status, "Checked In")
         self.assertEqual(room.status, "Occupied")
 
-        self.client.get(f"/admin/bookings/{booking.id}/update-status/checked-out")
+        self.client.post(f"/admin/bookings/{booking.id}/update-status/checked-out")
         self.assertEqual(booking.status, "Checked Out")
         self.assertEqual(room.status, "Available")
 
@@ -442,9 +447,9 @@ class NobleInnSyncTestCase(unittest.TestCase):
         })
         self.assertEqual(edited.status_code, 302)
         self.assertEqual(booking.guest_name, "Edited Guest")
-        self.assertEqual(booking.total_price, 514.05)
+        self.assertEqual(float(booking.total_price), 514.05)
         self.assertEqual(room.status, "Reserved")
-        self.assertEqual(payment.check_out, new_check_out)
+        self.assertEqual(payment.check_out.isoformat(), new_check_out)
 
         payment_update = self.client.post(
             f"/admin/bookings/{booking.id}/payment",
@@ -454,7 +459,7 @@ class NobleInnSyncTestCase(unittest.TestCase):
         self.assertEqual(payment.payment_status, "Paid")
         self.assertEqual(payment.payment_method, "Card")
 
-        self.client.get(f"/admin/bookings/{booking.id}/cancel")
+        self.client.post(f"/admin/bookings/{booking.id}/cancel")
         self.assertEqual(booking.status, "Cancelled")
         self.assertEqual(room.status, "Available")
 
@@ -504,9 +509,9 @@ class NobleInnSyncTestCase(unittest.TestCase):
         })
         self.assertEqual(edited.status_code, 302)
         self.assertEqual(room.room_number, "998")
-        self.assertEqual(room.price, 245)
+        self.assertEqual(float(room.price), 245)
 
-        deleted = self.client.get(f"/admin/rooms/{room.id}/delete")
+        deleted = self.client.post(f"/admin/rooms/{room.id}/delete")
         self.assertEqual(deleted.status_code, 302)
         self.assertIsNone(db.session.get(Room, room.id))
 
@@ -536,10 +541,71 @@ class NobleInnSyncTestCase(unittest.TestCase):
         ))
         db.session.commit()
 
+        self.assertEqual(
+            self.client.get("/booking-success/NIS-HOME").status_code,
+            404,
+        )
+
+        with self.client.session_transaction() as client_session:
+            client_session["authorized_reservations"] = [booking.reference_number]
+
         page = self.client.get("/booking-success/NIS-HOME").get_data(as_text=True)
 
         self.assertIn("GO BACK HOME", page)
         self.assertNotIn("VIEW STATUS", page)
+
+    def test_reservation_lookup_requires_exact_reference_and_guest_name(self):
+        booking = self._create_booking(reference="NIS-PRIVATE")
+
+        missing_name = self.client.get(
+            "/reservation-status",
+            query_string={"reference_number": booking.reference_number},
+        ).get_data(as_text=True)
+        self.assertNotIn(booking.email, missing_name)
+
+        wrong_name = self.client.get(
+            "/reservation-status",
+            query_string={
+                "reference_number": booking.reference_number,
+                "guest_name": "Wrong Guest",
+            },
+        ).get_data(as_text=True)
+        self.assertNotIn(booking.email, wrong_name)
+
+        found = self.client.get(
+            "/reservation-status",
+            query_string={
+                "reference_number": booking.reference_number,
+                "guest_name": booking.guest_name,
+            },
+        ).get_data(as_text=True)
+        self.assertIn(booking.email, found)
+
+    def test_mutating_admin_routes_reject_get_requests(self):
+        booking = self._create_booking()
+        room = self._single_room()
+        self._login("admin", "admin-pass")
+
+        urls = [
+            f"/admin/bookings/{booking.id}/approve",
+            f"/admin/bookings/{booking.id}/cancel",
+            f"/admin/bookings/{booking.id}/update-status/confirmed",
+            f"/admin/bookings/{booking.id}/delete",
+            f"/admin/rooms/{room.id}/delete",
+            "/admin/fix-room-status",
+            "/auth/logout",
+        ]
+        for url in urls:
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 405)
+
+    def test_csrf_rejects_post_without_a_token_when_enabled(self):
+        self.app.config["WTF_CSRF_ENABLED"] = True
+        response = self.client.post(
+            "/auth/staff-login",
+            data={"username": "admin", "password": "admin-pass"},
+        )
+        self.assertEqual(response.status_code, 400)
 
     def test_print_styles_hide_public_header_and_footer(self):
         booking_response = self.client.get("/static/css/booking.css")

@@ -14,6 +14,7 @@ def staff_login():
         user = User.query.filter_by(username=username, status="Active").first()
 
         if user and user.check_password(password):
+            session.clear()
             session["user_id"] = user.id
             session["username"] = user.username
             session["user_role"] = user.role
@@ -25,7 +26,7 @@ def staff_login():
     return render_template("auth/staff_login.html")
 
 
-@auth.route("/logout", methods=["GET", "POST"])
+@auth.route("/logout", methods=["POST"])
 def logout():
     session.clear()
     flash("You have been logged out.", "success")

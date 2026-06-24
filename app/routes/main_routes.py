@@ -1,6 +1,7 @@
 from flask import Blueprint, redirect, render_template, request, url_for
 from app.models.booking import Booking
 from app.models.room import Room
+from app.utils.reservations import authorize_reservation
 
 main = Blueprint("main", __name__)
 
@@ -69,13 +70,14 @@ def reservation_status():
     searched = bool(reference_number or guest_name)
     booking = None
 
-    if reference_number:
-        query = Booking.query.filter(Booking.reference_number.ilike(reference_number))
+    if reference_number and guest_name:
+        booking = Booking.query.filter(
+            Booking.reference_number.ilike(reference_number),
+            Booking.guest_name.ilike(guest_name),
+        ).first()
 
-        if guest_name:
-            query = query.filter(Booking.guest_name.ilike(f"%{guest_name}%"))
-
-        booking = query.first()
+        if booking:
+            authorize_reservation(booking.reference_number)
 
     payment = booking.accounting[0] if booking and booking.accounting else None
 

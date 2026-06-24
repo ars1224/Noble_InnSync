@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from app import db
+from app.models.types import utc_now
 
 
 class ActivityLog(db.Model):
@@ -10,5 +9,5 @@ class ActivityLog(db.Model):
     delivery_status = db.Column(db.String(30), nullable=False, default="Pending")
     created_by = db.Column(db.String(50), nullable=False)
     target_role = db.Column(db.String(30), nullable=False, default="manager")
-    created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, nullable=False, default=utc_now)
 

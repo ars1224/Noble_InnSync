@@ -240,24 +240,36 @@
 
                         <div class="booking-workflow-actions">
                             {% if booking.status == "Pending" %}
-                                <a href="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='confirmed') }}" class="workflow-action confirm">
-                                    <i class="fa-solid fa-check" aria-hidden="true"></i>
-                                    Confirm booking
-                                </a>
-                                <a href="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='cancelled') }}" class="workflow-action cancel">
-                                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-                                    Cancel booking
-                                </a>
+                                <form method="POST" action="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='confirmed') }}" class="workflow-action-form">
+                                    {% include '_csrf.html' %}
+                                    <button type="submit" class="workflow-action confirm">
+                                        <i class="fa-solid fa-check" aria-hidden="true"></i>
+                                        Confirm booking
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='cancelled') }}" class="workflow-action-form">
+                                    {% include '_csrf.html' %}
+                                    <button type="submit" class="workflow-action cancel">
+                                        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                                        Cancel booking
+                                    </button>
+                                </form>
                             {% elif booking.status == "Confirmed" %}
-                                <a href="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='checked-in') }}" class="workflow-action checkin">
-                                    <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
-                                    Check guest in
-                                </a>
+                                <form method="POST" action="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='checked-in') }}" class="workflow-action-form">
+                                    {% include '_csrf.html' %}
+                                    <button type="submit" class="workflow-action checkin">
+                                        <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+                                        Check guest in
+                                    </button>
+                                </form>
                             {% elif booking.status == "Checked In" %}
-                                <a href="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='checked-out') }}" class="workflow-action checkout">
-                                    <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
-                                    Check guest out
-                                </a>
+                                <form method="POST" action="{{ url_for('admin.update_booking_status', booking_id=booking.id, status='checked-out') }}" class="workflow-action-form">
+                                    {% include '_csrf.html' %}
+                                    <button type="submit" class="workflow-action checkout">
+                                        <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+                                        Check guest out
+                                    </button>
+                                </form>
                             {% else %}
                                 <div class="booking-workflow-complete">
                                     <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
@@ -271,14 +283,13 @@
                             </a>
 
                             {% if session.get("user_role") == "admin" %}
-                                <a
-                                    href="{{ url_for('admin.delete_booking', booking_id=booking.id) }}"
-                                    class="workflow-action delete"
-                                    onclick="return confirm('Delete booking {{ booking.reference_number }}? This cannot be undone.');"
-                                >
-                                    <i class="fa-solid fa-trash" aria-hidden="true"></i>
-                                    Delete booking
-                                </a>
+                                <form method="POST" action="{{ url_for('admin.delete_booking', booking_id=booking.id) }}" class="workflow-action-form" onsubmit="return confirm('Delete booking {{ booking.reference_number }}? This cannot be undone.');">
+                                    {% include '_csrf.html' %}
+                                    <button type="submit" class="workflow-action delete">
+                                        <i class="fa-solid fa-trash" aria-hidden="true"></i>
+                                        Delete booking
+                                    </button>
+                                </form>
                             {% endif %}
                         </div>
                     </section>

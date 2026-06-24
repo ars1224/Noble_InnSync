@@ -1,6 +1,5 @@
-from datetime import datetime
-
 from app import db
+from app.models.types import utc_now
 
 
 class InventoryItem(db.Model):
@@ -13,8 +12,8 @@ class InventoryItem(db.Model):
     updated_at = db.Column(
         db.DateTime,
         nullable=False,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow,
+        default=utc_now,
+        onupdate=utc_now,
     )
 
     @property

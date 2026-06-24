@@ -3,6 +3,7 @@ from flask.cli import with_appcontext
 
 from app import db
 from app.models.user import User
+from app.utils.booking_lifecycle import reconcile_lapsed_bookings
 
 
 @click.command("create-user")
@@ -73,3 +74,11 @@ def list_users_command():
 
     for user in users:
         click.echo(f"{user.username}\t{user.role}\t{user.status}\t{user.full_name}")
+
+
+@click.command("reconcile-bookings")
+@with_appcontext
+def reconcile_bookings_command():
+    """Cancel lapsed bookings and release rooms in a scheduled task."""
+    updated = reconcile_lapsed_bookings()
+    click.echo(f"Reconciled {updated} lapsed booking(s).")
