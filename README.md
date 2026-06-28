@@ -134,6 +134,7 @@ Noble_InnSync/
 * View room details, photos, capacity, amenities, and pricing
 * Smart room allocation for guest capacity
 * Complete a booking request
+* Server-side validation for guest contact details and card payment fields
 * View booking confirmation and reservation status
 * Return to the booking homepage from either confirmation flow
 * Print or save only the reservation details as PDF (page navigation and footer are excluded)
@@ -156,8 +157,8 @@ Noble_InnSync/
 
 ### Scheduled Booking Lifecycle
 
-* Lapsed unpaid and Pay on Arrival bookings are automatically cancelled after their checkout date has passed
-* Paid card bookings remain confirmed and are not automatically refunded
+* Lapsed active bookings are automatically cancelled after their checkout date has passed
+* Paid card payments on lapsed bookings are marked as refunded
 * Rooms from cancelled lapsed bookings are released when they are not needed by another active booking
 * Cancelled and already checked-out bookings are left unchanged
 
@@ -215,9 +216,10 @@ The following workflows have been checked for the final prototype:
 * Room details display capacity, room information, and booking actions
 * Smart room allocation suggests rooms based on adult and child guest count
 * Single rooms are blocked when the guest count exceeds room capacity
+* Booking form rejects invalid email, NZ-style phone, and card payment details before saving
 * Booking total includes 15% tax/fees across guest and admin workflows
 * Failed and pending payment flows release temporary room holds
-* Scheduled reconciliation cancels lapsed unpaid bookings and preserves paid card bookings
+* Scheduled reconciliation cancels lapsed bookings and refunds paid card records
 * Reservation status lookup displays booking details
 * Reservation confirmation actions return guests to the booking homepage
 * Reservation print/PDF output excludes the site header and footer

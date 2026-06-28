@@ -1,3 +1,5 @@
+import re
+from datetime import date
 from decimal import Decimal
 
 from flask import Blueprint, abort, render_template, request, redirect, url_for
@@ -19,12 +21,104 @@ from app.utils.reservations import (
 booking = Blueprint("booking", __name__)
 
 TAX_RATE = 0.15
+EMAIL_PATTERN = re.compile(
+    r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
+)
+EXPIRY_PATTERN = re.compile(r"^\d{2}/\d{2}$")
+PAYMENT_METHODS = {"Pay on Arrival", "Card Payment"}
 
 
 def add_tax_and_fees(room_total):
     room_total = Decimal(str(room_total))
     tax_total = (room_total * Decimal(str(TAX_RATE))).quantize(Decimal("0.01"))
     return tax_total, (room_total + tax_total).quantize(Decimal("0.01"))
+
+
+def booking_form_values(source=None):
+    source = source or {}
+    return {
+        "guest_name": source.get("guest_name", "").strip(),
+        "email": source.get("email", "").strip(),
+        "phone": source.get("phone", "").strip(),
+        "check_in": source.get("check_in", "").strip(),
+        "check_out": source.get("check_out", "").strip(),
+        "adults": source.get("adults", "1") or "1",
+        "children": source.get("children", "0") or "0",
+        "selected_room_ids": source.get("selected_room_ids", "").strip(),
+        "payment_method": source.get("payment_method", "Pay on Arrival"),
+        "cardholder_name": source.get("cardholder_name", "").strip(),
+        "card_number": source.get("card_number", "").strip(),
+        "expiry": source.get("expiry", "").strip(),
+        "cvv": source.get("cvv", "").strip(),
+    }
+
+
+def render_booking_form(form_values=None, form_errors=None, status_code=200):
+    form_values = form_values or booking_form_values(request.args)
+    rendered_page = render_template(
+        "bookings/booking_form.html",
+        form_values=form_values,
+        form_errors=form_errors or [],
+        adults=form_values["adults"],
+        children=form_values["children"],
+        check_in=form_values["check_in"],
+        check_out=form_values["check_out"],
+    )
+    return rendered_page, status_code
+
+
+def validate_booking_form(form_values, today=None):
+    today = today or date.today()
+    errors = []
+
+    if not form_values["guest_name"]:
+        errors.append("Full name is required.")
+
+    if not EMAIL_PATTERN.fullmatch(form_values["email"]):
+        errors.append("Enter a valid email address, for example name@example.com.")
+
+    phone = form_values["phone"]
+    if not phone:
+        errors.append("Phone number is required.")
+    elif re.search(r"[^0-9\s]", phone):
+        errors.append("Phone number can contain digits and spaces only.")
+    else:
+        phone_digits = phone.replace(" ", "")
+        if not 9 <= len(phone_digits) <= 11:
+            errors.append("Phone number must contain 9 to 11 digits.")
+
+    if form_values["payment_method"] not in PAYMENT_METHODS:
+        errors.append("Choose a valid payment method.")
+
+    if form_values["payment_method"] == "Card Payment":
+        if not form_values["cardholder_name"]:
+            errors.append("Cardholder name is required.")
+
+        card_number = form_values["card_number"]
+        if re.search(r"[^0-9\s]", card_number):
+            errors.append("Card number can contain digits and spaces only.")
+        elif len(card_number.replace(" ", "")) != 16:
+            errors.append("Card number must contain exactly 16 digits.")
+
+        expiry = form_values["expiry"]
+        if not EXPIRY_PATTERN.fullmatch(expiry):
+            errors.append("Expiry date must use MM/YY format.")
+        else:
+            expiry_month = int(expiry[:2])
+            expiry_year = 2000 + int(expiry[-2:])
+
+            if not 1 <= expiry_month <= 12:
+                errors.append("Expiry month must be between 01 and 12.")
+            elif (
+                expiry_year < today.year
+                or (expiry_year == today.year and expiry_month < today.month)
+            ):
+                errors.append("Expiry date must not be expired.")
+
+        if not re.fullmatch(r"\d{3}", form_values["cvv"]):
+            errors.append("CVV must contain exactly 3 digits.")
+
+    return errors
 
 
 ROOM_RULES = {
@@ -148,15 +242,29 @@ def build_manual_room_plan(room_ids, adults, children, check_in="", check_out=""
 def book_room():
 
     if request.method == "POST":
-        try:
-            adults = max(1, int(request.form.get("adults", 1)))
-            children = max(0, int(request.form.get("children", 0)))
-        except (TypeError, ValueError):
-            return "Guest counts must be valid numbers.", 400
+        form_values = booking_form_values(request.form)
+        form_errors = validate_booking_form(form_values)
 
-        check_in = request.form.get("check_in")
-        check_out = request.form.get("check_out")
-        payment_method = request.form.get("payment_method", "Pay on Arrival")
+        try:
+            adults = int(form_values["adults"])
+            children = int(form_values["children"])
+        except (TypeError, ValueError):
+            adults = None
+            children = None
+            form_errors.append("Guest counts must be valid numbers.")
+
+        if adults is not None and adults < 1:
+            form_errors.append("Adults must be at least 1.")
+
+        if children is not None and children < 0:
+            form_errors.append("Children cannot be negative.")
+
+        if form_errors:
+            return render_booking_form(form_values, form_errors, 400)
+
+        check_in = form_values["check_in"]
+        check_out = form_values["check_out"]
+        payment_method = form_values["payment_method"]
         normalized_payment_method = (
             "Card" if payment_method == "Card Payment" else "Pay on Arrival"
         )
@@ -164,18 +272,37 @@ def book_room():
             "Paid" if normalized_payment_method == "Card" else "Unpaid"
         )
 
-        selected_room_ids = request.form.get("selected_room_ids", "").strip()
+        selected_room_ids = form_values["selected_room_ids"]
+        if selected_room_ids:
+            try:
+                room_ids = [
+                    int(room_id)
+                    for room_id in selected_room_ids.split(",")
+                    if room_id
+                ]
+            except ValueError:
+                return render_booking_form(
+                    form_values,
+                    ["Choose valid rooms for this booking."],
+                    400,
+                )
+        else:
+            room_ids = []
 
         begin_booking_transaction()
 
         if selected_room_ids:
-            room_ids = [int(room_id) for room_id in selected_room_ids.split(",") if room_id]
             room_plan = build_manual_room_plan(room_ids, adults, children, check_in, check_out)
         else:
             room_plan = suggest_rooms(adults, children, check_in, check_out)
 
         if not room_plan["can_fit"]:
-            return "Not enough available room capacity for this booking."
+            db.session.rollback()
+            return render_booking_form(
+                form_values,
+                ["Not enough available room capacity for this booking."],
+                400,
+            )
 
         try:
             nights, room_total = calculate_stay_total(
@@ -185,12 +312,13 @@ def book_room():
             )
             tax_total, total_price = add_tax_and_fees(room_total)
         except ValueError as error:
-            return str(error), 400
+            db.session.rollback()
+            return render_booking_form(form_values, [str(error)], 400)
 
         new_booking = Booking(
-            guest_name=request.form.get("guest_name"),
-            email=request.form.get("email"),
-            phone=request.form.get("phone"),
+            guest_name=form_values["guest_name"],
+            email=form_values["email"],
+            phone=form_values["phone"],
             check_in=check_in,
             check_out=check_out,
             adults=adults,
@@ -240,13 +368,7 @@ def book_room():
             )
         )
 
-    return render_template(
-        "bookings/booking_form.html",
-        adults=request.args.get("adults", 1),
-        children=request.args.get("children", 0),
-        check_in=request.args.get("check_in", ""),
-        check_out=request.args.get("check_out", "")
-    )
+    return render_booking_form()
 
 
 @booking.route("/booking-success/<reference_number>")

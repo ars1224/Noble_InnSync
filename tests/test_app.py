@@ -20,6 +20,7 @@ from app.models.room import Room
 from app.models.user import User
 from app.utils.pricing import calculate_nights, calculate_stay_total
 from app.utils.booking_lifecycle import reconcile_lapsed_bookings
+from app.utils.reservations import generate_reference_number
 
 
 class NobleInnSyncTestCase(unittest.TestCase):
@@ -109,6 +110,19 @@ class NobleInnSyncTestCase(unittest.TestCase):
             "children": "0",
         }
 
+    def _public_booking_form(self):
+        return {
+            "guest_name": "Jamie Tester",
+            "email": "jamie@example.com",
+            "phone": "021 123 4567",
+            "check_in": "2030-01-10",
+            "check_out": "2030-01-12",
+            "adults": "1",
+            "children": "0",
+            "selected_room_ids": "",
+            "payment_method": "Pay on Arrival",
+        }
+
     def _create_booking(self, reference="NIS-ADMIN", room=None, status="Pending"):
         room = room or self._single_room()
         check_in = (date.today() + timedelta(days=10)).isoformat()
@@ -186,6 +200,10 @@ class NobleInnSyncTestCase(unittest.TestCase):
 
         self.assertEqual(calculate_stay_total(149, "2030-01-10", "2030-01-12"), (2, 298.0))
 
+    def test_reference_numbers_are_compact_numeric_codes(self):
+        self.assertRegex(generate_reference_number(), r"^NIS\d{6}$")
+        self.assertRegex(generate_reference_number("WALK"), r"^WALK\d{6}$")
+
     def test_single_room_rejects_guests_over_capacity(self):
         room = self._single_room()
         form = self._guest_form()
@@ -237,6 +255,56 @@ class NobleInnSyncTestCase(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         room_numbers = {room["room_number"] for room in response.get_json()["rooms"]}
         self.assertNotIn("205", room_numbers)
+
+    def test_book_room_rejects_invalid_card_payment_details(self):
+        form = self._public_booking_form()
+        form.update({
+            "email": "john@email",
+            "phone": "021 23",
+            "payment_method": "Card Payment",
+            "cardholder_name": "",
+            "card_number": "1234 5678 9012",
+            "expiry": "13/26",
+            "cvv": "12",
+        })
+
+        response = self.client.post("/book-room", data=form)
+        page = response.get_data(as_text=True)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(Booking.query.count(), 0)
+        self.assertEqual(Accounting.query.count(), 0)
+        self.assertIn("Enter a valid email address", page)
+        self.assertIn("Phone number must contain 9 to 11 digits.", page)
+        self.assertIn("Cardholder name is required.", page)
+        self.assertIn("Card number must contain exactly 16 digits.", page)
+        self.assertIn("Expiry month must be between 01 and 12.", page)
+        self.assertIn("CVV must contain exactly 3 digits.", page)
+        self.assertIn('value="john@email"', page)
+        self.assertIn('value="021 23"', page)
+        self.assertIn('value="1234 5678 9012"', page)
+
+    def test_book_room_accepts_valid_card_payment_details(self):
+        future_expiry_year = (date.today().year + 2) % 100
+        form = self._public_booking_form()
+        form.update({
+            "payment_method": "Card Payment",
+            "cardholder_name": "Jamie Tester",
+            "card_number": "4242 4242 4242 4242",
+            "expiry": f"12/{future_expiry_year:02d}",
+            "cvv": "123",
+        })
+
+        response = self.client.post("/book-room", data=form)
+
+        self.assertEqual(response.status_code, 302)
+        booking = Booking.query.one()
+        payment = Accounting.query.one()
+        self.assertEqual(booking.email, "jamie@example.com")
+        self.assertEqual(booking.phone, "021 123 4567")
+        self.assertEqual(booking.status, "Confirmed")
+        self.assertEqual(payment.payment_status, "Paid")
+        self.assertEqual(payment.payment_method, "Card")
 
     def test_lapsed_booking_is_cancelled_and_paid_card_is_refunded(self):
         room = self._single_room()
@@ -483,7 +551,8 @@ class NobleInnSyncTestCase(unittest.TestCase):
         })
 
         self.assertEqual(response.status_code, 302)
-        walkin = Booking.query.filter(Booking.reference_number.like("WALK-%")).one()
+        walkin = Booking.query.one()
+        self.assertRegex(walkin.reference_number, r"^WALK\d{6}$")
         self.assertEqual(walkin.status, "Checked In")
         self.assertEqual(walkin.accounting[0].payment_method, "Cash")
         self.assertEqual(room.status, "Occupied")

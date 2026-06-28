@@ -11,6 +11,7 @@ from app.models.room import Room
 
 ACTIVE_STATUSES = {"Pending", "Confirmed", "Checked In"}
 AUTHORIZED_RESERVATIONS_KEY = "authorized_reservations"
+REFERENCE_NUMBER_DIGITS = 6
 
 
 def as_date(value):
@@ -77,8 +78,20 @@ def _unique_token(prefix, model, field_name):
             return value
 
 
+def _unique_numeric_reference(prefix, model, field_name):
+    field = getattr(model, field_name)
+    lower_bound = 10 ** (REFERENCE_NUMBER_DIGITS - 1)
+    range_size = 9 * lower_bound
+
+    while True:
+        number = secrets.randbelow(range_size) + lower_bound
+        value = f"{prefix}{number}"
+        if not db.session.execute(select(field).where(field == value)).first():
+            return value
+
+
 def generate_reference_number(prefix="NIS"):
-    return _unique_token(prefix, Booking, "reference_number")
+    return _unique_numeric_reference(prefix, Booking, "reference_number")
 
 
 def generate_transaction_number(prefix="TXN"):

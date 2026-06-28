@@ -19,7 +19,7 @@ def _checkout_date(booking):
 
 
 def reconcile_lapsed_bookings(today=None):
-    """Cancel lapsed unpaid/pay-on-arrival bookings and release rooms. Paid card bookings are kept."""
+    """Cancel lapsed bookings, refund paid card records, and release rooms."""
     today = today or date.today()
     bookings = Booking.query.all()
     bookings_with_checkout = [
@@ -38,24 +38,17 @@ def reconcile_lapsed_bookings(today=None):
     if not lapsed_bookings:
         return 0
 
-    bookings_to_cancel = []
-
     for booking in lapsed_bookings:
-        has_paid_card_payment = any(
-            payment.payment_status == "Paid"
-            and (payment.payment_method or "").strip().lower() in CARD_PAYMENT_METHODS
-            for payment in booking.accounting
-        )
+        for payment in booking.accounting:
+            is_paid_card_payment = (
+                payment.payment_status == "Paid"
+                and (payment.payment_method or "").strip().lower()
+                in CARD_PAYMENT_METHODS
+            )
+            if is_paid_card_payment:
+                payment.payment_status = "Refunded"
 
-        if has_paid_card_payment:
-            booking.status = "Confirmed"
-            continue
-
-        bookings_to_cancel.append(booking)
-
-    if not bookings_to_cancel:
-        db.session.commit()
-        return 0
+    bookings_to_cancel = lapsed_bookings
 
     cancelled_ids = {booking.id for booking in bookings_to_cancel}
 
