@@ -32,7 +32,14 @@ def create_app(test_config=None):
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = _load_secret_key(app)
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///noble_innsync.db"
+    
+    database_url = os.environ.get(
+    "DATABASE_URL",
+    "sqlite:///noble_innsync.db"
+)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+    
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SESSION_COOKIE_HTTPONLY"] = True
     app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
